@@ -4,24 +4,6 @@ SET session "timezone" = 'UTC';
 ALTER ROLE postgres SET timezone TO 'UTC';
 SELECT pg_reload_conf();
 
-SET session_replication_role = replica;
-
-TRUNCATE TABLE
-    notifications,
-    messages,
-    conversations,
-    reviews,
-    transactions,
-    bookings,
-    listing_photos,
-    availability,
-    listings,
-    admin_notification,
-    users
-RESTART IDENTITY CASCADE;
-
-SET session_replication_role = DEFAULT;
-
 INSERT INTO admin_notification (type) VALUES
 ('NewHostApplication'),
 ('ListingReported'),
@@ -44,7 +26,7 @@ INSERT INTO users (id, full_name, email, password_hash, date_of_birth, phone, ap
 (9, 'Grace Property', 'grace@host.com', '$2a$10$E.qfVFfN3B.sW/KocB.kReFYv/NnS8SBEsFl5.sLBS.SGOBCm.iTK', '1993-01-18', '+777777777', 'Pending', 'My answers.', 'path/to/docs_grace.pdf', '2025-01-12 12:00:00', '2025-01-13 12:00:00'),
 (10, 'Heidi Home', 'heidi@host.com', '$2a$10$E.qfVFfN3B.sW/KocB.kReFYv/NnS8SBEsFl5.sLBS.SGOBCm.iTK', '1985-03-22', '+888888888', 'Pending', 'Application answers.', 'path/to/docs_heidi.pdf', '2025-01-13 13:00:00', '2025-01-14 13:00:00');
 
-BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN;
 UPDATE users
 SET
     application_status = 'Approved',
@@ -56,7 +38,7 @@ WHERE
     AND application_status = 'Pending';
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN;
 UPDATE users
 SET
     application_status = 'Approved',
@@ -68,7 +50,7 @@ WHERE
     AND application_status = 'Pending';
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN;
 UPDATE users
 SET
     application_status = 'Approved',
@@ -80,7 +62,7 @@ WHERE
     AND application_status = 'Pending';
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN;
 UPDATE users
 SET
     application_status = 'Approved',
@@ -92,7 +74,7 @@ WHERE
     AND application_status = 'Pending';
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN;
 UPDATE users
 SET
     application_status = 'Approved',
@@ -104,7 +86,7 @@ WHERE
     AND application_status = 'Pending';
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN;
 DO $$
 DECLARE
     new_listing_id INT;
@@ -119,7 +101,7 @@ BEGIN
 END $$;
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN;
 DO $$
 DECLARE
     new_listing_id INT;
@@ -135,7 +117,7 @@ BEGIN
 END $$;
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN;
 DO $$
 DECLARE
     new_listing_id INT;
@@ -150,7 +132,7 @@ BEGIN
 END $$;
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN;
 DO $$
 DECLARE
     new_listing_id INT;
@@ -165,7 +147,7 @@ BEGIN
 END $$;
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN;
 DO $$
 DECLARE
     new_listing_id INT;
@@ -190,7 +172,7 @@ INSERT INTO availability VALUES
 (7, '2025-02-15', '2025-04-15', 180.00, '15:00', '11:00', 4),
 (8, '2025-03-01', '2025-03-31', 210.00, '15:00', '11:00', 5); 
 
-BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN;
 DO $$
 DECLARE new_booking_id INT;
 BEGIN
@@ -203,7 +185,7 @@ BEGIN
 END $$;
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN;
 DO $$
 DECLARE new_booking_id INT;
 BEGIN
@@ -216,7 +198,7 @@ BEGIN
 END $$;
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN;
 DO $$
 DECLARE new_booking_id INT;
 BEGIN
@@ -229,7 +211,7 @@ BEGIN
 END $$;
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN;
 DO $$
 DECLARE new_booking_id INT;
 BEGIN
@@ -242,7 +224,7 @@ BEGIN
 END $$;
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN;
 DO $$
 DECLARE new_booking_id INT;
 BEGIN
@@ -270,7 +252,7 @@ UPDATE transactions SET status = 'Failed' WHERE booking_id = 4;
 UPDATE bookings SET status = 'Confirmed', created_at = '2025-01-28 13:59:00' WHERE id = 5;
 UPDATE transactions SET status = 'Completed', paid_at = '2025-01-28 14:00:00' WHERE booking_id = 5;
 
-BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN;
 INSERT INTO reviews (id, rating, comment, guest_id, host_id, booking_id, created_at)
 VALUES (
     1,
@@ -283,7 +265,7 @@ VALUES (
 );
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN;
 INSERT INTO reviews (id, rating, comment, guest_id, host_id, booking_id, created_at)
 VALUES (
     2,
@@ -296,7 +278,7 @@ VALUES (
 );
 COMMIT;
 
-BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN;
 DO $$
 DECLARE
     original_tx_id INT;
@@ -336,6 +318,7 @@ BEGIN
 END $$;
 COMMIT;
 
+BEGIN;
 INSERT INTO conversations (id, guest_id, host_id, listing_id) VALUES (1, 5, 6, 1);
 INSERT INTO messages (author, content, conversation_id) VALUES
 ('Guest', 'Hi David, is the apartment pet-friendly?', 1),
@@ -351,6 +334,8 @@ INSERT INTO conversations (id, guest_id, host_id, listing_id) VALUES (3, 4, 9, 4
 INSERT INTO messages (author, content, conversation_id) VALUES
 ('Guest', 'Is the Wi-Fi fast? I need to work remotely.', 3);
 
+COMMIT;
+
 INSERT INTO notifications (type, content, user_id, booking_id)
 VALUES ('BookingConfirmed', 'Your booking for Cozy Downtown Apartment is confirmed!', 3, 1); 
 
@@ -359,9 +344,6 @@ VALUES ('BookingCanceled', 'Your booking for Quiet Suburban House has been cance
 
 INSERT INTO notifications (type, content, user_id, review_id)
 VALUES ('ReviewLeft', 'Alice G. left a 5-star review for your listing!', 6, 1); 
-
-INSERT INTO notifications (type, content, user_id, message_id)
-VALUES ('MessageReceived', 'You have a new message from Bob W.', 9, 7); 
 
 INSERT INTO notifications (type, content, user_id, admin_id, admin_notification_id)
 VALUES ('AdminNotice', 'A new host application from Heidi H. is ready for review.', 1, 1, 1); 
