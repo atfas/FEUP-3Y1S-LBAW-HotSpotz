@@ -1,9 +1,5 @@
 SET search_path TO lbaw2581;
 
-SET session "timezone" = 'UTC';
-ALTER ROLE postgres SET timezone TO 'UTC';
-SELECT pg_reload_conf();
-
 INSERT INTO admin_notification (type) VALUES
 ('NewHostApplication'),
 ('ListingReported'),
