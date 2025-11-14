@@ -1,3 +1,19 @@
+html{
+    --color-wine: #800020;
+    --color-gold: #CA7D22;
+    --color-light-gold: #E4A94F;
+    --color-light-purple: #882C4A;
+    --color-purple: #69172F;
+    --color-dark-purple: #4D0425;
+
+}
+
+.login-btn {
+    background-color: var(--color-wine);
+    border-color: var(--color-wine);
+
+  }
+
 body {
     background-color: #ffffff;
     color: #9b4dca;

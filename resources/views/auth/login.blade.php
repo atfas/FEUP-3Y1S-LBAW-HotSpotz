@@ -4,7 +4,7 @@
 <form method="POST" action="{{ route('login') }}">
     @csrf
 
-    <label for="email">E-mail</label>
+    <label for="email">E-mail o</label>
     <input
         id="email"
         name="email"
