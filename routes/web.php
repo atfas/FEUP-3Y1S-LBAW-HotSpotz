@@ -49,5 +49,15 @@ Route::controller(RegisterController::class)->group(function () {
     Route::post('/register', 'register');
 });
 
-// Admin (authentication required)
-Route::get('/admin', [AdminController::class, 'index'])->name('admin');
+// Admin routes (authentication required)
+// Route::get('/admin', [AdminController::class, 'index'])->name('admin');
+//Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+// Admin routes
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('index');
+    Route::get('/search-users', [AdminController::class, 'searchUsers'])->name('searchUsers');
+    Route::post('/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('toggleUserStatus');
+    Route::post('/users/{id}/toggle-admin', [AdminController::class, 'toggleAdminStatus'])->name('toggleAdminStatus');
+    Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('deleteUser');
+    Route::get('/statistics', [AdminController::class, 'getStatistics'])->name('statistics');
+});

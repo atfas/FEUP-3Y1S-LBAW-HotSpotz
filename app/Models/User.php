@@ -15,7 +15,14 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     // Disable default created_at and updated_at timestamps for this model.
-    public $timestamps  = false;
+    public $timestamps = false;
+
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'users';
 
     /**
      * The attributes that are mass assignable.
@@ -26,9 +33,22 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'full_name',
         'email',
-        'password',
+        'password_hash',
+        'date_of_birth',
+        'phone',
+        'profile_picture_url',
+        'is_active',
+        'is_blocked',
+        'is_admin',
+        'application_status',
+        'answers',
+        'verification_docs',
+        'payout_details',
+        'submitted_at',
+        'verified_at',
+        'verifier_id',
     ];
 
     /**
@@ -38,7 +58,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
+        'password_hash',
         'remember_token',
     ];
 
@@ -50,20 +70,39 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            // Ensures password is always hashed automatically when set.
-            'password' => 'hashed',
+            'is_active' => 'boolean',
+            'is_blocked' => 'boolean',
+            'is_admin' => 'boolean',
+            'date_of_birth' => 'date',
+            'registration_date' => 'datetime',
+            'submitted_at' => 'datetime',
+            'verified_at' => 'datetime',
         ];
+    }
+    
+    /**
+     * Scope a query to only include active users.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 
     /**
-     * Get the cards owned by this user.
-     *
-     * Defines a one-to-many relationship:
-     * a user can have multiple cards.
+     * Scope a query to only include admin users.
      */
-    public function cards(): HasMany
+    public function scopeAdmins($query)
     {
-        return $this->hasMany(Card::class);
+        return $query->where('is_admin', true);
+    }
+
+    /**
+     * Check if the user is an admin.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->is_admin && $this->is_active;
     }
 }
