@@ -9,10 +9,12 @@ html{
 }
 
 .login-btn {
-    background-color: var(--color-wine);
-    border-color: var(--color-wine);
+    background-color: var(--color-gold);
+    border-color: var(--color-gold);
+}
 
-  }
+
+
 
 body {
     background-color: #ffffff;

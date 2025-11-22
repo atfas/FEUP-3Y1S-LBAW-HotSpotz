@@ -1,0 +1,68 @@
+:root {
+    --color-wine: #800020;
+    --color-gold: #CA7D22;
+    --color-light-gold: #E4A94F;
+    --color-light-purple: #882C4A;
+    --color-purple: #69172F;
+    --color-dark-purple: #4D0425;
+}
+
+body {
+    background-color: white;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--color-wine);
+    border-bottom: 3px solid var(--color-wine);
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link {
+    color: var(--color-light-purple);
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--color-wine);
+}
+
+.btn-wine {
+    background-color: var(--color-wine);
+    border-color: var(--color-wine);
+    color: white;
+}
+
+.btn-wine:hover {
+    background-color: var(--color-purple);
+    border-color: var(--color-purple);
+    color: white;
+}
+
+.btn-outline-wine {
+    border-color: var(--color-wine);
+    color: var(--color-wine);
+}
+
+.btn-outline-wine:hover {
+    background-color: var(--color-wine);
+    color: white;
+}
+
+.table thead {
+    background-color: #f8f9fa;
+    color: var(--color-dark-purple);
+    font-weight: 600;
+}
+
+.action-btn {
+    border: none;
+    background: transparent;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}

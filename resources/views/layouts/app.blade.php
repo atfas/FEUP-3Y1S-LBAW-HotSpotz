@@ -75,17 +75,9 @@
             </div>
             </nav>
         
-
-
-            <header>
-            
-
-                <h1><a href="{{ route('cards.index') }}">Thingy!</a></h1>
-
                 @auth
-                    <a class="button" href="{{ url('/logout') }}"> Logout </a> <span>{{ Auth::user()->name }}</span>
+                   <a class="button" href="{{ url('/logout') }}"> Logout </a> <span>{{ Auth::user()->name }}</span>
                 @endauth
-            </header>
 
             <section id="content">
                 @yield('content')
