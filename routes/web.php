@@ -9,6 +9,9 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LogoutController;
 
+use App\Http\Controllers\AdminController;
+
+
 // Home
 Route::redirect('/', '/login');
 
@@ -17,7 +20,6 @@ Route::middleware('auth')->controller(CardController::class)->group(function () 
     Route::get('/cards', 'index')->name('cards.index');
     Route::get('/cards/{card}', 'show')->name('cards.show');
 });
-
 
 // API (authentication required)
 Route::middleware('auth')->controller(CardController::class)->group(function () {
@@ -46,3 +48,6 @@ Route::controller(RegisterController::class)->group(function () {
     Route::get('/register', 'showRegistrationForm')->name('register');
     Route::post('/register', 'register');
 });
+
+// Admin (authentication required)
+Route::get('/admin', [AdminController::class, 'index'])->name('admin');
