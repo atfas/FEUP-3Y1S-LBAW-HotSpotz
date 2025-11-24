@@ -10,10 +10,15 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LogoutController;
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\HomeController;
 
 
 // Home
-Route::redirect('/', '/login');
+Route::redirect('/', '/home');
+
+Route::controller(HomeController::class)->group(function () {
+    Route::get('/home', 'index')->name('home');
+}); 
 
 // Cards (authentication required)
 Route::middleware('auth')->controller(CardController::class)->group(function () {
