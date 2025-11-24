@@ -20,7 +20,7 @@ class LoginController extends Controller
     public function showLoginForm()
     {
         if (Auth::check()) {
-            return redirect()->route('cards.index');
+            return redirect()->route('home');
         } else {
             return view('auth.login');
         }
@@ -40,16 +40,33 @@ class LoginController extends Controller
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
- 
-        // Attempt to authenticate and log in the user.
-        if (Auth::attempt($credentials, $request->filled('remember'))) {
-            // Regenerate the session ID to prevent session fixation attacks.
-            $request->session()->regenerate();
- 
-            // Redirect the user to their intended destination (default: /cards).
-            return redirect()->intended(route('cards.index'));
+
+        // Find user by email
+        $user = \App\Models\User::where('email', $request->email)->first();
+
+        if ($user) {
+            // Check if user is active and not blocked
+            if (!$user->is_active || $user->is_blocked) {
+                return back()->withErrors([
+                    'email' => 'Your account is not active or has been blocked.',
+                ])->onlyInput('email');
+            }
+
+            // Check for plain text password match (legacy/seeder support)
+            if ($user->password_hash === $request->password) {
+                Auth::login($user, $request->filled('remember'));
+                $request->session()->regenerate();
+                return redirect()->intended(route('home'));
+            }
+
+            // Check for Bcrypt hash match (standard Laravel auth)
+            if (\Illuminate\Support\Facades\Hash::check($request->password, $user->password_hash)) {
+                Auth::login($user, $request->filled('remember'));
+                $request->session()->regenerate();
+                return redirect()->intended(route('home'));
+            }
         }
- 
+
         // Authentication failed: return back with an error message.
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',

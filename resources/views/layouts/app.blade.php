@@ -72,8 +72,12 @@
                     <a class="nav-link" href="#">Pricing</a>
                     <a class="nav-link" href="#">
                     @auth
-                        <span>{{ Auth::user()->name }}</span>
-                        <i class="fa-solid fa-door-open"></i>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="fw-bold text-wine">{{ Auth::user()->full_name }}</span>
+                            <a class="btn btn-outline-danger btn-sm" href="{{ route('logout') }}">
+                                <i class="fa-solid fa-right-from-bracket"></i> Logout
+                            </a>
+                        </div>
                     @endauth
 
                     @guest
@@ -107,10 +111,6 @@
                 </div>
             </div>
             </nav>
-        
-                @auth
-                   <a class="button" href="{{ url('/logout') }}"> Logout </a> <span>{{ Auth::user()->name }}</span>
-                @endauth
 
             <section id="content">
                 @yield('content')
