@@ -218,30 +218,28 @@ CREATE TRIGGER trigger_check_notification_constraints
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
-CREATE OR REPLACE FUNCTION soft_delete_user()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF OLD.is_active = true THEN
-        NEW.is_active = false;
-        NEW.full_name = '';
-        NEW.email = '';
-        NEW.password_hash = '';
-        NEW.date_of_birth = CURRENT_TIMESTAMP;
-        NEW.phone = NULL;
-        NEW.profile_picture_url = NULL;
-        NEW.registration_date = CURRENT_TIMESTAMP;
-        NEW.is_blocked = false;
-        NEW.is_admin = false;
-        NEW.application_status = NULL;
-        NEW.answers = NULL;
-        NEW.verification_docs = NULL;
-        NEW.payout_details = NULL;
-        NEW.submitted_at = NULL;
-        NEW.verified_at = NULL;
-        NEW.verifier_id = NULL;
-    END IF;
-    RETURN NEW;
-END;
+CREATE OR REPLACE FUNCTION soft_delete_user() 
+RETURNS TRIGGER AS $$ 
+BEGIN 
+    IF OLD.is_active = true AND NEW.is_active = false THEN 
+        NEW.full_name = 'Deleted User'; 
+        NEW.email = 'deleted_user_' || OLD.id || '@anonymized.local'; 
+        NEW.password_hash = ''; 
+        NEW.date_of_birth = NULL; 
+        NEW.phone = NULL; 
+        NEW.profile_picture_url = NULL; 
+        NEW.is_blocked = false; 
+        NEW.is_admin = false; 
+        NEW.application_status = NULL; 
+        NEW.answers = NULL; 
+        NEW.verification_docs = NULL; 
+        NEW.payout_details = NULL; 
+        NEW.submitted_at = NULL; 
+        NEW.verified_at = NULL; 
+        NEW.verifier_id = NULL; 
+    END IF; 
+    RETURN NEW; 
+END; 
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_soft_delete_user

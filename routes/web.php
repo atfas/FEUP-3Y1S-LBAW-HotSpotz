@@ -53,11 +53,12 @@ Route::controller(RegisterController::class)->group(function () {
 // Route::get('/admin', [AdminController::class, 'index'])->name('admin');
 //Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 // Admin routes
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminController::class, 'index'])->name('index');
-    Route::get('/search-users', [AdminController::class, 'searchUsers'])->name('searchUsers');
-    Route::post('/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('toggleUserStatus');
-    Route::post('/users/{id}/toggle-admin', [AdminController::class, 'toggleAdminStatus'])->name('toggleAdminStatus');
-    Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('deleteUser');
-    Route::get('/statistics', [AdminController::class, 'getStatistics'])->name('statistics');
+// Route::middleware(['auth'])->group(function () {
+Route::group([], function () {
+    Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
+    Route::get('/admin/search-users', [AdminController::class, 'searchUsers'])->name('admin.search-users');
+    
+    Route::post('/admin/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('admin.users.toggle-status');
+    Route::post('/admin/users/{id}/toggle-admin', [AdminController::class, 'toggleAdminStatus'])->name('admin.users.toggle-admin');
+    Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.destroy');
 });

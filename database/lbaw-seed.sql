@@ -218,30 +218,28 @@ CREATE TRIGGER trigger_check_notification_constraints
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
-CREATE OR REPLACE FUNCTION soft_delete_user()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF OLD.is_active = true THEN
-        NEW.is_active = false;
-        NEW.full_name = '';
-        NEW.email = '';
-        NEW.password_hash = '';
-        NEW.date_of_birth = CURRENT_TIMESTAMP;
-        NEW.phone = NULL;
-        NEW.profile_picture_url = NULL;
-        NEW.registration_date = CURRENT_TIMESTAMP;
-        NEW.is_blocked = false;
-        NEW.is_admin = false;
-        NEW.application_status = NULL;
-        NEW.answers = NULL;
-        NEW.verification_docs = NULL;
-        NEW.payout_details = NULL;
-        NEW.submitted_at = NULL;
-        NEW.verified_at = NULL;
-        NEW.verifier_id = NULL;
-    END IF;
-    RETURN NEW;
-END;
+CREATE OR REPLACE FUNCTION soft_delete_user() 
+RETURNS TRIGGER AS $$ 
+BEGIN 
+    IF OLD.is_active = true AND NEW.is_active = false THEN 
+        NEW.full_name = 'Deleted User'; 
+        NEW.email = 'deleted_user_' || OLD.id || '@anonymized.local'; 
+        NEW.password_hash = ''; 
+        NEW.date_of_birth = '1900-01-01'; 
+        NEW.phone = NULL; 
+        NEW.profile_picture_url = NULL; 
+        NEW.is_blocked = false; 
+        NEW.is_admin = false; 
+        NEW.application_status = NULL; 
+        NEW.answers = NULL; 
+        NEW.verification_docs = NULL; 
+        NEW.payout_details = NULL; 
+        NEW.submitted_at = NULL; 
+        NEW.verified_at = NULL; 
+        NEW.verifier_id = NULL; 
+    END IF; 
+    RETURN NEW; 
+END; 
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_soft_delete_user
@@ -254,7 +252,10 @@ CREATE TRIGGER trigger_soft_delete_user
 CREATE OR REPLACE FUNCTION check_verifier_is_admin()
 RETURNS TRIGGER AS $$
 BEGIN
-    if NEW.verifier_id IS NOT NULL AND (SELECT is_admin FROM users WHERE id = NEW.verifier_id) = false THEN
+    IF NEW.verified_at IS NOT NULL 
+       AND (OLD.verified_at IS NULL OR OLD.verified_at IS DISTINCT FROM NEW.verified_at)
+       AND NEW.verifier_id IS NOT NULL 
+       AND (SELECT is_admin FROM users WHERE id = NEW.verifier_id) = false THEN
         RAISE EXCEPTION 'verifier must be an admin';
     END IF;
     RETURN NEW;
@@ -642,7 +643,6 @@ CREATE INDEX idx_listings_search_fts
 CREATE INDEX idx_availability_overlap
     ON availability
     USING GiST (listing_id, daterange(start_date, end_date, '[]'));
-
 
 
 

@@ -31,6 +31,7 @@ class AdminController extends Controller
             'registration_date',
             'application_status'
         )
+        ->where('is_active', true) 
         ->orderBy('registration_date', 'desc')
         ->get()
         ->map(function ($user) {
@@ -93,29 +94,22 @@ class AdminController extends Controller
         return response()->json(['users' => $users]);
     }
 
-    /**
-     * Toggle user active status (enable/disable account).
-     */
-    public function toggleUserStatus(Request $request, $id): JsonResponse
+    public function toggleUserStatus(Request $request, $id)
     {
         $targetUser = User::findOrFail($id);
         
-        Gate::authorize('toggleUserStatus', [User::class, $targetUser]);
+        //Gate::authorize('toggleUserStatus', [User::class, $targetUser]);
 
-        $targetUser->is_active = !$targetUser->is_active;
+        $targetUser->is_blocked = !$targetUser->is_blocked;
         $targetUser->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => $targetUser->is_active ? 'User account enabled successfully.' : 'User account disabled successfully.',
-            'is_active' => $targetUser->is_active
-        ]);
+        return redirect()->route('admin.index')
+            ->with('success', $targetUser->is_active 
+                ? 'User account enabled successfully.' 
+                : 'User account disabled successfully.');
     }
 
-    /**
-     * Toggle admin status for a user.
-     */
-    public function toggleAdminStatus(Request $request, $id): JsonResponse
+    public function toggleAdminStatus(Request $request, $id)
     {
         $targetUser = User::findOrFail($id);
         
@@ -124,30 +118,23 @@ class AdminController extends Controller
         $targetUser->is_admin = !$targetUser->is_admin;
         $targetUser->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => $targetUser->is_admin ? 'User promoted to admin successfully.' : 'User unpromoted from admin successfully.',
-            'is_admin' => $targetUser->is_admin
-        ]);
+        return redirect()->route('admin.index')
+            ->with('success', $targetUser->is_admin 
+                ? 'User promoted to admin successfully.' 
+                : 'User unpromoted from admin successfully.');
     }
 
-    /**
-     * Delete a user (soft delete).
-     */
-    public function deleteUser($id): JsonResponse
+    public function deleteUser($id)
     {
         $targetUser = User::findOrFail($id);
         
         //Gate::authorize('deleteUser', [User::class, $targetUser]);
 
-        // The soft delete trigger will handle the data anonymization
         $targetUser->is_active = false;
         $targetUser->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'User deleted successfully.'
-        ]);
+        return redirect()->route('admin.index')
+            ->with('success', 'User deleted successfully.');
     }
 
     /**
