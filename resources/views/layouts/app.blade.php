@@ -18,10 +18,43 @@
         <script src="https://kit.fontawesome.com/b3a434d82b.js" crossorigin="anonymous"></script>
         @stack('scripts')
     </head>
+    <style>
+        body {
+            /* Wine color gradient */
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); /* Soft fallback */
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); /* Soft blue/grey */
+            background: linear-gradient(to right, #722F37 0%, #990000 100%); /* Wine/Deep Red */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        #content {
+            flex: 1;
+        }
+        .card {
+            border: none;
+            border-radius: 1rem;
+        }
+        .btn-primary {
+            background-color: #722F37; /* Wine color */
+            border-color: #722F37;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #59232b; /* Darker wine */
+            border-color: #59232b;
+        }
+        .text-wine {
+            color: #722F37 !important;
+        }
+    </style>
     <body>
         <main>
-            
-
             <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
                 <a class="navbar-brand" href="#">
@@ -83,7 +116,7 @@
                 @yield('content')
             </section>
 
-            <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <nav class="navbar navbar-expand-lg bg-body-tertiary mt-auto">
             <div class="container-fluid">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">

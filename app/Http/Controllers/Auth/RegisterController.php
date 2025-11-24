@@ -37,16 +37,20 @@ class RegisterController extends Controller
     {
         // Validate registration input.
         $request->validate([
-            'name' => 'required|string|max:250',
-            'email' => 'required|email|max:250|unique:users',
-            'password' => 'required|min:8|confirmed'
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users',
+            'password' => 'required|min:8|confirmed',
+            'date_of_birth' => 'required|date|before:-18 years',
+            'phone' => ['required', 'string', 'regex:/^\+[0-9]{1,3}[0-9]{4,14}$/'],
         ]);
 
         // Create the new user.
         User::create([
-            'name' => $request->name,
+            'full_name' => $request->full_name,
             'email' => $request->email,
-            'password' => Hash::make($request->password)
+            'password_hash' => Hash::make($request->password),
+            'date_of_birth' => $request->date_of_birth,
+            'phone' => $request->phone,
         ]);
 
         // Attempt login for the newly registered user.
