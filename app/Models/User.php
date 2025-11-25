@@ -105,4 +105,15 @@ class User extends Authenticatable
     {
         return $this->is_admin && $this->is_active;
     }
+
+    /**
+     * Get the password for the user.
+     *
+     * @return string
+     */
+    public function getAuthPassword()
+    {
+        return $this->password_hash;
+    }
+
 }

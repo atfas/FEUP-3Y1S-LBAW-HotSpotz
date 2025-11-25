@@ -18,10 +18,43 @@
         <script src="https://kit.fontawesome.com/b3a434d82b.js" crossorigin="anonymous"></script>
         @stack('scripts')
     </head>
+    <style>
+        body {
+            /* Wine color gradient */
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); /* Soft fallback */
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); /* Soft blue/grey */
+            background: linear-gradient(to right, #722F37 0%, #990000 100%); /* Wine/Deep Red */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        #content {
+            flex: 1;
+        }
+        .card {
+            border: none;
+            border-radius: 1rem;
+        }
+        .btn-primary {
+            background-color: #722F37; /* Wine color */
+            border-color: #722F37;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #59232b; /* Darker wine */
+            border-color: #59232b;
+        }
+        .text-wine {
+            color: #722F37 !important;
+        }
+    </style>
     <body>
         <main>
-            
-
             <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
                 <a class="navbar-brand" href="#">
@@ -39,51 +72,28 @@
                     <a class="nav-link" href="#">Pricing</a>
                     <a class="nav-link" href="#">
                     @auth
-                        <span>{{ Auth::user()->name }}</span>
-                        <i class="fa-solid fa-door-open"></i>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="fw-bold text-wine">{{ Auth::user()->full_name }}</span>
+                            <a class="btn btn-outline-danger btn-sm" href="{{ route('logout') }}">
+                                <i class="fa-solid fa-right-from-bracket"></i> Logout
+                            </a>
+                        </div>
                     @endauth
 
                     @guest
-                        <div class="dropdown">
-                        <button type="button" class="login-btn btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                            Login
-                        </button>
-                        <form class="dropdown-menu p-4 dropdown-menu-end" style="width: 300px;">
-                            <div class="mb-3">
-                            <label for="exampleDropdownFormEmail2" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="exampleDropdownFormEmail2" placeholder="email@example.com">
-                            </div>
-                            <div class="mb-3">
-                            <label for="exampleDropdownFormPassword2" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="exampleDropdownFormPassword2" placeholder="Password">
-                            </div>
-                            <div class="mb-3">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" id="dropdownCheck2">
-                                <label class="form-check-label" for="dropdownCheck2">
-                                Remember me
-                                </label>
-                            </div>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Sign in</button>
-                        </form>
-                        </div>
+                        <a class="btn btn-primary" href="{{ route('login') }}">Login</a>
                     @endguest
                     </a>
                 </div>
                 </div>
             </div>
             </nav>
-        
-                @auth
-                   <a class="button" href="{{ url('/logout') }}"> Logout </a> <span>{{ Auth::user()->name }}</span>
-                @endauth
 
             <section id="content">
                 @yield('content')
             </section>
 
-            <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <nav class="navbar navbar-expand-lg bg-body-tertiary mt-auto">
             <div class="container-fluid">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
