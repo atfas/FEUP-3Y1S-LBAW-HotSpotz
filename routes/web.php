@@ -81,4 +81,7 @@ Route::middleware('auth')->controller(ProfileController::class)->group(function 
     Route::delete('/profile/picture', 'deletePicture')->name('profile.picture.delete');
 });
 
+
+// Booking routes
 Route::get('/booking/{listing}', [BookingController::class, 'show'])->name('booking.show');
+Route::post('/bookings', [BookingController::class, 'store'])->middleware('auth')->name('bookings.store');

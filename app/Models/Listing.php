@@ -43,4 +43,12 @@ class Listing extends Model
     {
         return $this->belongsTo(User::class, 'host_id');
     }
+
+    /**
+     * Get all availability periods for this listing.
+     */
+    public function availabilities(): HasMany
+    {
+        return $this->hasMany(Availability::class);
+    }
 }

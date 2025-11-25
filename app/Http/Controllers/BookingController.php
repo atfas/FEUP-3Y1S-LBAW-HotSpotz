@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Models\Availability;
+use App\Models\Booking;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -12,8 +15,103 @@ use Illuminate\Support\Facades\Gate;
 
 class BookingController extends Controller
 {
+    /**
+     * Show the booking form for a specific listing.
+     */
     public function show(Listing $listing): View
     {
-        return view('pages.booking', compact('listing'));
+        // Load the listing with its availabilities
+        $listing->load('availabilities');
+        
+        return view('pages.booking',compact('listing'));
     }
-} 
+    
+    /**
+     * Store a new booking in the database.
+     */
+    public function store(Request $request)
+    {
+        // Validate the booking input
+        $validated = $request->validate([
+            'listing_id' => 'required|exists:listings,id',
+            'availability_id' => 'required|exists:availability,id',
+            'check_in_date' => 'required|date',
+            'check_out_date' => 'required|date|after:check_in_date',
+            'num_guests' => 'required|integer|min:1',
+        ]);
+        
+        $listing = Listing::findOrFail($validated['listing_id']);
+        $availability = Availability::findOrFail($validated['availability_id']);
+        
+        $checkIn = Carbon::parse($validated['check_in_date']);
+        $checkOut = Carbon::parse($validated['check_out_date']);
+        
+        // min stay
+        $stayDuration = $checkIn->diffInDays($checkOut);
+        if ($stayDuration < $listing->minimum_stay) {
+            return back()->withErrors([
+                'check_out_date' => "Min stay is {$listing->minimum_stay} nights."
+            ])->withInput();
+        }
+        
+        // max guests
+        if ($validated['num_guests'] > $listing->max_occupancy) {
+            return back()->withErrors([
+                'num_guests' => "Max guests is {$listing->max_occupancy}."
+            ])->withInput();
+        }
+        
+        // dates are within availability dates
+        $availStart = Carbon::parse($availability->start_date);
+        $availEnd = Carbon::parse($availability->end_date);
+        
+        if ($checkIn->lt($availStart) || $checkOut->gt($availEnd)) {
+            return back()->withErrors([
+                'check_in_date' => 'dates are outside the available period.'
+            ])->withInput();
+        }
+        
+        // bookings on the same days
+        $hasOverlap = DB::table('bookings as b')
+            ->join('availability as a', 'b.availability_id', '=', 'a.id')
+            ->where('a.listing_id', $listing->id)
+            ->whereIn('b.status', ['PendingPayment', 'Confirmed'])
+            ->where(function($query) use ($checkIn, $checkOut) {
+                $query->whereBetween('b.check_in_date', [$checkIn, $checkOut])
+                    ->orWhereBetween('b.check_out_date', [$checkIn, $checkOut])
+                    ->orWhere(function($q) use ($checkIn, $checkOut) {
+                        $q->where('b.check_in_date', '<=', $checkIn)
+                          ->where('b.check_out_date', '>=', $checkOut);
+                    });
+            })
+            ->exists();
+        
+        if ($hasOverlap) {
+            return back()->withErrors([
+                'check_in_date' => 'dates overlap'
+            ])->withInput();
+        }
+        
+        $totalPrice = $stayDuration * $availability->price_per_night;
+        
+        try {
+            $booking = Booking::create([
+                'check_in_date' => $checkIn->toDateString(),
+                'check_out_date' => $checkOut->toDateString(),
+                'num_guests' => $validated['num_guests'],
+                'status' => 'PendingPayment',
+                'total_price' => $totalPrice,
+                'availability_id' => $validated['availability_id'],
+                'guest_id' => Auth::id(),
+            ]);
+            
+            return redirect()->route('profile.show')
+                ->with('success', 'Sucess total: $' . $totalPrice);
+                
+        } catch (\Exception $e) {
+            return back()->withErrors([
+                'error' => 'Failed to create booking: ' . $e->getMessage()
+            ])->withInput();
+        }
+    }
+}
