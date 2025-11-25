@@ -19,7 +19,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-5">
                         <div class="d-flex align-items-center gap-4">
                             <!-- Avatar Container -->
-                            <div class="position-relative" style="width: 120px; height: 120px;">
+                            <div class="position-relative rounded-circle" style="width: 120px; height: 120px; border: 4px solid #722F37;">
                                 @if($user->profile_picture_url)
                                     <img src="{{ $user->profile_picture_url }}" alt="Profile" class="rounded-circle w-100 h-100" style="object-fit: cover;">
                                 @else
@@ -29,9 +29,20 @@
                                 @endif
 
                                 <!-- Edit/Add Picture Button -->
-                                <a href="{{ route('profile.picture.edit') }}" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center shadow-sm border-2 border-white" style="width: 35px; height: 35px; background-color: #722F37; border-color: #fff !important;">
+                                <a href="{{ route('profile.picture.edit') }}" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center shadow-sm border-2 border-wine" style="width: 35px; height: 35px; background-color: #722F37; border-color: #fff !important;">
                                     <i class="fa-solid fa-pencil" style="font-size: 0.9rem;"></i>
                                 </a>
+
+                                <!-- Delete Picture Button -->
+                                @if($user->profile_picture_url)
+                                    <form action="{{ route('profile.picture.delete') }}" method="POST" class="position-absolute bottom-0 start-0">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger rounded-circle d-flex align-items-center justify-content-center shadow-sm border-2 border-white" style="width: 35px; height: 35px; border-color: #fff !important;" onclick="return confirm('Are you sure you want to remove your profile picture?')">
+                                            <i class="fa-solid fa-trash" style="font-size: 0.9rem;"></i>
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                             
                             <!-- Name and Email -->

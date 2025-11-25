@@ -76,4 +76,16 @@ class ProfileController extends Controller
 
         return redirect()->route('profile.show')->with('success', 'Profile picture updated successfully!');
     }
+
+    /**
+     * Delete the user's profile picture.
+     */
+    public function deletePicture(): RedirectResponse
+    {
+        $user = Auth::user();
+        $user->profile_picture_url = null;
+        $user->save();
+
+        return redirect()->route('profile.show')->with('success', 'Profile picture removed successfully!');
+    }
 }
