@@ -73,7 +73,9 @@
                     <a class="nav-link" href="#">
                     @auth
                         <div class="d-flex align-items-center gap-3">
-                            <span class="fw-bold text-wine">{{ Auth::user()->full_name }}</span>
+                            <a href="{{ route('profile.show') }}" class="fw-bold text-wine text-decoration-none">
+                                {{ Auth::user()->full_name }}
+                            </a>
                             <a class="btn btn-outline-danger btn-sm" href="{{ route('logout') }}">
                                 <i class="fa-solid fa-right-from-bracket"></i> Logout
                             </a>
