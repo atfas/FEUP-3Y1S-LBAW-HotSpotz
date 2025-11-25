@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BookingController;
 
 
 // Home
@@ -79,3 +80,5 @@ Route::middleware('auth')->controller(ProfileController::class)->group(function 
     Route::put('/profile/picture', 'updatePicture')->name('profile.picture.update');
     Route::delete('/profile/picture', 'deletePicture')->name('profile.picture.delete');
 });
+
+Route::get('/booking', [BookingController::class, 'show'])->name('booking.show');
