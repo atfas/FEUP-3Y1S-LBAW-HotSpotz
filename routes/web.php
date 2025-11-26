@@ -60,10 +60,9 @@ Route::controller(RegisterController::class)->group(function () {
 //Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 // Admin routes
 // Route::middleware(['auth'])->group(function () {
-Route::group([], function () {
+Route::middleware('auth')->group(function () {
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
     Route::get('/admin/search-users', [AdminController::class, 'searchUsers'])->name('admin.search-users');
-    Route::get('/statistics', [AdminController::class, 'getStatistics'])->name('statistics');
     
     Route::post('/admin/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('admin.users.toggle-status');
     Route::post('/admin/users/{id}/toggle-admin', [AdminController::class, 'toggleAdminStatus'])->name('admin.users.toggle-admin');
@@ -79,3 +78,4 @@ Route::middleware('auth')->controller(ProfileController::class)->group(function 
     Route::put('/profile/picture', 'updatePicture')->name('profile.picture.update');
     Route::delete('/profile/picture', 'deletePicture')->name('profile.picture.delete');
 });
+
