@@ -63,18 +63,16 @@
                             </a>
 
                             @auth
-                            
+
                                 @if(Auth::user()->is_admin)
                                     <a class="nav-link" href="{{ route('admin.index') }}">
                                         <i class="fas fa-cog icon"></i><span class="nav-text">Admin Dashboard</span>
                                     </a>
                                 @endif
-
-                                <a class="nav-link" href="{{ route('profile.show') }}">
-                                    
-                                    <span>{{ Auth::user()->full_name }}</span>
+                                
+                                <a href="{{ route('profile.show') }}" class="nav-link fw-bold">
+                                    {{ Auth::user()->full_name }}
                                 </a>
-
 
                                 <a class="btn btn-outline-danger btn-sm ms-2" href="{{ route('logout') }}">
                                     <i class="fas fa-sign-out-alt icon"></i> 

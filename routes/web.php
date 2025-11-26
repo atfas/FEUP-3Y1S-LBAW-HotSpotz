@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BookingController;
 
 
 // Home
@@ -76,3 +77,13 @@ Route::middleware('auth')->controller(ProfileController::class)->group(function 
     Route::delete('/profile/picture', 'deletePicture')->name('profile.picture.delete');
 });
 
+
+// Booking routes
+Route::get('/booking/{listing}', [BookingController::class, 'show'])->name('booking.show');
+Route::middleware('auth')->controller(BookingController::class)->group(function () {
+    Route::post('/bookings', 'store')->name('bookings.store');
+    Route::get('/bookings', 'index')->name('bookings.index');
+    Route::get('/bookings/{booking}/edit', 'edit')->name('bookings.edit');
+    Route::put('/bookings/{booking}', 'update')->name('bookings.update');
+    Route::delete('/bookings/{booking}', 'destroy')->name('bookings.destroy');
+});
