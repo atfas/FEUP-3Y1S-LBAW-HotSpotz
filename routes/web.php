@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\LogoutController;
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProfileController;
 
 
 // Home
@@ -64,3 +65,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/users/{id}/toggle-admin', [AdminController::class, 'toggleAdminStatus'])->name('admin.users.toggle-admin');
     Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.destroy');
 });
+
+// Profile routes (authentication required)
+Route::middleware('auth')->controller(ProfileController::class)->group(function () {
+    Route::get('/profile', 'show')->name('profile.show');
+    Route::get('/profile/edit', 'edit')->name('profile.edit');
+    Route::put('/profile', 'update')->name('profile.update');
+    Route::get('/profile/picture', 'editPicture')->name('profile.picture.edit');
+    Route::put('/profile/picture', 'updatePicture')->name('profile.picture.update');
+    Route::delete('/profile/picture', 'deletePicture')->name('profile.picture.delete');
+});
+
