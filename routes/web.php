@@ -61,7 +61,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
     Route::get('/admin/search-users', [AdminController::class, 'searchUsers'])->name('admin.search-users');
-    Route::get('/statistics', [AdminController::class, 'getStatistics'])->name('statistics');
     
     Route::post('/admin/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('admin.users.toggle-status');
     Route::post('/admin/users/{id}/toggle-admin', [AdminController::class, 'toggleAdminStatus'])->name('admin.users.toggle-admin');

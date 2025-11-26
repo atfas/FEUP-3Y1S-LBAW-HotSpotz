@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Profile Picture')
-
 @section('content')
 <div class="container py-5">
     <div class="row justify-content-center">
@@ -17,9 +15,9 @@
 
                         <div class="mb-4 text-center">
                             @if($user->profile_picture_url)
-                                <img src="{{ $user->profile_picture_url }}" alt="Profile" class="rounded-circle mb-3 w-100 h-100" style="object-fit: cover;">
+                                <img src="{{ $user->profile_picture_url }}" alt="Profile" class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
                             @else
-                                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto text-wine mb-3 w-100 h-100" style="font-size: 3rem; background-color: #f8f9fa; border: 4px solid #722F37;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto text-wine mb-3" style="width: 120px; height: 120px; font-size: 3rem; background-color: #f8f9fa; border: 4px solid #722F37;">
                                     {{ strtoupper(substr($user->full_name, 0, 1)) }}
                                 </div>
                             @endif

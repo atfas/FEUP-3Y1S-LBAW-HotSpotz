@@ -25,7 +25,7 @@
             <nav class="navbar navbar-expand-lg navbar-custom" style="position: sticky; top: 0; z-index: 1000;">
                 <div class="container-fluid px-4">
                     <a class="navbar-brand" href="{{ route('home') }}">
-                        <img src="assets/hotSpotzLogo.png" alt="HotSpotz Logo" width="180px" class="d-inline-block align-text-top">
+                        <img src="{{ asset('assets/hotSpotzLogo.png') }}" alt="HotSpotz Logo" width="180px" class="d-inline-block align-text-top">
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
@@ -124,11 +124,11 @@
                         </div>
 
                          <div class="modal-body d-flex justify-content-center align-items-center">
-                            <span>
+                            <span class="text-center">
                                 Afonso Saraiva - <a href="mailto:up202304461@up.pt">up202304461</a><br>
-                                Afonso Saraiva - <a href="mailto:up202304461@up.pt">up202304461</a><br>
-                                Afonso Saraiva - <a href="mailto:up202304461@up.pt">up202304461</a><br>
-                                Afonso Saraiva - <a href="mailto:up202304461@up.pt">up202304461</a>
+                                Inês Francisco - <a href="mailto:up202304912@up.pt">up202304912</a><br>
+                                Pedro Peixoto - <a href="mailto:up202304912@up.pt">up202304912</a><br>
+                                Vasco Alves - <a href="mailto:up202304912@up.pt">up202304912</a>
                             </span>
                         </div>
                     </div>
