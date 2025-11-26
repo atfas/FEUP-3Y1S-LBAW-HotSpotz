@@ -25,7 +25,7 @@
             <nav class="navbar navbar-expand-lg navbar-custom" style="position: sticky; top: 0; z-index: 1000;">
                 <div class="container-fluid px-4">
                     <a class="navbar-brand" href="{{ route('home') }}">
-                        <img src="assets/hotSpotzLogo.png" alt="HotSpotz Logo" width="180px" class="d-inline-block align-text-top">
+                        <img src="{{ asset('assets/hotSpotzLogo.png') }}" alt="HotSpotz Logo" width="180px" class="d-inline-block align-text-top">
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
@@ -64,16 +64,17 @@
 
                             @auth
                             
-                                <a class="nav-link" href="#">
-                                    
-                                    <span>{{ Auth::user()->full_name }}</span>
-                                </a>
-
                                 @if(Auth::user()->is_admin)
                                     <a class="nav-link" href="{{ route('admin.index') }}">
                                         <i class="fas fa-cog icon"></i><span class="nav-text">Admin Dashboard</span>
                                     </a>
                                 @endif
+
+                                <a class="nav-link" href="">
+                                    
+                                    <span>{{ Auth::user()->full_name }}</span>
+                                </a>
+
 
                                 <a class="btn btn-outline-danger btn-sm ms-2" href="{{ route('logout') }}">
                                     <i class="fas fa-sign-out-alt icon"></i> 
