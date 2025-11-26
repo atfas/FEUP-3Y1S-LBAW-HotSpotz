@@ -11,6 +11,8 @@ use App\Http\Controllers\Auth\LogoutController;
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ListingController;
+use App\Http\Controllers\SearchController;
 
 
 // Home
@@ -19,6 +21,10 @@ Route::redirect('/', '/home');
 Route::controller(HomeController::class)->group(function () {
     Route::get('/home', 'index')->name('home');
 }); 
+
+// Listing show
+Route::get('/listing/{id}', [ListingController::class, 'show'])->name('listing.show');
+Route::get('/search', [SearchController::class, 'index'])->name('search');
 
 // Cards (authentication required)
 Route::middleware('auth')->controller(CardController::class)->group(function () {
