@@ -70,7 +70,7 @@
                                     </a>
                                 @endif
 
-                                <a class="nav-link" href="">
+                                <a class="nav-link" href="{{ route('profile.show') }}">
                                     
                                     <span>{{ Auth::user()->full_name }}</span>
                                 </a>
