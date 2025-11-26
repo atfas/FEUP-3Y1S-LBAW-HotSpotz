@@ -57,11 +57,8 @@ Route::controller(RegisterController::class)->group(function () {
 });
 
 // Admin routes (authentication required)
-// Route::get('/admin', [AdminController::class, 'index'])->name('admin');
-//Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-// Admin routes
-// Route::middleware(['auth'])->group(function () {
-Route::group([], function () {
+Route::middleware(['auth'])->group(function () {
+
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
     Route::get('/admin/search-users', [AdminController::class, 'searchUsers'])->name('admin.search-users');
     Route::get('/statistics', [AdminController::class, 'getStatistics'])->name('statistics');
