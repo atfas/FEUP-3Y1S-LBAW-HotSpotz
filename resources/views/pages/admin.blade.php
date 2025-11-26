@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Admin Panel')
 
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/admin.panel.css') }}">

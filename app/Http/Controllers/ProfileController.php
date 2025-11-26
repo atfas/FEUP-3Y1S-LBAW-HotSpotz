@@ -14,8 +14,11 @@ class ProfileController extends Controller
      */
     public function show(): View
     {
+        $user = Auth::user();
+        $this->authorize('view', $user);
+
         return view('pages.profile', [
-            'user' => Auth::user()
+            'user' => $user
         ]);
     }
 
@@ -24,8 +27,11 @@ class ProfileController extends Controller
      */
     public function edit(): View
     {
+        $user = Auth::user();
+        $this->authorize('update', $user);
+
         return view('pages.edit_profile', [
-            'user' => Auth::user()
+            'user' => $user
         ]);
     }
 
@@ -35,6 +41,7 @@ class ProfileController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $user = Auth::user();
+        $this->authorize('update', $user);
 
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
@@ -55,8 +62,11 @@ class ProfileController extends Controller
      */
     public function editPicture(): View
     {
+        $user = Auth::user();
+        $this->authorize('update', $user);
+
         return view('pages.edit_picture', [
-            'user' => Auth::user()
+            'user' => $user
         ]);
     }
 
@@ -66,6 +76,7 @@ class ProfileController extends Controller
     public function updatePicture(Request $request): RedirectResponse
     {
         $user = Auth::user();
+        $this->authorize('update', $user);
 
         $validated = $request->validate([
             'profile_picture_url' => ['nullable', 'url'],
@@ -83,6 +94,8 @@ class ProfileController extends Controller
     public function deletePicture(): RedirectResponse
     {
         $user = Auth::user();
+        $this->authorize('update', $user); // Using update policy as it modifies the user model
+        
         $user->profile_picture_url = null;
         $user->save();
 
