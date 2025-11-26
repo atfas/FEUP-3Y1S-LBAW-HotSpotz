@@ -114,4 +114,146 @@ class BookingController extends Controller
             ])->withInput();
         }
     }
+
+    /**
+     * Display user's bookings.
+     */
+    public function index(): View
+    {
+        $perPage = 10;
+        
+        $bookings = Booking::where('guest_id', Auth::id())
+            ->with(['availability.listing'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+
+        $bookings->getCollection()->transform(function ($booking) {
+            return [
+                'id' => $booking->id,
+                'listing_title' => $booking->availability->listing->title,
+                'listing_location' => $booking->availability->listing->location_address,
+                'check_in_date' => $booking->check_in_date->format('M d, Y'),
+                'check_out_date' => $booking->check_out_date->format('M d, Y'),
+                'num_guests' => $booking->num_guests,
+                'status' => $booking->status,
+                'total_price' => number_format($booking->total_price, 2),
+                'created_at' => $booking->created_at->format('F d, Y'),
+                'raw_check_in' => $booking->check_in_date->format('Y-m-d'),
+                'raw_check_out' => $booking->check_out_date->format('Y-m-d'),
+            ];
+        });
+
+        $totalBookings = Booking::where('guest_id', Auth::id())->count();
+        $activeBookings = Booking::where('guest_id', Auth::id())
+            ->whereIn('status', ['PendingPayment', 'Confirmed'])
+            ->count();
+
+        return view('pages.bookings', compact('bookings', 'totalBookings', 'activeBookings'));
+    }
+
+    /**
+     * Show edit form for a booking.
+     */
+    public function edit(Booking $booking): View
+    {
+        if ($booking->guest_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $booking->load(['availability.listing']);
+        
+        return view('pages.booking-edit', compact('booking'));
+    }
+
+    /**
+     * Update a booking.
+     */
+    public function update(Request $request, Booking $booking)
+    {
+        if ($booking->guest_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $validated = $request->validate([
+            'check_in_date' => 'required|date',
+            'check_out_date' => 'required|date|after:check_in_date',
+            'num_guests' => 'required|integer|min:1',
+        ]);
+
+        $listing = $booking->availability->listing;
+        $availability = $booking->availability;
+        
+        $checkIn = Carbon::parse($validated['check_in_date']);
+        $checkOut = Carbon::parse($validated['check_out_date']);
+        
+        $stayDuration = $checkIn->diffInDays($checkOut);
+        if ($stayDuration < $listing->minimum_stay) {
+            return back()->withErrors([
+                'check_out_date' => "Min stay is {$listing->minimum_stay} nights."
+            ])->withInput();
+        }
+        
+        if ($validated['num_guests'] > $listing->max_occupancy) {
+            return back()->withErrors([
+                'num_guests' => "Max guests is {$listing->max_occupancy}."
+            ])->withInput();
+        }
+        
+        $availStart = Carbon::parse($availability->start_date);
+        $availEnd = Carbon::parse($availability->end_date);
+        
+        if ($checkIn->lt($availStart) || $checkOut->gt($availEnd)) {
+            return back()->withErrors([
+                'check_in_date' => 'Dates are outside the available period.'
+            ])->withInput();
+        }
+        
+        $hasOverlap = DB::table('bookings as b')
+            ->join('availability as a', 'b.availability_id', '=', 'a.id')
+            ->where('a.listing_id', $listing->id)
+            ->where('b.id', '!=', $booking->id)
+            ->whereIn('b.status', ['PendingPayment', 'Confirmed'])
+            ->where(function($query) use ($checkIn, $checkOut) {
+                $query->whereBetween('b.check_in_date', [$checkIn, $checkOut])
+                    ->orWhereBetween('b.check_out_date', [$checkIn, $checkOut])
+                    ->orWhere(function($q) use ($checkIn, $checkOut) {
+                        $q->where('b.check_in_date', '<=', $checkIn)
+                          ->where('b.check_out_date', '>=', $checkOut);
+                    });
+            })
+            ->exists();
+        
+        if ($hasOverlap) {
+            return back()->withErrors([
+                'check_in_date' => 'Dates overlap with another booking.'
+            ])->withInput();
+        }
+        
+        $totalPrice = $stayDuration * $availability->price_per_night;
+        
+        $booking->update([
+            'check_in_date' => $checkIn->toDateString(),
+            'check_out_date' => $checkOut->toDateString(),
+            'num_guests' => $validated['num_guests'],
+            'total_price' => $totalPrice,
+        ]);
+        
+        return redirect()->route('bookings.index')
+            ->with('success', 'Booking updated successfully!');
+    }
+
+    /**
+     * Delete a booking.
+     */
+    public function destroy(Booking $booking)
+    {
+        if ($booking->guest_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $booking->delete();
+        
+        return redirect()->route('bookings.index')
+            ->with('success', 'Booking deleted successfully.');
+    }
 }

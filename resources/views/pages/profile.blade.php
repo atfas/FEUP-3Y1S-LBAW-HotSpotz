@@ -63,6 +63,8 @@
 
                         <!-- Edit Button -->
                         <a href="{{ route('profile.edit') }}" class="btn btn-primary px-4" style="background-color: #722F37; border-color: #722F37;">Edit</a>
+                        <!-- Show Bookings Button -->
+                        <a href="{{ route('bookings.index') }}" class="btn btn-primary px-4" style="background-color: #722F37; border-color: #722F37;">Show Bookings</a>
                     </div>
 
                     <!-- Fields Grid -->

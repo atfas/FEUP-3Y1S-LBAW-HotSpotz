@@ -81,4 +81,10 @@ Route::middleware('auth')->controller(ProfileController::class)->group(function 
 
 // Booking routes
 Route::get('/booking/{listing}', [BookingController::class, 'show'])->name('booking.show');
-Route::post('/bookings', [BookingController::class, 'store'])->middleware('auth')->name('bookings.store');
+Route::middleware('auth')->controller(BookingController::class)->group(function () {
+    Route::post('/bookings', 'store')->name('bookings.store');
+    Route::get('/bookings', 'index')->name('bookings.index');
+    Route::get('/bookings/{booking}/edit', 'edit')->name('bookings.edit');
+    Route::put('/bookings/{booking}', 'update')->name('bookings.update');
+    Route::delete('/bookings/{booking}', 'destroy')->name('bookings.destroy');
+});
