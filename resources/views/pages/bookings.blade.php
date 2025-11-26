@@ -37,9 +37,7 @@
     <!-- Bookings Tab -->
     <ul class="nav nav-tabs mb-0">
         <li class="nav-item">
-            <button class="nav-link active">
-                Bookings
-            </button>
+            <button class="nav-link active" style="margin: 0 !important; border-bottom-left-radius: 0 !important; border-bottom-right-radius: 0 !important;">Bookings</button>
         </li>
     </ul>
 
