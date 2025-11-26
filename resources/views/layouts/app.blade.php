@@ -125,11 +125,11 @@
                         </div>
 
                          <div class="modal-body d-flex justify-content-center align-items-center">
-                            <span>
+                            <span class="text-center">
                                 Afonso Saraiva - <a href="mailto:up202304461@up.pt">up202304461</a><br>
-                                Afonso Saraiva - <a href="mailto:up202304461@up.pt">up202304461</a><br>
-                                Afonso Saraiva - <a href="mailto:up202304461@up.pt">up202304461</a><br>
-                                Afonso Saraiva - <a href="mailto:up202304461@up.pt">up202304461</a>
+                                Inês Francisco - <a href="mailto:up202304912@up.pt">up202304912</a><br>
+                                Pedro Peixoto - <a href="mailto:up202304912@up.pt">up202304912</a><br>
+                                Vasco Alves - <a href="mailto:up202304912@up.pt">up202304912</a>
                             </span>
                         </div>
                     </div>
