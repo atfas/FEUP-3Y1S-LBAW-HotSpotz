@@ -12,10 +12,10 @@
                 </div>
                 <div class="card-body">
                     <!-- Listing Info -->
-                    <div class="alert alert-info">
-                        <h5 class="alert-heading">{{ $booking->availability->listing->title }}</h5>
+                    <div class="border rounded p-3 mb-3">
+                        <h5 class="text-wine">{{ $booking->availability->listing->title }}</h5>
                         <p class="mb-0">
-                            <i class="fas fa-map-marker-alt"></i> {{ $booking->availability->listing->location_address }}
+                            <i class="fas fa-map-marker-alt text-wine"></i> {{ $booking->availability->listing->location_address }}
                         </p>
                         <hr>
                         <small>
