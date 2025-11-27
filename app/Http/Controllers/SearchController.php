@@ -246,7 +246,7 @@ class SearchController extends Controller
                 return $l->min_price === null ? PHP_INT_MAX : $l->min_price;
             }, SORT_REGULAR, $orderDir === 'desc')->values();
         }
-        $perPage = 10;
+        $perPage = 9;
         $page = max(1, (int)$request->query('page', 1));
         $totalListings = $listings->count();
 

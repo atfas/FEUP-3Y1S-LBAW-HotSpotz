@@ -88,7 +88,7 @@ class ListingController extends Controller
             'check_out_time' => $r->check_out_time ?? null,
         ]; });
 
-        $perPage = 10;
+        $perPage = 5;
         $page = max(1, (int)$request->get('page', 1));
         $offset = ($page - 1) * $perPage;
 
@@ -466,6 +466,19 @@ class ListingController extends Controller
         $userId = Auth::id();
         if ($userId !== $listing->host_id) {
             abort(403);
+        }
+
+        // Prevent deletion if there are confirmed future bookings for this listing
+        $today = date('Y-m-d');
+        $hasFutureConfirmed = DB::table('bookings')
+            ->join('availability', 'bookings.availability_id', '=', 'availability.id')
+            ->where('availability.listing_id', $id)
+            ->where('bookings.status', 'Confirmed')
+            ->where('bookings.check_in_date', '>=', $today)
+            ->exists();
+
+        if ($hasFutureConfirmed) {
+            return redirect()->route('listing.show', ['id' => $id])->with('error', 'Cannot delete listing: there are confirmed future bookings scheduled for this listing.');
         }
 
         DB::table('listings')->where('id', $id)->update(['is_active' => false]);

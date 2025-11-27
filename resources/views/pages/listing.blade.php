@@ -2,6 +2,9 @@
 
 @section('content')
     <div class="container py-4">
+        @if(session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
 
     <div class="card mb-4 shadow-sm">
         <div class="card-body p-0">
