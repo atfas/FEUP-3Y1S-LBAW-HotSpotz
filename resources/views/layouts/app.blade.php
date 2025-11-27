@@ -32,11 +32,11 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                         <div class="navbar-nav ms-auto align-items-center">
-                            @guest
-                                <a class="btn btn-outline-danger btn-sm ms-2" href="#">
+                            {{-- @guest
+                                '<'a class="btn btn-outline-danger btn-sm ms-2" href="#">
                                     Become a Host
-                                </a>
-                            @endguest
+                                '<'/a>
+                            @endguest --}}
 
                             @auth
                                 @if(!Auth::user()->is_host)
@@ -44,11 +44,25 @@
                                         Become a Host
                                     </a>
                                 @endif
-                            @endauth
 
+                                @if(Auth::user()->application_status === 'Approved')
+                                    <a class="btn btn-outline-danger btn-sm ms-2" href="{{ route('listing.create') }}">
+                                        Add Listing
+                                    </a>
+                                @endif
+                                
+                                @if(Auth::user()->application_status === 'Pending')
+                                    <a class="btn btn-outline-warning btn-sm ms-2" href="#">
+                                        Pending Application
+                                    </a>
+                                @endif
+                            @endauth
+                                
                             <a class="nav-link" href="{{ route('home') }}">
                                 Home
                             </a>
+
+                            @auth
                             <a class="nav-link" href="#">
                                 <i class="fa-solid fa-heart"></i><span class="nav-text">Favourites</span>
                             </a>
@@ -61,6 +75,7 @@
                             <a class="nav-link" href="#">
                                 <i class="fa-solid fa-credit-card"></i><span class="nav-text">Payments</span>
                             </a>
+                            @endauth
 
                             @auth
 
@@ -71,7 +86,7 @@
                                 @endif
                                 
                                 <a href="{{ route('profile.show') }}" class="nav-link fw-bold">
-                                    {{ Auth::user()->full_name }}
+                                    {{ explode(' ', Auth::user()->full_name)[0] }}
                                 </a>
 
                                 <a class="btn btn-outline-danger btn-sm ms-2" href="{{ route('logout') }}">
