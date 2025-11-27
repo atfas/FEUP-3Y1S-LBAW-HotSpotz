@@ -71,7 +71,7 @@
                                 @endif
                                 
                                 <a href="{{ route('profile.show') }}" class="nav-link fw-bold">
-                                    {{ Auth::user()->full_name }}
+                                    {{ explode(' ', Auth::user()->full_name)[0] }}
                                 </a>
 
                                 <a class="btn btn-outline-danger btn-sm ms-2" href="{{ route('logout') }}">
