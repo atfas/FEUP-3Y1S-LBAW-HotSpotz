@@ -32,16 +32,28 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                         <div class="navbar-nav ms-auto align-items-center">
-                            @guest
-                                <a class="btn btn-outline-danger btn-sm ms-2" href="#">
+                            {{-- @guest
+                                '<'a class="btn btn-outline-danger btn-sm ms-2" href="#">
                                     Become a Host
-                                </a>
-                            @endguest
+                                '<'/a>
+                            @endguest --}}
 
                             @auth
                                 @if(!Auth::user()->is_host)
                                     <a class="btn btn-outline-danger btn-sm ms-2" href="#">
                                         Become a Host
+                                    </a>
+                                @endif
+
+                                {{-- @if(Auth::user()->application_status === 'Approved')
+                                    '<'a class="btn btn-outline-danger btn-sm ms-2" href="#">
+                                        Host Dashboard
+                                    '<'/a>
+                                @endif --}}
+                                
+                                @if(Auth::user()->application_status === 'Pending')
+                                    <a class="btn btn-outline-warning btn-sm ms-2" href="#">
+                                        Pending Application
                                     </a>
                                 @endif
                             @endauth
