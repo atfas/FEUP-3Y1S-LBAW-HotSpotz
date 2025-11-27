@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
 {
@@ -28,6 +29,36 @@ class DatabaseSeeder extends Seeder
 
         // Run the SQL script
         DB::unprepared($sql);
+
+        // Copy photos from database/photos into the public storage disk under listing_photos/
+        try {
+            $srcDir = base_path('database/photos');
+            if (is_dir($srcDir)) {
+                if (!Storage::disk('public')->exists('listing_photos')) {
+                    Storage::disk('public')->makeDirectory('listing_photos');
+                }
+
+                $files = scandir($srcDir);
+                $copied = 0;
+                foreach ($files as $file) {
+                    if ($file === '.' || $file === '..') continue;
+                    $full = $srcDir . DIRECTORY_SEPARATOR . $file;
+                    if (!is_file($full)) continue;
+                    $dest = 'listing_photos/' . $file;
+                    try {
+                        Storage::disk('public')->put($dest, file_get_contents($full));
+                        $copied++;
+                    } catch (\Exception $e) {
+                        $this->command?->error('Failed to copy ' . $file . ': ' . $e->getMessage());
+                    }
+                }
+                $this->command?->info('Copied ' . $copied . ' photos into storage (public/listing_photos).');
+            } else {
+                $this->command?->warn('No database/photos directory found; skipping photo copy.');
+            }
+        } catch (\Exception $e) {
+            $this->command?->error('Photo copying failed: ' . $e->getMessage());
+        }
 
         // Show a message in the Artisan console
         $this->command?->info('Database seeded using schema: ' . ($schema ?? 'thingy (default)'));

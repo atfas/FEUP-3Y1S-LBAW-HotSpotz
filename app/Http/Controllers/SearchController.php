@@ -64,11 +64,17 @@ class SearchController extends Controller
             }
         }
 
+        // Note: variable is named "excludeTags" but behaves like an include-tags filter.
+        // Require that a listing contains EVERY tag in the list (i.e. include-all semantics).
         if (!empty($excludeTags)) {
-            $query->whereNotExists(function($q) use ($excludeTags) {
-                $q->select(DB::raw(1))->from('listing_tags')
-                  ->whereRaw('listing_tags.listing_id = listings.id')
-                  ->whereIn('listing_tags.tag_id', $excludeTags);
+            $countTags = count($excludeTags);
+            $query->whereExists(function($q) use ($excludeTags, $countTags): void {
+                $q->select(DB::raw(1))
+                  ->from('listing_tags as lt')
+                  ->whereRaw('lt.listing_id = listings.id')
+                  ->whereIn('lt.tag_id', $excludeTags)
+                  ->groupBy('lt.listing_id')
+                  ->havingRaw('COUNT(DISTINCT lt.tag_id) = ?', [$countTags]);
             });
         }
 

@@ -13,6 +13,15 @@
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
         @stack('styles')
 
+        <style>
+            /* Global pagination styling to match admin panel */
+            .pagination { margin: 0; }
+            .page-link { color: var(--color-wine, #6f2a6d); border-color: #dee2e6; padding: 0.5rem 0.75rem; transition: all 0.2s; }
+            .page-link:hover { background-color: var(--color-light-purple, #d8bfd8); border-color: var(--color-dark-purple, #5a1f4a); color: white; transform: translateY(-1px); }
+            .page-item.active .page-link { background-color: var(--color-wine, #6f2a6d); border-color: var(--color-wine, #6f2a6d); color: white; }
+            .page-item.disabled .page-link { color: #6c757d; background-color: #fff; border-color: #dee2e6; }
+        </style>
+
         <!-- Scripts -->
         <script src="{{ asset('js/app.js') }}" defer></script>
 
@@ -39,7 +48,7 @@
                             @endguest --}}
 
                             @auth
-                                @if(!Auth::user()->is_host)
+                                @if(!Auth::user()->application_status === 'Approved')
                                     <a class="btn btn-outline-danger btn-sm ms-2" href="#">
                                         Become a Host
                                     </a>

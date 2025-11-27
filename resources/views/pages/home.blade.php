@@ -47,10 +47,12 @@
     @if(!empty($allTags) && count($allTags) > 0)
     <div class="card mb-4">
         <div class="card-body py-2">
-            <div id="homeTagStrip" class="d-flex gap-2 overflow-auto" style="-webkit-overflow-scrolling:touch;">
-                @foreach($allTags as $t)
-                    <button type="button" class="btn btn-sm btn-outline-secondary tag-btn" data-tag-id="{{ $t->id }}">{{ $t->name }}</button>
-                @endforeach
+            <div class="d-flex justify-content-md-center">
+                <div id="homeTagStrip" class="d-inline-flex gap-2 overflow-auto" style="-webkit-overflow-scrolling:touch; white-space:nowrap;">
+                    @foreach($allTags as $t)
+                        <button type="button" class="btn btn-sm btn-outline-secondary tag-btn" data-tag-id="{{ $t->id }}">{{ $t->name }}</button>
+                    @endforeach
+                </div>
             </div>
         </div>
     </div>
@@ -155,21 +157,7 @@
                     window.location.href = target;
                 });
             }
-        }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initThumbs);
-        } else {
-            initThumbs();
-        }
-    })();
-</script>
-@endpush
-
-@push('scripts')
-<script>
-    (function(){
-        function initTagStrip(){
             const strip = document.getElementById('homeTagStrip');
             if (!strip) return;
             const selected = new Set();
@@ -178,13 +166,13 @@
                 if (!btn) return;
                 const id = btn.getAttribute('data-tag-id');
                 if (!id) return;
-                if (btn.classList.contains('btn-danger')) {
-                    btn.classList.remove('btn-danger');
+                if (btn.classList.contains('btn-secondary')) {
+                    btn.classList.remove('btn-secondary');
                     btn.classList.add('btn-outline-secondary');
                     selected.delete(id);
                 } else {
                     btn.classList.remove('btn-outline-secondary');
-                    btn.classList.add('btn-danger');
+                    btn.classList.add('btn-secondary');
                     selected.add(id);
                 }
                 const params = new URLSearchParams();
@@ -193,7 +181,12 @@
                 window.location.href = target;
             });
         }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initTagStrip); else initTagStrip();
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initThumbs);
+        } else {
+            initThumbs();
+        }
     })();
 </script>
 @endpush

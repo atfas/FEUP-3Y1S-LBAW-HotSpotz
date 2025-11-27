@@ -34,26 +34,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/listing/add', [ListingController::class, 'store'])->name('listing.store');
     Route::get('/listing/{id}/edit', [ListingController::class, 'edit'])->whereNumber('id')->name('listing.edit');
     Route::put('/listing/{id}', [ListingController::class, 'update'])->whereNumber('id')->name('listing.update');
+    Route::post('/listing/{id}/delete', [ListingController::class, 'destroy'])->whereNumber('id')->name('listing.destroy');
 });
-
-// Cards (authentication required)
-Route::middleware('auth')->controller(CardController::class)->group(function () {
-    Route::get('/cards', 'index')->name('cards.index');
-    Route::get('/cards/{card}', 'show')->name('cards.show');
-});
-
-// API (authentication required)
-Route::middleware('auth')->controller(CardController::class)->group(function () {
-    Route::post('/api/cards', 'store');              // create card
-    Route::delete('/api/cards/{card}', 'destroy');   // delete card
-});
-
-Route::middleware('auth')->controller(ItemController::class)->group(function () {
-    Route::post('/api/cards/{card}/items', 'store'); // add item to card
-    Route::patch('/api/items/{item}', 'update');     // update item
-    Route::delete('/api/items/{item}', 'destroy');   // delete item
-});
-
 
 // Authentication
 Route::controller(LoginController::class)->group(function () {

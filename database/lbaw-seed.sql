@@ -749,9 +749,10 @@ BEGIN
     VALUES (1, 'Cozy Downtown Apartment', 'A beautiful apartment in the heart of the city.', 2, '123 Main St, Cityville', 2, 'Flexible: Full refund 1 day prior to arrival.', 'wifi,heating', 6)
     RETURNING id INTO new_listing_id; 
 
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/1_1.jpg', new_listing_id);
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/1_2.jpg', new_listing_id); 
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/1_3.jpg', new_listing_id); 
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/1_1.avif', new_listing_id);
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/1_2.webp', new_listing_id); 
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/1_3.webp', new_listing_id); 
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/1_4.jpg', new_listing_id);
 END $$;
 COMMIT;
 
@@ -764,10 +765,10 @@ BEGIN
     VALUES (2, 'Sunny Beachside Villa', 'Stunning views of the ocean, perfect for a getaway.', 8, '456 Ocean Ave, Beachtown', 5, 'Strict: 50% refund up to 1 week prior to arrival.', 'wifi,pool,beachfront', 7)
     RETURNING id INTO new_listing_id; 
 
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/2_1.jpg', new_listing_id);
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/2_2.jpg', new_listing_id); 
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/2_3.jpg', new_listing_id); 
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/2_4.jpg', new_listing_id); -- More than 3 is fine
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/2_1.jpg', new_listing_id);
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/2_2.jpeg', new_listing_id); 
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/2_3.jpeg', new_listing_id); 
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/2_4.jpg', new_listing_id);
 END $$;
 COMMIT;
 
@@ -780,9 +781,10 @@ BEGIN
     VALUES (3, 'Rustic Mountain Cabin', 'Escape to the wilderness. No Wi-Fi, pure nature.', 4, '789 Pine Rd, Mountainside', 3, 'Moderate: Full refund 5 days prior to arrival.', 'fireplace,parking', 8)
     RETURNING id INTO new_listing_id; 
 
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/3_1.jpg', new_listing_id);
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/3_2.jpg', new_listing_id); 
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/3_3.jpg', new_listing_id); 
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/3_1.jpg', new_listing_id);
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/3_2.jpg', new_listing_id); 
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/3_3.png', new_listing_id);
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/3_4.jpg', new_listing_id); 
 END $$;
 COMMIT;
 
@@ -795,9 +797,10 @@ BEGIN
     VALUES (4, 'Modern City Loft', 'A stylish loft with all modern amenities.', 3, '321 Urban Way, Metropolis', 2, 'Flexible: Full refund 1 day prior to arrival.', 'wifi,ac,washer', 9)
     RETURNING id INTO new_listing_id; 
 
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/4_1.jpg', new_listing_id);
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/4_2.jpg', new_listing_id); 
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/4_3.jpg', new_listing_id); 
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/4_1.jpg', new_listing_id);
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/4_2.jpg', new_listing_id); 
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/4_3.jpg', new_listing_id); 
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/4_4.png', new_listing_id);
 END $$;
 COMMIT;
 
@@ -810,9 +813,10 @@ BEGIN
     VALUES (5, 'Quiet Suburban House', 'Perfect for families. Large backyard and grill.', 6, '654 Suburb Ln, Greendale', 4, 'Moderate: Full refund 5 days prior to arrival.', 'wifi,parking,garden', 10)
     RETURNING id INTO new_listing_id; 
 
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/5_1.jpg', new_listing_id);
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/5_2.jpg', new_listing_id); 
-    INSERT INTO listing_photos (url, listing_id) VALUES ('https://example.com/photo/5_3.jpg', new_listing_id); 
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/5_1.jpg', new_listing_id);
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/5_2.jpg', new_listing_id); 
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/5_3.jpg', new_listing_id);
+    INSERT INTO listing_photos (url, listing_id) VALUES ('/storage/listing_photos/5_4.jpg', new_listing_id); 
 END $$;
 COMMIT;
 

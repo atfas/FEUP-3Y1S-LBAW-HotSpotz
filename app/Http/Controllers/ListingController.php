@@ -135,12 +135,22 @@ class ListingController extends Controller
 
     public function create()
     {
+        $user = Auth::user();
+        if (!$user || $user->application_status !== 'Approved') {
+            abort(403);
+        }
+
         $allTags = DB::table('tags')->orderBy('name')->get();
         return view('pages.addListing', ['allTags' => $allTags]);
     }
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+        if (!$user || $user->application_status !== 'Approved') {
+            abort(403);
+        }
+
         $rules = [
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -266,7 +276,7 @@ class ListingController extends Controller
         if (!$listing) abort(404);
 
         $userId = Auth::id();
-        if ($userId !== $listing->host_id && !Auth::user()->is_admin) {
+        if ($userId !== $listing->host_id) {
             abort(403);
         }
 
@@ -290,7 +300,7 @@ class ListingController extends Controller
         if (!$listing) abort(404);
 
         $userId = Auth::id();
-        if ($userId !== $listing->host_id && !Auth::user()->is_admin) {
+        if ($userId !== $listing->host_id) {
             abort(403);
         }
 
@@ -446,5 +456,20 @@ class ListingController extends Controller
         }
 
         return redirect()->route('listing.show', ['id' => $id])->with('success', 'Listing updated.');
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $listing = DB::table('listings')->where('id', $id)->first();
+        if (!$listing) abort(404);
+
+        $userId = Auth::id();
+        if ($userId !== $listing->host_id) {
+            abort(403);
+        }
+
+        DB::table('listings')->where('id', $id)->update(['is_active' => false]);
+
+        return redirect()->route('profile.show')->with('success', 'Listing deleted.');
     }
 }

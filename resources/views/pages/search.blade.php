@@ -89,10 +89,12 @@
 
             @if(!empty($allTags) && count($allTags) > 0)
             <div class="mb-3 bg-white p-2 rounded">
-                <div id="searchTagStrip" class="d-flex gap-2 overflow-auto mb-2" style="-webkit-overflow-scrolling:touch;">
-                    @foreach($allTags as $t)
-                        <button type="button" class="btn btn-sm btn-outline-secondary tag-btn" data-tag-id="{{ $t->id }}">{{ $t->name }}</button>
-                    @endforeach
+                <div class="d-flex justify-content-md-center">
+                    <div id="searchTagStrip" class="d-inline-flex gap-2 overflow-auto mb-2" style="-webkit-overflow-scrolling:touch; white-space:nowrap;">
+                        @foreach($allTags as $t)
+                            <button type="button" class="btn btn-sm btn-outline-secondary tag-btn" data-tag-id="{{ $t->id }}">{{ $t->name }}</button>
+                        @endforeach
+                    </div>
                 </div>
                 <input type="hidden" name="exclude_tags" id="exclude_tags_input" value="{{ is_array($exclude_tags) ? implode(',', $exclude_tags) : (is_string($exclude_tags) ? $exclude_tags : '') }}">
             </div>
@@ -148,7 +150,7 @@
             if (tagStrip) {
                 tagStrip.querySelectorAll('.tag-btn').forEach(function(b){
                     const id = b.getAttribute('data-tag-id');
-                    if (excludedSet.has(String(id))) { b.classList.remove('btn-outline-secondary'); b.classList.add('btn-danger'); }
+                    if (excludedSet.has(String(id))) { b.classList.remove('btn-outline-secondary'); b.classList.add('btn-secondary'); }
                 });
 
                 tagStrip.addEventListener('click', function(e){
@@ -156,10 +158,10 @@
                     if (!btn) return;
                     const id = btn.getAttribute('data-tag-id');
                     if (!id) return;
-                    if (btn.classList.contains('btn-danger')) {
-                        btn.classList.remove('btn-danger'); btn.classList.add('btn-outline-secondary'); excludedSet.delete(String(id));
+                    if (btn.classList.contains('btn-secondary')) {
+                        btn.classList.remove('btn-secondary'); btn.classList.add('btn-outline-secondary'); excludedSet.delete(String(id));
                     } else {
-                        btn.classList.remove('btn-outline-secondary'); btn.classList.add('btn-danger'); excludedSet.add(String(id));
+                        btn.classList.remove('btn-outline-secondary'); btn.classList.add('btn-secondary'); excludedSet.add(String(id));
                     }
                     if (excludeInput) excludeInput.value = Array.from(excludedSet).join(',');
                     performAjaxSearch(true);

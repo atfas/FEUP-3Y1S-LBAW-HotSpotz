@@ -170,9 +170,19 @@
 
                 const totalPages = Math.ceil(availabilities.length / perPage);
                 if (totalPages > 1) {
-                    html += '<nav><ul class="pagination">';
+                    html += '<nav aria-label="Availabilities pages"><ul class="pagination mb-0 justify-content-end">';
+                    if (page <= 1) {
+                        html += '<li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>';
+                    } else {
+                        html += `<li class="page-item"><a class="page-link" href="#" data-page="${page-1}" rel="prev"><i class="fas fa-chevron-left"></i></a></li>`;
+                    }
                     for (let p=1;p<=totalPages;p++){
                         html += `<li class="page-item ${p===page? 'active':''}"><a class="page-link" href="#" data-page="${p}">${p}</a></li>`;
+                    }
+                    if (page < totalPages) {
+                        html += `<li class="page-item"><a class="page-link" href="#" data-page="${page+1}" rel="next"><i class="fas fa-chevron-right"></i></a></li>`;
+                    } else {
+                        html += '<li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>';
                     }
                     html += '</ul></nav>';
                 }

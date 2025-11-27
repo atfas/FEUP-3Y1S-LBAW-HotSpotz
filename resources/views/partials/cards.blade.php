@@ -57,15 +57,31 @@
     @endforelse
     @if($isPaginator && $listings->lastPage() > 1)
         <div class="col-12">
-            <nav>
-                <ul class="pagination">
-                    @for ($p = 1; $p <= $listings->lastPage(); $p++)
-                        <li class="page-item @if($p == $listings->currentPage()) active @endif">
-                            <a class="page-link" href="{{ $listings->url($p) }}">{{ $p }}</a>
-                        </li>
-                    @endfor
-                </ul>
-            </nav>
+            <div class="d-flex justify-content-end">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        @if ($listings->onFirstPage())
+                            <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
+                        @else
+                            <li class="page-item"><a class="page-link" href="{{ $listings->previousPageUrl() }}" rel="prev"><i class="fas fa-chevron-left"></i></a></li>
+                        @endif
+
+                        @foreach ($listings->getUrlRange(1, $listings->lastPage()) as $page => $url)
+                            @if ($page == $listings->currentPage())
+                                <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                            @else
+                                <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
+                            @endif
+                        @endforeach
+
+                        @if ($listings->hasMorePages())
+                            <li class="page-item"><a class="page-link" href="{{ $listings->nextPageUrl() }}" rel="next"><i class="fas fa-chevron-right"></i></a></li>
+                        @else
+                            <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
+                        @endif
+                    </ul>
+                </nav>
+            </div>
         </div>
     @endif
 </div>

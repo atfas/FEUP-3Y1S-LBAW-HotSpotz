@@ -87,7 +87,7 @@
                                 }
                             @endphp
                             @forelse($amenList as $am)
-                                <span class="badge bg-info text-dark">{{ $am }}</span>
+                                <span class="badge bg-warning text-dark">{{ $am }}</span>
                             @empty
                                 <span class="text-muted small">No amenities listed.</span>
                             @endforelse
@@ -109,15 +109,31 @@
                             </ul>
 
                             @if($availPaginator->lastPage() > 1)
-                                <nav aria-label="Availability pages" class="mt-2">
-                                    <ul class="pagination">
-                                        @for($p = 1; $p <= $availPaginator->lastPage(); $p++)
-                                            <li class="page-item @if($p == $availPaginator->currentPage()) active @endif">
-                                                <a class="page-link" href="{{ request()->fullUrlWithQuery(['avail_page' => $p]) }}">{{ $p }}</a>
-                                            </li>
-                                        @endfor
-                                    </ul>
-                                </nav>
+                                <div class="mt-2 d-flex justify-content-end">
+                                    <nav aria-label="Availability pages">
+                                        <ul class="pagination mb-0">
+                                            @if ($availPaginator->onFirstPage())
+                                                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
+                                            @else
+                                                <li class="page-item"><a class="page-link" href="{{ $availPaginator->previousPageUrl() }}" rel="prev"><i class="fas fa-chevron-left"></i></a></li>
+                                            @endif
+
+                                            @foreach ($availPaginator->getUrlRange(1, $availPaginator->lastPage()) as $p => $url)
+                                                @if ($p == $availPaginator->currentPage())
+                                                    <li class="page-item active"><span class="page-link">{{ $p }}</span></li>
+                                                @else
+                                                    <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $p }}</a></li>
+                                                @endif
+                                            @endforeach
+
+                                            @if ($availPaginator->hasMorePages())
+                                                <li class="page-item"><a class="page-link" href="{{ $availPaginator->nextPageUrl() }}" rel="next"><i class="fas fa-chevron-right"></i></a></li>
+                                            @else
+                                                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
+                                            @endif
+                                        </ul>
+                                    </nav>
+                                </div>
                             @endif
                         @else
                             <p class="text-muted">No availabilities listed.</p>
@@ -170,11 +186,25 @@
             </div>
 
             <div class="card p-3 shadow-sm text-center">
-                <h5 class="mb-3">Reserve</h5>
+                <h5 class="mb-3">
+                    @auth
+                        @if(Auth::id() === $listing->host_id)
+                            Options
+                        @else
+                            Reserve
+                        @endif
+                    @endauth
+                </h5>
                 <div class="d-grid">
                     @auth
                         @if(Auth::id() === $listing->host_id)
-                            <a href="{{ route('listing.edit', ['id' => $listing->id]) }}" class="btn btn-secondary btn-lg">Edit Listing</a>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{{ route('listing.edit', ['id' => $listing->id]) }}" class="btn btn-secondary btn-lg">Edit Listing</a>
+                                <form method="POST" action="{{ route('listing.destroy', ['id' => $listing->id]) }}" onsubmit="return confirm('Are you sure you want to delete this listing?');">
+                                    @csrf
+                                    <button type="submit" class="btn btn-danger btn-lg">Delete Listing</button>
+                                </form>
+                            </div>
                         @else
                             <a href="/booking/{{ $listing->id }}" class="btn btn-primary btn-lg">Reserve Now</a>
                         @endif
@@ -186,8 +216,8 @@
 
         </div>
 
-    <div class="card mb-4">
-        <div class="card-body">
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body p-0">
             <h5 class="card-title">Reviews</h5>
 
             @if($reviews->isEmpty())
@@ -206,15 +236,31 @@
                 @endforeach
 
                 @if($totalPages > 1)
-                <nav>
-                    <ul class="pagination">
-                        @for($p = 1; $p <= $totalPages; $p++)
-                            <li class="page-item @if($p == $currentPage) active @endif">
-                                <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => $p]) }}">{{ $p }}</a>
-                            </li>
-                        @endfor
-                    </ul>
-                </nav>
+                <div class="d-flex justify-content-end">
+                    <nav aria-label="Reviews pages">
+                        <ul class="pagination mb-0">
+                            @if ($currentPage <= 1)
+                                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
+                            @else
+                                <li class="page-item"><a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => $currentPage - 1]) }}" rel="prev"><i class="fas fa-chevron-left"></i></a></li>
+                            @endif
+
+                            @for($p = 1; $p <= $totalPages; $p++)
+                                @if($p == $currentPage)
+                                    <li class="page-item active"><span class="page-link">{{ $p }}</span></li>
+                                @else
+                                    <li class="page-item"><a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => $p]) }}">{{ $p }}</a></li>
+                                @endif
+                            @endfor
+
+                            @if ($currentPage < $totalPages)
+                                <li class="page-item"><a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => $currentPage + 1]) }}" rel="next"><i class="fas fa-chevron-right"></i></a></li>
+                            @else
+                                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
+                            @endif
+                        </ul>
+                    </nav>
+                </div>
                 @endif
             @endif
         </div>
