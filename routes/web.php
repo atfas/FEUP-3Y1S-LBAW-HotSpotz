@@ -34,7 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/listing/add', [ListingController::class, 'store'])->name('listing.store');
     Route::get('/listing/{id}/edit', [ListingController::class, 'edit'])->whereNumber('id')->name('listing.edit');
     Route::put('/listing/{id}', [ListingController::class, 'update'])->whereNumber('id')->name('listing.update');
-    Route::post('/listing/{id}/delete', [ListingController::class, 'destroy'])->whereNumber('id')->name('listing.destroy');
+    Route::delete('/listing/{id}/delete', [ListingController::class, 'destroy'])->whereNumber('id')->name('listing.destroy');
 });
 
 // Authentication
