@@ -64,8 +64,6 @@ class SearchController extends Controller
             }
         }
 
-        // Note: variable is named "excludeTags" but behaves like an include-tags filter.
-        // Require that a listing contains EVERY tag in the list (i.e. include-all semantics).
         if (!empty($excludeTags)) {
             $countTags = count($excludeTags);
             $query->whereExists(function($q) use ($excludeTags, $countTags): void {

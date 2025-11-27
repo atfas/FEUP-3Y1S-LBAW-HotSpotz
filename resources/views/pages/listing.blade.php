@@ -101,14 +101,8 @@
                         @if(isset($availPaginator) && $availPaginator->total() > 0)
                             <ul class="list-group" aria-live="polite">
                                 @foreach($availPaginator as $av)
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>{{ $av['start_date'] }}</strong> → <strong>{{ $av['end_date'] }}</strong>
-                                            <div class="small text-muted">Check-in: {{ $av['check_in_time'] }} — Check-out: {{ $av['check_out_time'] }}</div>
-                                        </div>
-                                        <div class="text-end"><strong>${{ number_format($av['price_per_night'], 2) }}</strong></div>
-                                    </li>
-                                @endforeach
+                                            @include('partials.availability_item', ['availability' => $av, 'showActions' => false])
+                                        @endforeach
                             </ul>
 
                             @if($availPaginator->lastPage() > 1)
@@ -227,15 +221,7 @@
                 <p class="text-muted">No reviews yet.</p>
             @else
                 @foreach($reviews as $review)
-                    <div class="mb-3 border-bottom pb-2">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>Rating: {{ $review->rating }}/5</strong>
-                            </div>
-                            <div class="text-muted">{{ \Illuminate\Support\Carbon::parse($review->created_at)->toDateString() }}</div>
-                        </div>
-                        <p class="mb-1">{{ $review->comment }}</p>
-                    </div>
+                    @include('partials.review_item', ['review' => $review])
                 @endforeach
 
                 @if($totalPages > 1)

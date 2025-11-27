@@ -468,7 +468,6 @@ class ListingController extends Controller
             abort(403);
         }
 
-        // Prevent deletion if there are confirmed future bookings for this listing
         $today = date('Y-m-d');
         $hasFutureConfirmed = DB::table('bookings')
             ->join('availability', 'bookings.availability_id', '=', 'availability.id')

@@ -118,7 +118,25 @@
                 <div class="mb-3">
                     <h6>Current Availabilities</h6>
                     <div id="availabilitiesListContainer">
-                        <div class="text-muted">No availabilities added yet.</div>
+                        @php
+                            $hasServerAvail = isset($availabilities) && count($availabilities) > 0;
+                        @endphp
+                        @if(!empty($hasServerAvail))
+                            <ul class="list-group mb-2">
+                                @foreach($availabilities as $idx => $av)
+                                    @include('partials.availability_item', ['availability' => [
+                                        'id' => $av->id ?? null,
+                                        'start_date' => $av->start_date,
+                                        'end_date' => $av->end_date,
+                                        'price_per_night' => $av->price_per_night,
+                                        'check_in_time' => $av->check_in_time,
+                                        'check_out_time' => $av->check_out_time,
+                                    ], 'showActions' => true, 'index' => $idx])
+                                @endforeach
+                            </ul>
+                        @else
+                            <div class="text-muted">No availabilities added yet.</div>
+                        @endif
                     </div>
                 </div>
 

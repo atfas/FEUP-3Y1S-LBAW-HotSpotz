@@ -101,7 +101,19 @@
                 <div class="mb-3">
                     <h6>Current Availabilities</h6>
                     <div id="availabilitiesListContainer">
-                        <div class="text-muted">No availabilities added yet.</div>
+                        @php
+                            $initialAvailJson = old('availabilities', '[]');
+                            $initialAvail = json_decode($initialAvailJson, true);
+                        @endphp
+                        @if(is_array($initialAvail) && count($initialAvail) > 0)
+                            <ul class="list-group mb-2">
+                                @foreach($initialAvail as $idx => $av)
+                                    @include('partials.availability_item', ['availability' => $av, 'showActions' => true, 'index' => $idx])
+                                @endforeach
+                            </ul>
+                        @else
+                            <div class="text-muted">No availabilities added yet.</div>
+                        @endif
                     </div>
                 </div>
 
@@ -127,10 +139,8 @@
         }
 
         form.addEventListener('submit', function(e){
-            // clear any previous alert
             if (formAlertContainer) formAlertContainer.innerHTML = '';
 
-            // required fields to validate client-side for immediate feedback
             const required = [
                 {name: 'title', label: 'Title'},
                 {name: 'description', label: 'Description'},
