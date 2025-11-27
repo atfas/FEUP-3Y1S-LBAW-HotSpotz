@@ -45,11 +45,11 @@
                                     </a>
                                 @endif
 
-                                {{-- @if(Auth::user()->application_status === 'Approved')
-                                    '<'a class="btn btn-outline-danger btn-sm ms-2" href="#">
-                                        Host Dashboard
-                                    '<'/a>
-                                @endif --}}
+                                @if(Auth::user()->application_status === 'Approved')
+                                    <a class="btn btn-outline-danger btn-sm ms-2" href="{{ route('listing.create') }}">
+                                        Add Listing
+                                    </a>
+                                @endif
                                 
                                 @if(Auth::user()->application_status === 'Pending')
                                     <a class="btn btn-outline-warning btn-sm ms-2" href="#">
@@ -57,10 +57,12 @@
                                     </a>
                                 @endif
                             @endauth
-
+                                
                             <a class="nav-link" href="{{ route('home') }}">
                                 Home
                             </a>
+
+                            @auth
                             <a class="nav-link" href="#">
                                 <i class="fa-solid fa-heart"></i><span class="nav-text">Favourites</span>
                             </a>
@@ -73,6 +75,7 @@
                             <a class="nav-link" href="#">
                                 <i class="fa-solid fa-credit-card"></i><span class="nav-text">Payments</span>
                             </a>
+                            @endauth
 
                             @auth
 
