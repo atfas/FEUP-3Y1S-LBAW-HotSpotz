@@ -654,21 +654,21 @@ INSERT INTO admin_notification (type) VALUES
 ('UserSuspended');
 
 INSERT INTO users (id, full_name, email, password_hash, date_of_birth, phone, is_admin) VALUES
-(1, 'Admin Staff', 'admin@stay.com', '$2b$12$4jSR87MSa5T4b3Lm//16q.iA9VEYaIy6C0ArHoCwuLyjhMpHkAkfC', '1990-01-01', '+111222333', true),
-(2, 'Super Admin', 'super@stay.com', '$2b$12$4jSR87MSa5T4b3Lm//16q.iA9VEYaIy6C0ArHoCwuLyjhMpHkAkfC', '1985-05-10', '+144555666', true);
+(1, 'Admin Staff', 'admin@stay.com', '$2y$12$uMUDL9XOjwMsw92AgbBqXO1UzASzOxndiHAXhY20FgIyhIVV7lgiy', '1990-01-01', '+111222333', true),
+(2, 'Super Admin', 'super@stay.com', '$2y$12$uMUDL9XOjwMsw92AgbBqXO1UzASzOxndiHAXhY20FgIyhIVV7lgiy', '1985-05-10', '+144555666', true);
 
 
 INSERT INTO users (id, full_name, email, password_hash, date_of_birth, phone) VALUES
-(3, 'Alice Green', 'alice@guest.com', '$2b$12$4jSR87MSa5T4b3Lm//16q.iA9VEYaIy6C0ArHoCwuLyjhMpHkAkfC', '1995-04-12', '+111111111'),
-(4, 'Bob White', 'bob@guest.com', '$2b$12$4jSR87MSa5T4b3Lm//16q.iA9VEYaIy6C0ArHoCwuLyjhMpHkAkfC', '2000-07-20', '+222222222'),
-(5, 'Charlie Black', 'charlie@guest.com', '$2b$12$4jSR87MSa5T4b3Lm//16q.iA9VEYaIy6C0ArHoCwuLyjhMpHkAkfC', '1998-11-30', '+333333333');
+(3, 'Alice Green', 'alice@guest.com', '$2y$12$uMUDL9XOjwMsw92AgbBqXO1UzASzOxndiHAXhY20FgIyhIVV7lgiy', '1995-04-12', '+111111111'),
+(4, 'Bob White', 'bob@guest.com', '$2y$12$uMUDL9XOjwMsw92AgbBqXO1UzASzOxndiHAXhY20FgIyhIVV7lgiy', '2000-07-20', '+222222222'),
+(5, 'Charlie Black', 'charlie@guest.com', '$2y$12$uMUDL9XOjwMsw92AgbBqXO1UzASzOxndiHAXhY20FgIyhIVV7lgiy', '1998-11-30', '+333333333');
 
 INSERT INTO users (id, full_name, email, password_hash, date_of_birth, phone, application_status, answers, verification_docs, registration_date, submitted_at) VALUES
-(6, 'David Host', 'david@host.com', '$2b$12$4jSR87MSa5T4b3Lm//16q.iA9VEYaIy6C0ArHoCwuLyjhMpHkAkfC', '1992-02-15', '+444444444', 'Pending', 'My answers to the questions.', 'path/to/docs_david.pdf', '2025-01-09 09:00:00', '2025-01-10 09:00:00'),
-(7, 'Eve Owner', 'eve@host.com', '$2b$12$4jSR87MSa5T4b3Lm//16q.iA9VEYaIy6C0ArHoCwuLyjhMpHkAkfC', '1988-06-25', '+555555555', 'Pending', 'I have a great property.', 'path/to/docs_eve.pdf', '2025-01-10 10:00:00', '2025-01-11 10:00:00'),
-(8, 'Frank Landlord', 'frank@host.com', '$2b$12$4jSR87MSa5T4b3Lm//16q.iA9VEYaIy6C0ArHoCwuLyjhMpHkAkfC', '1990-09-05', '+666666666', 'Pending', 'Here are my details.', 'path/to/docs_frank.pdf', '2025-01-11 11:00:00', '2025-01-12 11:00:00'),
-(9, 'Grace Property', 'grace@host.com', '$2b$12$4jSR87MSa5T4b3Lm//16q.iA9VEYaIy6C0ArHoCwuLyjhMpHkAkfC', '1993-01-18', '+777777777', 'Pending', 'My answers.', 'path/to/docs_grace.pdf', '2025-01-12 12:00:00', '2025-01-13 12:00:00'),
-(10, 'Heidi Home', 'heidi@host.com', '$2b$12$4jSR87MSa5T4b3Lm//16q.iA9VEYaIy6C0ArHoCwuLyjhMpHkAkfC', '1985-03-22', '+888888888', 'Pending', 'Application answers.', 'path/to/docs_heidi.pdf', '2025-01-13 13:00:00', '2025-01-14 13:00:00');
+(6, 'David Host', 'david@host.com', '$2y$12$uMUDL9XOjwMsw92AgbBqXO1UzASzOxndiHAXhY20FgIyhIVV7lgiy', '1992-02-15', '+444444444', 'Pending', 'My answers to the questions.', 'path/to/docs_david.pdf', '2025-01-09 09:00:00', '2025-01-10 09:00:00'),
+(7, 'Eve Owner', 'eve@host.com', '$2y$12$uMUDL9XOjwMsw92AgbBqXO1UzASzOxndiHAXhY20FgIyhIVV7lgiy', '1988-06-25', '+555555555', 'Pending', 'I have a great property.', 'path/to/docs_eve.pdf', '2025-01-10 10:00:00', '2025-01-11 10:00:00'),
+(8, 'Frank Landlord', 'frank@host.com', '$2y$12$uMUDL9XOjwMsw92AgbBqXO1UzASzOxndiHAXhY20FgIyhIVV7lgiy', '1990-09-05', '+666666666', 'Pending', 'Here are my details.', 'path/to/docs_frank.pdf', '2025-01-11 11:00:00', '2025-01-12 11:00:00'),
+(9, 'Grace Property', 'grace@host.com', '$2y$12$uMUDL9XOjwMsw92AgbBqXO1UzASzOxndiHAXhY20FgIyhIVV7lgiy', '1993-01-18', '+777777777', 'Pending', 'My answers.', 'path/to/docs_grace.pdf', '2025-01-12 12:00:00', '2025-01-13 12:00:00'),
+(10, 'Heidi Home', 'heidi@host.com', '$2y$12$uMUDL9XOjwMsw92AgbBqXO1UzASzOxndiHAXhY20FgIyhIVV7lgiy', '1985-03-22', '+888888888', 'Pending', 'Application answers.', 'path/to/docs_heidi.pdf', '2025-01-13 13:00:00', '2025-01-14 13:00:00');
 
 BEGIN;
 UPDATE users
