@@ -64,8 +64,6 @@ class SearchController extends Controller
             }
         }
 
-        // Note: variable is named "excludeTags" but behaves like an include-tags filter.
-        // Require that a listing contains EVERY tag in the list (i.e. include-all semantics).
         if (!empty($excludeTags)) {
             $countTags = count($excludeTags);
             $query->whereExists(function($q) use ($excludeTags, $countTags): void {
@@ -246,7 +244,7 @@ class SearchController extends Controller
                 return $l->min_price === null ? PHP_INT_MAX : $l->min_price;
             }, SORT_REGULAR, $orderDir === 'desc')->values();
         }
-        $perPage = 10;
+        $perPage = 9;
         $page = max(1, (int)$request->query('page', 1));
         $totalListings = $listings->count();
 

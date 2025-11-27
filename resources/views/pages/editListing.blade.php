@@ -23,35 +23,42 @@
             <form method="POST" action="{{ route('listing.update', ['id' => $listing->id]) }}" enctype="multipart/form-data" id="editListingForm">
                 @csrf
                 @method('PUT')
+                <div id="formAlertContainer"></div>
 
                 <div class="mb-3">
                     <label class="form-label">Title</label>
-                    <input type="text" name="title" class="form-control" value="{{ old('title', $listing->title) }}" required>
+                    <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $listing->title) }}" required>
+                    @error('title') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control" rows="4" required>{{ old('description', $listing->description) }}</textarea>
+                    <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="4" required>{{ old('description', $listing->description) }}</textarea>
+                    @error('description') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Max occupancy</label>
-                        <input type="number" name="max_occupancy" class="form-control" min="1" value="{{ old('max_occupancy', $listing->max_occupancy) }}" required>
+                        <input type="number" name="max_occupancy" class="form-control @error('max_occupancy') is-invalid @enderror" min="1" value="{{ old('max_occupancy', $listing->max_occupancy) }}" required>
+                        @error('max_occupancy') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Minimum stay (nights)</label>
-                        <input type="number" name="minimum_stay" class="form-control" min="1" value="{{ old('minimum_stay', $listing->minimum_stay) }}" required>
+                        <input type="number" name="minimum_stay" class="form-control @error('minimum_stay') is-invalid @enderror" min="1" value="{{ old('minimum_stay', $listing->minimum_stay) }}" required>
+                        @error('minimum_stay') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Location address</label>
-                        <input type="text" name="location_address" class="form-control" value="{{ old('location_address', $listing->location_address) }}" required>
+                        <input type="text" name="location_address" class="form-control @error('location_address') is-invalid @enderror" value="{{ old('location_address', $listing->location_address) }}" required>
+                        @error('location_address') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Cancellation policy</label>
-                    <textarea name="cancellation_policy" class="form-control" rows="2">{{ old('cancellation_policy', $listing->cancellation_policy) }}</textarea>
+                    <textarea name="cancellation_policy" class="form-control @error('cancellation_policy') is-invalid @enderror" rows="2">{{ old('cancellation_policy', $listing->cancellation_policy) }}</textarea>
+                    @error('cancellation_policy') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="mb-3">
@@ -72,8 +79,9 @@
 
                 <div class="mb-3">
                     <label class="form-label">Add Photos (optional)</label>
-                    <input type="file" name="photos[]" class="form-control" accept="image/*" multiple id="photosInput">
+                    <input type="file" name="photos[]" class="form-control @if($errors->has('photos')) is-invalid @endif" accept="image/*" multiple id="photosInput">
                     <div class="form-text">Upload additional images. Max size per image: 5MB.</div>
+                    @if($errors->has('photos')) <div class="invalid-feedback d-block">{{ $errors->first('photos') }}</div> @endif
                 </div>
 
                 <div class="mb-3">
@@ -81,18 +89,20 @@
                     <div class="d-flex gap-2 flex-wrap">
                         @foreach(($allTags ?? []) as $t)
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="tags[]" value="{{ $t->id }}" id="tag_{{ $t->id }}" @if(in_array($t->id, $selectedTags ?? [])) checked @endif>
+                                <input class="form-check-input @if($errors->has('tags')) is-invalid @endif" type="checkbox" name="tags[]" value="{{ $t->id }}" id="tag_{{ $t->id }}" @if(in_array($t->id, $selectedTags ?? [])) checked @endif>
                                 <label class="form-check-label small" for="tag_{{ $t->id }}">{{ $t->name }}</label>
                             </div>
                         @endforeach
                     </div>
                     <div class="form-text">Choose at least one tag describing this listing.</div>
+                    @error('tags') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Amenities (comma-separated)</label>
-                    <input type="text" name="amenities" class="form-control" value="{{ old('amenities', $listing->amenities ?? '') }}" placeholder="wifi,pool,parking">
+                    <input type="text" name="amenities" class="form-control @error('amenities') is-invalid @enderror" value="{{ old('amenities', $listing->amenities ?? '') }}" placeholder="wifi,pool,parking">
                     <div class="form-text">Enter amenities as a comma-separated list, e.g. <code>wifi,pool</code>.</div>
+                    @error('amenities') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="mb-3">
@@ -102,12 +112,31 @@
                         <div class="form-text">Edit availability ranges. There must be at least one availability.</div>
                     </div>
                     <input type="hidden" name="availabilities" id="availabilitiesInput" value="{{ old('availabilities') }}">
+                    @error('availabilities') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="mb-3">
                     <h6>Current Availabilities</h6>
                     <div id="availabilitiesListContainer">
-                        <div class="text-muted">No availabilities added yet.</div>
+                        @php
+                            $hasServerAvail = isset($availabilities) && count($availabilities) > 0;
+                        @endphp
+                        @if(!empty($hasServerAvail))
+                            <ul class="list-group mb-2">
+                                @foreach($availabilities as $idx => $av)
+                                    @include('partials.availability_item', ['availability' => [
+                                        'id' => $av->id ?? null,
+                                        'start_date' => $av->start_date,
+                                        'end_date' => $av->end_date,
+                                        'price_per_night' => $av->price_per_night,
+                                        'check_in_time' => $av->check_in_time,
+                                        'check_out_time' => $av->check_out_time,
+                                    ], 'showActions' => true, 'index' => $idx])
+                                @endforeach
+                            </ul>
+                        @else
+                            <div class="text-muted">No availabilities added yet.</div>
+                        @endif
                     </div>
                 </div>
 
@@ -123,14 +152,32 @@
 <script>
     (function(){
         const form = document.getElementById('editListingForm');
+        const formAlertContainer = document.getElementById('formAlertContainer');
         const photosInput = document.getElementById('photosInput');
         form.addEventListener('submit', function(e){
+            if (formAlertContainer) formAlertContainer.innerHTML = '';
+
+            // required fields client-side check
+            const required = [
+                {name: 'title', label: 'Title'},
+                {name: 'description', label: 'Description'},
+                {name: 'max_occupancy', label: 'Max occupancy'},
+                {name: 'minimum_stay', label: 'Minimum stay'},
+                {name: 'location_address', label: 'Location address'}
+            ];
+            for (const r of required) {
+                const el = form.querySelector('[name="'+r.name+'"]');
+                if (!el) continue;
+                const v = (el.value || '').toString().trim();
+                if (!v) { e.preventDefault(); if (formAlertContainer) formAlertContainer.innerHTML = '<div class="alert alert-danger">Please fill the required field: '+r.label+'</div>'; el.focus(); return; }
+            }
+
             const existingCount = {{ count($photos) }};
             const removeChecked = document.querySelectorAll('.remove-photo-checkbox:checked').length;
-            const newFiles = photosInput.files ? photosInput.files.length : 0;
+            const newFiles = photosInput && photosInput.files ? photosInput.files.length : 0;
             if ((existingCount - removeChecked + newFiles) < 3) {
                 e.preventDefault();
-                alert('A listing must have at least 3 photos. Please upload more photos or uncheck removals.');
+                if (formAlertContainer) formAlertContainer.innerHTML = '<div class="alert alert-danger">A listing must have at least 3 photos. Please upload more photos or uncheck removals.</div>';
                 return;
             }
             const availInput = document.getElementById('availabilitiesInput');
@@ -138,16 +185,16 @@
                 const arr = availInput.value ? JSON.parse(availInput.value) : [];
                 if (!Array.isArray(arr) || arr.length < 1) {
                     e.preventDefault();
-                    alert('Please keep at least one availability.');
+                    if (formAlertContainer) formAlertContainer.innerHTML = '<div class="alert alert-danger">Please keep at least one availability.</div>';
                     return;
                 }
             } catch(err){
                 e.preventDefault();
-                alert('Invalid availabilities data.');
+                if (formAlertContainer) formAlertContainer.innerHTML = '<div class="alert alert-danger">Invalid availabilities data.</div>';
                 return;
             }
             const checkedTags = form.querySelectorAll('input[name="tags[]"]:checked').length;
-            if (checkedTags < 1) { e.preventDefault(); alert('Please select at least one tag for the listing.'); return; }
+            if (checkedTags < 1) { e.preventDefault(); if (formAlertContainer) formAlertContainer.innerHTML = '<div class="alert alert-danger">Please select at least one tag for the listing.</div>'; return; }
         });
     })();
 </script>
