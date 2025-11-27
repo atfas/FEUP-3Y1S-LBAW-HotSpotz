@@ -57,7 +57,7 @@ class AdminController extends Controller
                 'id' => $user->id,
                 'username' => $user->full_name,
                 'email' => $user->email,
-                'role' => $user->is_admin ? 'Admin' : 'User',
+                'role' => $user->is_admin ? 'Admin' : ($user->application_status === 'Approved' ? 'Host' : 'User'),
                 'is_admin' => $user->is_admin,
                 'active' => $user->is_active,
                 'blocked' => $user->is_blocked,

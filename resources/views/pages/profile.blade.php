@@ -51,7 +51,7 @@
                                     @if($user->is_admin)
                                         <span class="badge bg-danger">Admin</span>
                                     @elseif($user->application_status === 'Approved')
-                                        <span class="badge bg-success">Host</span>
+                                        <span class="badge bg-warning">Host</span>
                                     @else
                                         <span class="badge bg-secondary">User</span>
                                     @endif
