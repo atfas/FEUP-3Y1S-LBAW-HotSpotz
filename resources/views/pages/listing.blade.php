@@ -36,7 +36,6 @@
         </div>
     </div>
 
-    <!-- Details and Reservation -->
     <div class="row g-4 mb-4">
         <div class="col-12 col-md-8">
             <div class="card p-3 h-100">
@@ -96,7 +95,6 @@
         </div>
     </div>
 
-    <!-- Reviews -->
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Reviews</h5>
@@ -116,7 +114,7 @@
                     </div>
                 @endforeach
 
-                <!-- Pagination -->
+                @if($totalPages > 1)
                 <nav>
                     <ul class="pagination">
                         @for($p = 1; $p <= $totalPages; $p++)
@@ -126,6 +124,7 @@
                         @endfor
                     </ul>
                 </nav>
+                @endif
             @endif
         </div>
     </div>
@@ -135,7 +134,6 @@
 @push('scripts')
 <script>
     (function(){
-        // Thumbnail click -> change main carousel
         const carouselEl = document.getElementById('listingCarousel');
         const carousel = bootstrap.Carousel.getOrCreateInstance(carouselEl);
         const thumbs = document.querySelectorAll('.thumb-img');
@@ -145,12 +143,10 @@
                 if (!isNaN(idx)) {
                     carousel.to(idx);
                 }
-                // ensure thumbnail is visible/centered
                 this.scrollIntoView({behavior: 'smooth', inline: 'center'});
             });
         });
 
-        // Reservation date logic (local-date-aware)
         function localISODate(d) {
             const y = d.getFullYear();
             const m = String(d.getMonth() + 1).padStart(2, '0');

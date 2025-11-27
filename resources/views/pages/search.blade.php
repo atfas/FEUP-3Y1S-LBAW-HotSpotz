@@ -88,7 +88,7 @@
             </div>
 
             <div id="search-results-container">
-                @include('pages._search_results', ['listings' => $listings])
+                @include('partials.cards', ['listings' => $listings])
             </div>
         </div>
     </div>
@@ -219,6 +219,32 @@
             form.addEventListener('submit', function(e){
                 e.preventDefault();
                 performAjaxSearch(true);
+            });
+        }
+
+        if (resultsContainer) {
+            resultsContainer.addEventListener('click', function(e){
+                const a = e.target.closest('a.page-link');
+                if (!a) return;
+                try {
+                    const url = new URL(a.href, window.location.href);
+                    if (url.origin !== window.location.origin) return;
+                } catch (err) {
+                    return;
+                }
+                e.preventDefault();
+                (async function(){
+                    try {
+                        const res = await fetch(a.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                        if (!res.ok) throw new Error('Network response was not ok');
+                        const html = await res.text();
+                        resultsContainer.innerHTML = html;
+                        if (window.history && window.history.pushState) window.history.pushState({}, '', a.href);
+                    } catch (err) {
+                        console.error('Pagination fetch failed', err);
+                        alert('Failed to load page.');
+                    }
+                })();
             });
         }
 

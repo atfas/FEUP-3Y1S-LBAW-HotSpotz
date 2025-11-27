@@ -1,7 +1,10 @@
 @php
+    $isPaginator = (isset($listings) && $listings instanceof \Illuminate\Pagination\LengthAwarePaginator);
+    $items = $listings;
 @endphp
+
 <div class="row g-4" id="search-results-grid">
-    @forelse($listings as $listing)
+    @forelse($items as $listing)
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm">
                 @php $carouselId = 'carousel-search-'.$listing->id; @endphp
@@ -52,4 +55,17 @@
             <div class="alert alert-info">No listings match your search.</div>
         </div>
     @endforelse
+    @if($isPaginator && $listings->lastPage() > 1)
+        <div class="col-12">
+            <nav>
+                <ul class="pagination">
+                    @for ($p = 1; $p <= $listings->lastPage(); $p++)
+                        <li class="page-item @if($p == $listings->currentPage()) active @endif">
+                            <a class="page-link" href="{{ $listings->url($p) }}">{{ $p }}</a>
+                        </li>
+                    @endfor
+                </ul>
+            </nav>
+        </div>
+    @endif
 </div>

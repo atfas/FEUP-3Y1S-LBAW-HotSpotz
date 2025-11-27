@@ -184,14 +184,32 @@ class SearchController extends Controller
                 return $l->min_price === null ? PHP_INT_MAX : $l->min_price;
             }, SORT_REGULAR, $orderDir === 'desc')->values();
         }
+        $perPage = 10;
+        $page = max(1, (int)$request->query('page', 1));
+        $totalListings = $listings->count();
+
+        if ($totalListings > $perPage) {
+            $offset = ($page - 1) * $perPage;
+            $itemsForPage = $listings->slice($offset, $perPage)->values();
+            $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+                $itemsForPage,
+                $totalListings,
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+            $listingsForView = $paginator;
+        } else {
+            $listingsForView = $listings;
+        }
 
         if ($request->ajax()) {
-            $html = view('pages._search_results', ['listings' => $listings])->render();
+            $html = view('partials.cards', ['listings' => $listingsForView])->render();
             return response($html, 200)->header('Content-Type', 'text/html');
         }
 
         return view('pages.search', [
-            'listings' => $listings,
+            'listings' => $listingsForView,
             'where' => $where,
             'checkin' => $checkin,
             'checkout' => $checkout,
