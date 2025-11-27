@@ -1,0 +1,929 @@
+openapi: 3.0.0
+
+info:
+  version: '1.0'
+  title: 'LBAW Property Booking Web API'
+  description: 'Web Resources Specification (A7) for LBAW'
+
+servers:
+  - url: http://lbaw2581.lbaw.fe.up.pt
+    description: Production server
+
+externalDocs:
+  description: Find more information here
+  url: https://git.fe.up.pt/lbaw/lbaw2425/lbaw2581/wikis/home
+
+tags:
+  - name: 'M01: Authentication'
+    description: 'Web resources related to user authentication and registration'
+  - name: 'M02: Users'
+    description: 'Web resources for managing user profiles and preferences'
+  - name: 'M03: Booking'
+    description: 'Web resources associated with property booking management'
+  - name: 'M04: Search'
+    description: 'Web resources related to search features'
+  - name: 'M05: Comments'
+    description: 'Web resources associated with guest and host feedback'
+  - name: 'M06: Cost-splitting'
+    description: 'Web resources that support group bookings with cost-sharing features'
+  - name: 'M07: Admin'
+    description: 'Web resources for platform administration'
+
+paths:
+  # M00: General
+  /home:
+    get:
+      operationId: R001
+      summary: 'R001: Home Page'
+      description: 'Show the home page with featured listings. Access: PUB'
+      tags:
+        - 'M04: Search'
+      responses:
+        '200':
+          description: 'Ok. Show home page (UI)'
+
+  # M01: Authentication
+  /login:
+    get:
+      operationId: R101
+      summary: 'R101: Login Form'
+      description: 'Provide login form. Access: PUB'
+      tags:
+        - 'M01: Authentication'
+      responses:
+        '200':
+          description: 'Ok. Show login form (UI)'
+    post:
+      operationId: R102
+      summary: 'R102: Login Action'
+      description: 'Processes the login form submission. Access: PUB'
+      tags:
+        - 'M01: Authentication'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+              required:
+                - email
+                - password
+      responses:
+        '302':
+          description: 'Redirect after processing the login credentials.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Successful authentication. Redirect to home page.'
+                  value: '/home'
+                302Failure:
+                  description: 'Failed authentication. Redirect again to login form.'
+                  value: '/login'
+
+  /logout:
+    get:
+      operationId: R103
+      summary: 'R103: Logout Action'
+      description: 'Logout the current logged user. Access: USR'
+      tags:
+        - 'M01: Authentication'
+      responses:
+        '302':
+          description: 'Redirect after processing logout.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Successful logout. Redirect to home page.'
+                  value: '/'
+
+  /register:
+    get:
+      operationId: R104
+      summary: 'R104: Register Form'
+      description: 'Provide new user registration form. Access: PUB'
+      tags:
+        - 'M01: Authentication'
+      responses:
+        '200':
+          description: 'Ok. Show registration form (UI)'
+    post:
+      operationId: R105
+      summary: 'R105: Register Action'
+      description: 'Processes the new user registration form submission. Access: PUB'
+      tags:
+        - 'M01: Authentication'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                full_name:
+                  type: string
+                  maxLength: 255
+                email:
+                  type: string
+                  format: email
+                  maxLength: 255
+                phone:
+                  type: string
+                  pattern: '^\+[0-9]{1,3}[0-9]{4,14}$'
+                date_of_birth:
+                  type: string
+                  format: date
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                password_confirmation:
+                  type: string
+                  format: password
+              required:
+                - full_name
+                - email
+                - phone
+                - date_of_birth
+                - password
+                - password_confirmation
+      responses:
+        '302':
+          description: 'Redirect after processing the new user information.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Successful registration. Redirect to home page.'
+                  value: '/home'
+                302Failure:
+                  description: 'Failed registration. Redirect to register form.'
+                  value: '/register'
+
+  # M02: Users
+  /profile:
+    get:
+      operationId: R201
+      summary: 'R201: View user profile'
+      description: 'Show the authenticated user profile. Access: OWN, ADM'
+      tags:
+        - 'M02: Users'
+      responses:
+        '200':
+          description: 'Ok. Show user profile (UI)'
+
+  /profile/edit:
+    get:
+      operationId: R202
+      summary: 'R202: Edit user profile form'
+      description: 'Provide form for editing the authenticated user profile. Access: OWN'
+      tags:
+        - 'M02: Users'
+      responses:
+        '200':
+          description: 'Ok. Show edit profile form (UI)'
+
+  /profile:
+    put:
+      operationId: R203
+      summary: 'R203: Update user profile'
+      description: 'Processes the authenticated user profile update. Access: OWN'
+      tags:
+        - 'M02: Users'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                full_name:
+                  type: string
+                  maxLength: 255
+                phone:
+                  type: string
+                  pattern: '^\+[0-9]{1,3}[0-9]{4,14}$'
+                  nullable: true
+                date_of_birth:
+                  type: string
+                  format: date
+              required:
+                - full_name
+                - date_of_birth
+      responses:
+        '302':
+          description: 'Redirect after processing the profile update.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Successful update. Redirect to profile.'
+                  value: '/profile'
+                302Failure:
+                  description: 'Failed update. Redirect to edit form.'
+                  value: '/profile/edit'
+
+  /profile/picture:
+    get:
+      operationId: R204
+      summary: 'R204: Edit profile picture form'
+      description: 'Show form to edit profile picture. Access: OWN'
+      tags:
+        - 'M02: Users'
+      responses:
+        '200':
+          description: 'Ok. Show picture edit form (UI)'
+    put:
+      operationId: R205
+      summary: 'R205: Update profile picture'
+      description: 'Update user profile picture. Access: OWN'
+      tags:
+        - 'M02: Users'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                profile_picture_url:
+                  type: string
+                  format: url
+                  nullable: true
+      responses:
+        '302':
+          description: 'Redirect after updating picture.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Picture updated. Redirect to profile.'
+                  value: '/profile'
+                302Failure:
+                  description: 'Failed to update picture. Redirect to picture edit form.'
+                  value: '/profile/picture'
+    delete:
+      operationId: R206
+      summary: 'R206: Delete profile picture'
+      description: 'Remove user profile picture. Access: OWN'
+      tags:
+        - 'M02: Users'
+      responses:
+        '302':
+          description: 'Redirect after deleting picture.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Picture deleted. Redirect to profile.'
+                  value: '/profile'
+                302Failure:
+                  description: 'Failed to delete picture. Redirect to profile.'
+                  value: '/profile'
+
+  # M03: Listings
+  /listing/{id}:
+    get:
+      operationId: R301
+      summary: 'R301: View listing details'
+      description: 'Show detailed information about a property listing. Access: PUB'
+      tags:
+        - 'M03: Booking'
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: 'Listing ID'
+      responses:
+        '200':
+          description: 'Ok. Show listing details (UI)'
+        '404':
+          description: 'Listing not found'
+    put:
+      operationId: R305
+      summary: 'R305: Update listing'
+      description: 'Update an existing listing. Access: HOST'
+      tags:
+        - 'M03: Booking'
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: 'Listing ID'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                location_address:
+                  type: string
+                max_occupancy:
+                  type: integer
+                  minimum: 1
+                minimum_stay:
+                  type: integer
+                  minimum: 1
+                cancellation_policy:
+                  type: string
+                amenities:
+                  type: string
+                photos:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                remove_photos:
+                  type: array
+                  items:
+                    type: integer
+                tags:
+                  type: array
+                  items:
+                    type: integer
+                availabilities:
+                  type: string
+              required:
+                - title
+                - description
+                - location_address
+                - max_occupancy
+                - minimum_stay
+                - tags
+                - availabilities
+      responses:
+        '302':
+          description: 'Redirect after updating listing.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Listing updated. Redirect to listing details.'
+                  value: '/listing/{id}'
+                302Failure:
+                  description: 'Failed. Redirect to edit form.'
+                  value: '/listing/{id}/edit'
+
+  /listing/add:
+    get:
+      operationId: R302
+      summary: 'R302: Show create listing form'
+      description: 'Show form to create a new listing. Access: HOST'
+      tags:
+        - 'M03: Booking'
+      responses:
+        '200':
+          description: 'Ok. Show create listing form (UI)'
+    post:
+      operationId: R303
+      summary: 'R303: Create listing'
+      description: 'Create a new property listing. Access: HOST'
+      tags:
+        - 'M03: Booking'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                location_address:
+                  type: string
+                max_occupancy:
+                  type: integer
+                  minimum: 1
+                minimum_stay:
+                  type: integer
+                  minimum: 1
+                cancellation_policy:
+                  type: string
+                amenities:
+                  type: string
+                photos:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                tags:
+                  type: array
+                  items:
+                    type: integer
+                availabilities:
+                  type: string
+              required:
+                - title
+                - description
+                - location_address
+                - max_occupancy
+                - minimum_stay
+                - photos
+                - tags
+                - availabilities
+      responses:
+        '302':
+          description: 'Redirect after creating listing.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Listing created. Redirect to listing details.'
+                  value: '/listing/{id}'
+                302Failure:
+                  description: 'Failed. Redirect to create form.'
+                  value: '/listing/add'
+
+  /listing/{id}/edit:
+    get:
+      operationId: R304
+      summary: 'R304: Show edit listing form'
+      description: 'Show form to edit a listing. Access: HOST'
+      tags:
+        - 'M03: Booking'
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: 'Listing ID'
+      responses:
+        '200':
+          description: 'Ok. Show edit listing form (UI)'
+        '403':
+          description: 'Forbidden. Not your listing'
+        '404':
+          description: 'Listing not found'
+
+  /listing/{id}/delete:
+    delete:
+      operationId: R306
+      summary: 'R306: Delete listing'
+      description: 'Delete a property listing. Access: HOST'
+      tags:
+        - 'M03: Booking'
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: 'Listing ID'
+      responses:
+        '302':
+          description: 'Redirect after deleting listing.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Listing deleted. Redirect to home.'
+                  value: '/home'
+                302Failure:
+                  description: 'Failed to delete listing. Redirect to listing details.'
+                  value: '/listing/{id}'
+
+  # M03: Booking
+  /booking/{listing}:
+    get:
+      operationId: R307
+      summary: 'R307: Show booking form for listing'
+      description: 'Show booking form with listing details. Access: PUB'
+      tags:
+        - 'M03: Booking'
+      parameters:
+        - in: path
+          name: listing
+          schema:
+            type: integer
+          required: true
+          description: 'Listing ID'
+      responses:
+        '200':
+          description: 'Ok. Show booking form (UI)'
+        '404':
+          description: 'Listing not found'
+
+  /bookings:
+    get:
+      operationId: R308
+      summary: 'R308: List user bookings'
+      description: 'Show list of bookings for authenticated user. Access: OWN'
+      tags:
+        - 'M03: Booking'
+      responses:
+        '200':
+          description: 'Ok. Show bookings dashboard (UI)'
+    post:
+      operationId: R309
+      summary: 'R309: Create booking'
+      description: 'Create a new booking. Access: USR'
+      tags:
+        - 'M03: Booking'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                listing_id:
+                  type: integer
+                availability_id:
+                  type: integer
+                check_in_date:
+                  type: string
+                  format: date
+                check_out_date:
+                  type: string
+                  format: date
+                num_guests:
+                  type: integer
+                  minimum: 1
+              required:
+                - listing_id
+                - availability_id
+                - check_in_date
+                - check_out_date
+                - num_guests
+      responses:
+        '302':
+          description: 'Redirect after creating booking.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Booking created. Redirect to profile.'
+                  value: '/profile'
+                302Failure:
+                  description: 'Failed. Redirect back to form.'
+                  value: '/booking/{listing}'
+
+  /bookings/{booking}/edit:
+    get:
+      operationId: R310
+      summary: 'R310: Show edit booking form'
+      description: 'Show form to edit booking. Access: OWN'
+      tags:
+        - 'M03: Booking'
+      parameters:
+        - in: path
+          name: booking
+          schema:
+            type: integer
+          required: true
+          description: 'Booking ID'
+      responses:
+        '200':
+          description: 'Ok. Show edit form (UI)'
+        '403':
+          description: 'Forbidden. Not your booking'
+        '404':
+          description: 'Booking not found'
+
+  /bookings/{booking}:
+    put:
+      operationId: R311
+      summary: 'R311: Update booking'
+      description: 'Update an existing booking. Access: OWN'
+      tags:
+        - 'M03: Booking'
+      parameters:
+        - in: path
+          name: booking
+          schema:
+            type: integer
+          required: true
+          description: 'Booking ID'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                check_in_date:
+                  type: string
+                  format: date
+                check_out_date:
+                  type: string
+                  format: date
+                num_guests:
+                  type: integer
+                  minimum: 1
+              required:
+                - check_in_date
+                - check_out_date
+                - num_guests
+      responses:
+        '302':
+          description: 'Redirect after updating booking.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Booking updated. Redirect to bookings list.'
+                  value: '/bookings'
+                302Failure:
+                  description: 'Failed. Redirect to edit form.'
+                  value: '/bookings/{booking}/edit'
+    delete:
+      operationId: R312
+      summary: 'R312: Delete booking'
+      description: 'Delete an existing booking. Access: OWN'
+      tags:
+        - 'M03: Booking'
+      parameters:
+        - in: path
+          name: booking
+          schema:
+            type: integer
+          required: true
+          description: 'Booking ID'
+      responses:
+        '302':
+          description: 'Redirect after deleting booking.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Booking deleted. Redirect to bookings list.'
+                  value: '/bookings'
+                302Failure:
+                  description: 'Failed to delete booking. Redirect to bookings list.'
+                  value: '/bookings'
+
+  # M04: Search
+  /search:
+    get:
+      operationId: R401
+      summary: 'R401: Search properties'
+      description: 'Search for properties with filters and sorting. Access: PUB'
+      tags:
+        - 'M04: Search'
+      parameters:
+        - in: query
+          name: where
+          schema:
+            type: string
+        - in: query
+          name: checkin
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: checkout
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: price
+          schema:
+            type: number
+        - in: query
+          name: guests
+          schema:
+            type: integer
+        - in: query
+          name: order_by
+          schema:
+            type: string
+            enum: [rating, price, relevance]  
+            default: rating
+        - in: query
+          name: order_dir
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - in: query
+          name: min_rating
+          schema:
+            type: number
+            minimum: 0
+            maximum: 5
+        - in: query
+          name: max_rating
+          schema:
+            type: number
+            minimum: 0
+            maximum: 5
+        - in: query
+          name: min_stay
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: 'Success'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+
+  # M07: Admin
+  /admin:
+    get:
+      operationId: R701
+      summary: 'R701: Admin dashboard'
+      description: 'Show admin dashboard. Access: ADM'
+      tags:
+        - 'M07: Admin'
+      responses:
+        '200':
+          description: 'Ok. Show admin dashboard (UI)'
+        '403':
+          description: 'Forbidden. Admin access required'
+
+  /admin/search-users:
+    get:
+      operationId: R702
+      summary: 'R702: Search users'
+      description: 'Search for users by name or email. Access: ADM'
+      tags:
+        - 'M07: Admin'
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: false
+          description: 'Search query'
+      responses:
+        '200':
+          description: 'Success'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        username:
+                          type: string
+                        email:
+                          type: string
+                        role:
+                          type: string
+                        is_admin:
+                          type: boolean
+                        active:
+                          type: boolean
+                        blocked:
+                          type: boolean
+                        joined_date:
+                          type: string
+                        application_status:
+                          type: string
+
+  /admin/users/{id}/toggle-status:
+    post:
+      operationId: R703
+      summary: 'R703: Toggle user blocked status'
+      description: 'Block or unblock a user account. Access: ADM'
+      tags:
+        - 'M07: Admin'
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: 'User ID'
+      responses:
+        '302':
+          description: 'Redirect after toggling status.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Status toggled. Redirect to admin dashboard.'
+                  value: '/admin'
+                302Failure:
+                  description: 'Failed to toggle status. Redirect to admin dashboard.'
+                  value: '/admin'
+        '403':
+          description: 'Forbidden. Admin access required'
+        '404':
+          description: 'User not found'
+
+  /admin/users/{id}/toggle-admin:
+    post:
+      operationId: R704
+      summary: 'R704: Toggle user admin status'
+      description: 'Promote or demote a user to/from admin. Access: ADM'
+      tags:
+        - 'M07: Admin'
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: 'User ID'
+      responses:
+        '302':
+          description: 'Redirect after toggling admin status.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Admin status toggled. Redirect to admin dashboard.'
+                  value: '/admin'
+                302Failure:
+                  description: 'Failed to toggle admin status. Redirect to admin dashboard.'
+                  value: '/admin'
+        '403':
+          description: 'Forbidden. Admin access required'
+        '404':
+          description: 'User not found'
+
+  /admin/users/{id}:
+    delete:
+      operationId: R705
+      summary: 'R705: Delete user'
+      description: 'Soft delete a user account. Access: ADM'
+      tags:
+        - 'M07: Admin'
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: 'User ID'
+      responses:
+        '302':
+          description: 'Redirect after deleting user.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'User deleted. Redirect to admin dashboard.'
+                  value: '/admin'
+                302Failure:
+                  description: 'Failed to delete user. Redirect to admin dashboard.'
+                  value: '/admin'
+        '403':
+          description: 'Forbidden. Admin access required'
+        '404':
+          description: 'User not found'
