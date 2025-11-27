@@ -177,9 +177,7 @@ class BookingController extends Controller
      */
     public function edit(Booking $booking): View
     {
-        if ($booking->guest_id !== Auth::id()) {
-            abort(403, 'Unauthorized');
-        }
+        $this->authorize('update', $booking);
 
         $booking->load(['availability.listing']);
         
@@ -191,9 +189,7 @@ class BookingController extends Controller
      */
     public function update(Request $request, Booking $booking)
     {
-        if ($booking->guest_id !== Auth::id()) {
-            abort(403, 'Unauthorized');
-        }
+        $this->authorize('update', $booking);
 
         $validated = $request->validate([
             'check_in_date' => 'required|date',
@@ -268,9 +264,7 @@ class BookingController extends Controller
      */
     public function destroy(Booking $booking)
     {
-        if ($booking->guest_id !== Auth::id()) {
-            abort(403, 'Unauthorized');
-        }
+        $this->authorize('delete', $booking);
 
         $booking->delete();
         
