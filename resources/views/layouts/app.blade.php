@@ -41,12 +41,6 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                         <div class="navbar-nav ms-auto align-items-center">
-                            {{-- @guest
-                                '<'a class="btn btn-outline-danger btn-sm ms-2" href="#">
-                                    Become a Host
-                                '<'/a>
-                            @endguest --}}
-
                             @auth
                                 @if(!Auth::user()->application_status === 'Approved')
                                     <a class="btn btn-outline-danger btn-sm ms-2" href="#">

@@ -14,7 +14,8 @@
                     @endif
 
                     <!-- Header Section -->
-                    <div class="d-flex justify-content-between align-items-center mb-5">
+                    <!-- Header Section -->
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-3">
                         <div class="d-flex align-items-center gap-4">
                             <!-- Avatar Container -->
                             <div class="position-relative rounded-circle" style="width: 120px; height: 120px; border: 4px solid #722F37;">
@@ -59,10 +60,11 @@
                             </div>
                         </div>
 
-                        <!-- Edit Button -->
-                        <a href="{{ route('profile.edit') }}" class="btn btn-primary px-4">Edit</a>
-                        <!-- Show Bookings Button -->
-                        <a href="{{ route('bookings.index') }}" class="btn btn-primary px-4">Show Bookings</a>
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2 w-100 w-md-auto justify-content-center justify-content-md-end">
+                            <a href="{{ route('profile.edit') }}" class="btn btn-primary px-4">Edit</a>
+                            <a href="{{ route('bookings.index') }}" class="btn btn-primary px-4">Show Bookings</a>
+                        </div>
                     </div>
 
                     <!-- Fields Grid -->
