@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Gate;
+use App\Models\Listing;
 
 class ListingController extends Controller
 {
@@ -34,10 +36,7 @@ class ListingController extends Controller
 
     public function show($id, Request $request): View
     {
-        $listing = DB::table('listings')
-            ->where('id', $id)
-            ->where('is_active', true)
-            ->first();
+        $listing = Listing::where('id', $id)->where('is_active', true)->first();
 
         if (!$listing) {
             abort(404);
@@ -135,10 +134,7 @@ class ListingController extends Controller
 
     public function create()
     {
-        $user = Auth::user();
-        if (!$user || $user->application_status !== 'Approved') {
-            abort(403);
-        }
+        $this->authorize('create', Listing::class);
 
         $allTags = DB::table('tags')->orderBy('name')->get();
         return view('pages.addListing', ['allTags' => $allTags]);
@@ -146,10 +142,8 @@ class ListingController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Listing::class);
         $user = Auth::user();
-        if (!$user || $user->application_status !== 'Approved') {
-            abort(403);
-        }
 
         $rules = [
             'title' => 'required|string|max:255',
@@ -272,13 +266,10 @@ class ListingController extends Controller
 
     public function edit($id)
     {
-        $listing = DB::table('listings')->where('id', $id)->first();
+        $listing = Listing::find($id);
         if (!$listing) abort(404);
 
-        $userId = Auth::id();
-        if ($userId !== $listing->host_id) {
-            abort(403);
-        }
+        $this->authorize('update', $listing);
 
         $photos = DB::table('listing_photos')->where('listing_id', $id)->orderBy('id')->get();
         $availabilities = DB::table('availability')->where('listing_id', $id)->orderBy('start_date')->get();
@@ -296,13 +287,10 @@ class ListingController extends Controller
 
     public function update(Request $request, $id)
     {
-        $listing = DB::table('listings')->where('id', $id)->first();
+        $listing = Listing::find($id);
         if (!$listing) abort(404);
 
-        $userId = Auth::id();
-        if ($userId !== $listing->host_id) {
-            abort(403);
-        }
+        $this->authorize('update', $listing);
 
         $rules = [
             'title' => 'required|string|max:255',
@@ -460,27 +448,16 @@ class ListingController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $listing = DB::table('listings')->where('id', $id)->first();
+        $listing = Listing::find($id);
         if (!$listing) abort(404);
 
-        $userId = Auth::id();
-        if ($userId !== $listing->host_id) {
-            abort(403);
+        $response = Gate::inspect('delete', $listing);
+        if (!$response->allowed()) {
+            return redirect()->route('listing.show', ['id' => $id])->with('error', $response->message());
         }
 
-        $today = date('Y-m-d');
-        $hasFutureConfirmed = DB::table('bookings')
-            ->join('availability', 'bookings.availability_id', '=', 'availability.id')
-            ->where('availability.listing_id', $id)
-            ->where('bookings.status', 'Confirmed')
-            ->where('bookings.check_in_date', '>=', $today)
-            ->exists();
-
-        if ($hasFutureConfirmed) {
-            return redirect()->route('listing.show', ['id' => $id])->with('error', 'Cannot delete listing: there are confirmed future bookings scheduled for this listing.');
-        }
-
-        DB::table('listings')->where('id', $id)->update(['is_active' => false]);
+        $listing->is_active = false;
+        $listing->save();
 
         return redirect()->route('profile.show')->with('success', 'Listing deleted.');
     }
