@@ -31,8 +31,19 @@ class SearchController extends Controller
 
         $query = DB::table('listings')->where('is_active', true);
 
+        $excludeTagsRaw = $request->query('exclude_tags');
+        $excludeTags = [];
+        if (!empty($excludeTagsRaw)) {
+            if (is_array($excludeTagsRaw)) $excludeTags = array_map('intval', $excludeTagsRaw);
+            else $excludeTags = array_filter(array_map('intval', explode(',', (string)$excludeTagsRaw))); 
+        }
+
         if (!empty($minStay) && is_numeric($minStay)) {
             $query->where('minimum_stay', '>=', (int)$minStay);
+        }
+
+        if (!empty($guests) && is_numeric($guests)) {
+            $query->where('max_occupancy', '>=', (int)$guests);
         }
 
         if ($minRating !== null && $minRating !== '') {
@@ -51,6 +62,14 @@ class SearchController extends Controller
             if ($orderBy === 'relevance') {
                 $query->orderByRaw("ts_rank(search_vector, plainto_tsquery('english', ?)) {$orderDir}", [$where]);
             }
+        }
+
+        if (!empty($excludeTags)) {
+            $query->whereNotExists(function($q) use ($excludeTags) {
+                $q->select(DB::raw(1))->from('listing_tags')
+                  ->whereRaw('listing_tags.listing_id = listings.id')
+                  ->whereIn('listing_tags.tag_id', $excludeTags);
+            });
         }
 
         $hasCheckin = !empty($checkin);
@@ -141,17 +160,20 @@ class SearchController extends Controller
             $photosGrouped = $photos;
         }
 
+        $tagsGrouped = [];
+        if (!empty($listingIds)) {
+            $tagRows = DB::table('listing_tags')
+                ->join('tags', 'listing_tags.tag_id', '=', 'tags.id')
+                ->whereIn('listing_id', $listingIds)
+                ->select('listing_tags.listing_id', 'tags.id', 'tags.name')
+                ->get()
+                ->groupBy('listing_id');
+            $tagsGrouped = $tagRows;
+        }
+
         $prices = [];
         if (!empty($listingIds)) {
             $availQuery = DB::table('availability')->whereIn('listing_id', $listingIds);
-
-            if ($hasCheckin && $hasCheckout) {
-                $availQuery->where('start_date', '<=', $checkin)->where('end_date', '>=', $checkout);
-            } elseif ($hasCheckin) {
-                $availQuery->where('end_date', '>=', $checkin);
-            } elseif ($hasCheckout) {
-                $availQuery->where('start_date', '<=', $checkout);
-            }
 
             if ($hasPrice) {
                 $minP = $priceRanges[$price][0];
@@ -163,19 +185,53 @@ class SearchController extends Controller
                 }
             }
 
-            $priceRows = $availQuery->select('listing_id', DB::raw('MIN(price_per_night) as min_price'))
-                ->groupBy('listing_id')
+            $availRows = $availQuery->select('id','listing_id','start_date','end_date','price_per_night')
+                ->orderBy('start_date','asc')
                 ->get()
-                ->keyBy('listing_id');
+                ->groupBy('listing_id');
 
-            foreach ($priceRows as $lid => $row) {
-                $prices[$lid] = $row->min_price;
+            $today = date('Y-m-d');
+
+            foreach ($availRows as $lid => $rows) {
+                $selected = null;
+                $rowsArr = $rows->values()->all();
+
+                if ($hasCheckin && $hasCheckout) {
+                    foreach ($rowsArr as $r) {
+                        if ($r->start_date <= $checkin && $r->end_date >= $checkout) { $selected = $r; break; }
+                    }
+                } elseif ($hasCheckin) {
+                    foreach ($rowsArr as $r) {
+                        if ($r->start_date >= $checkin) { $selected = $r; break; }
+                    }
+                } elseif ($hasCheckout) {
+                    for ($i = count($rowsArr)-1; $i >= 0; $i--) {
+                        $r = $rowsArr[$i];
+                        if ($r->start_date <= $checkout) { $selected = $r; break; }
+                    }
+                } else {
+                    foreach ($rowsArr as $r) {
+                        if ($r->start_date >= $today) { $selected = $r; break; }
+                    }
+                }
+
+                if (!$selected) {
+                    $min = null;
+                    foreach ($rowsArr as $r) { if ($min === null || $r->price_per_night < $min) $min = $r->price_per_night; }
+                    $prices[$lid] = $min;
+                } else {
+                    $prices[$lid] = $selected->price_per_night;
+                }
             }
         }
 
-        $listings = $listings->map(function($l) use ($photosGrouped, $prices) {
+        $listings = $listings->map(function($l) use ($photosGrouped, $prices, $tagsGrouped) {
             $l->photos = isset($photosGrouped[$l->id]) ? $photosGrouped[$l->id]->pluck('url')->all() : [];
             $l->min_price = $prices[$l->id] ?? null;
+            $l->tags = [];
+            if (isset($tagsGrouped[$l->id])) {
+                $l->tags = $tagsGrouped[$l->id]->map(function($t){ return ['id' => $t->id, 'name' => $t->name]; })->values()->all();
+            }
             return $l;
         });
 
@@ -208,6 +264,8 @@ class SearchController extends Controller
             return response($html, 200)->header('Content-Type', 'text/html');
         }
 
+        $allTags = DB::table('tags')->orderBy('name')->get();
+
         return view('pages.search', [
             'listings' => $listingsForView,
             'where' => $where,
@@ -220,6 +278,8 @@ class SearchController extends Controller
             'min_rating' => $minRating,
             'max_rating' => $maxRating,
             'min_stay' => $minStay,
+            'allTags' => $allTags,
+            'exclude_tags' => $excludeTags,
         ]);
     }
 }

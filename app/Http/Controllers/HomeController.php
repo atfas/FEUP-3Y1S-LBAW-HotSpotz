@@ -40,6 +40,8 @@ class HomeController extends Controller
             return $listing;
         });
 
-        return view('pages.home', ['listings' => $listings]);
+        $allTags = DB::table('tags')->orderBy('name')->get();
+
+        return view('pages.home', ['listings' => $listings, 'allTags' => $allTags]);
     }
 }

@@ -24,9 +24,17 @@ Route::controller(HomeController::class)->group(function () {
     Route::get('/home', 'index')->name('home');
 }); 
 
-// Listing show
-Route::get('/listing/{id}', [ListingController::class, 'show'])->name('listing.show');
+// Listing show (only match numeric ids)
+Route::get('/listing/{id}', [ListingController::class, 'show'])->whereNumber('id')->name('listing.show');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+// Listing creation (auth)
+Route::middleware('auth')->group(function () {
+    Route::get('/listing/add', [ListingController::class, 'create'])->name('listing.create');
+    Route::post('/listing/add', [ListingController::class, 'store'])->name('listing.store');
+    Route::get('/listing/{id}/edit', [ListingController::class, 'edit'])->whereNumber('id')->name('listing.edit');
+    Route::put('/listing/{id}', [ListingController::class, 'update'])->whereNumber('id')->name('listing.update');
+});
 
 // Cards (authentication required)
 Route::middleware('auth')->controller(CardController::class)->group(function () {

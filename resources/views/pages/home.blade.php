@@ -44,104 +44,156 @@
         </div>
     </div>
 
+    @if(!empty($allTags) && count($allTags) > 0)
+    <div class="card mb-4">
+        <div class="card-body py-2">
+            <div id="homeTagStrip" class="d-flex gap-2 overflow-auto" style="-webkit-overflow-scrolling:touch;">
+                @foreach($allTags as $t)
+                    <button type="button" class="btn btn-sm btn-outline-secondary tag-btn" data-tag-id="{{ $t->id }}">{{ $t->name }}</button>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
     @include('partials.cards', ['listings' => $listings])
 </div>
 
 @push('scripts')
 <script>
     (function(){
-        function localISODate(d) {
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const dd = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${dd}`;
-        }
-        function parseLocalDate(s) {
-            if (!s) return null;
-            const parts = s.split('-');
-            if (parts.length !== 3) return null;
-            return new Date(parts[0], parseInt(parts[1],10)-1, parts[2]);
-        }
-        function addDaysToLocal(dateStr, days) {
-            const d = parseLocalDate(dateStr);
-            if (!d) return null;
-            d.setDate(d.getDate() + days);
-            return localISODate(d);
-        }
+        function initThumbs() {
+            function localISODate(d) {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${dd}`;
+            }
+            function parseLocalDate(s) {
+                if (!s) return null;
+                const parts = s.split('-');
+                if (parts.length !== 3) return null;
+                return new Date(parts[0], parseInt(parts[1],10)-1, parts[2]);
+            }
+            function addDaysToLocal(dateStr, days) {
+                const d = parseLocalDate(dateStr);
+                if (!d) return null;
+                d.setDate(d.getDate() + days);
+                return localISODate(d);
+            }
 
-        const todayStr = localISODate(new Date());
+            const todayStr = localISODate(new Date());
 
-        const form = document.querySelector('form[action="/search"]');
-        const whereInput = form ? form.querySelector('input[name="where"]') : null;
-        const priceSelect = form ? form.querySelector('select[name="price"]') : null;
-        const guestsInput = form ? form.querySelector('input[name="guests"]') : null;
+            const form = document.querySelector('form[action="/search"]');
+            const whereInput = form ? form.querySelector('input[name="where"]') : null;
+            const priceSelect = form ? form.querySelector('select[name="price"]') : null;
+            const guestsInput = form ? form.querySelector('input[name="guests"]') : null;
 
-        const checkin = document.getElementById('checkin');
-        const checkout = document.getElementById('checkout');
+            const checkin = document.getElementById('checkin');
+            const checkout = document.getElementById('checkout');
 
-        if (checkin) checkin.min = todayStr;
-        if (checkout) checkout.min = todayStr;
+            if (checkin) checkin.min = todayStr;
+            if (checkout) checkout.min = todayStr;
 
-        function onCheckinChange() {
-            if (!checkin) return;
-            if (checkin.value) {
-                const nextDay = addDaysToLocal(checkin.value, 1);
-                if (checkout && nextDay) checkout.min = nextDay;
-                if (checkout && checkout.value) {
-                    const ci = parseLocalDate(checkin.value);
-                    const co = parseLocalDate(checkout.value);
-                    if (ci && co && ci >= co) checkout.value = '';
+            function onCheckinChange() {
+                if (!checkin) return;
+                if (checkin.value) {
+                    const nextDay = addDaysToLocal(checkin.value, 1);
+                    if (checkout && nextDay) checkout.min = nextDay;
+                    if (checkout && checkout.value) {
+                        const ci = parseLocalDate(checkin.value);
+                        const co = parseLocalDate(checkout.value);
+                        if (ci && co && ci >= co) checkout.value = '';
+                    }
+                    checkin.max = '';
+                } else {
+                    if (checkout) checkout.min = todayStr;
+                    checkin.max = '';
                 }
-                checkin.max = '';
-            } else {
-                if (checkout) checkout.min = todayStr;
-                checkin.max = '';
+            }
+
+            function onCheckoutChange() {
+                if (!checkout) return;
+                if (checkout.value) {
+                    const prevDay = addDaysToLocal(checkout.value, -1);
+                    if (checkin && prevDay) checkin.max = prevDay;
+                    if (checkin && checkin.value) {
+                        const ci = parseLocalDate(checkin.value);
+                        const co = parseLocalDate(checkout.value);
+                        if (ci && co && ci >= co) checkin.value = '';
+                    }
+                } else {
+                    if (checkin) checkin.max = '';
+                }
+            }
+
+            if (checkin) checkin.addEventListener('change', onCheckinChange);
+            if (checkout) checkout.addEventListener('change', onCheckoutChange);
+
+            if (form) {
+                form.addEventListener('submit', function(e){
+                    e.preventDefault();
+
+                    const whereVal = whereInput ? whereInput.value.trim() : '';
+
+                    const ci = parseLocalDate(checkin ? checkin.value : '');
+                    const co = parseLocalDate(checkout ? checkout.value : '');
+                    const today = parseLocalDate(todayStr);
+
+                    if (ci && ci < today) { alert('Check-in cannot be before today.'); return; }
+                    if (co && co < today) { alert('Check-out cannot be before today.'); return; }
+                    if (ci && co && ci >= co) { alert('Check-in must be before check-out.'); return; }
+
+                    const params = new URLSearchParams();
+                    if (whereVal) params.set('where', whereVal);
+                    if (checkin && checkin.value) params.set('checkin', checkin.value);
+                    if (checkout && checkout.value) params.set('checkout', checkout.value);
+                    if (priceSelect && priceSelect.value) params.set('price', priceSelect.value);
+                    if (guestsInput && guestsInput.value) params.set('guests', guestsInput.value);
+
+                    const target = form.action + (params.toString() ? ('?' + params.toString()) : '');
+                    window.location.href = target;
+                });
             }
         }
 
-        function onCheckoutChange() {
-            if (!checkout) return;
-            if (checkout.value) {
-                const prevDay = addDaysToLocal(checkout.value, -1);
-                if (checkin && prevDay) checkin.max = prevDay;
-                if (checkin && checkin.value) {
-                    const ci = parseLocalDate(checkin.value);
-                    const co = parseLocalDate(checkout.value);
-                    if (ci && co && ci >= co) checkin.value = '';
-                }
-            } else {
-                if (checkin) checkin.max = '';
-            }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initThumbs);
+        } else {
+            initThumbs();
         }
+    })();
+</script>
+@endpush
 
-        if (checkin) checkin.addEventListener('change', onCheckinChange);
-        if (checkout) checkout.addEventListener('change', onCheckoutChange);
-
-        if (form) {
-            form.addEventListener('submit', function(e){
-                e.preventDefault();
-
-                const whereVal = whereInput ? whereInput.value.trim() : '';
-
-                const ci = parseLocalDate(checkin ? checkin.value : '');
-                const co = parseLocalDate(checkout ? checkout.value : '');
-                const today = parseLocalDate(todayStr);
-
-                if (ci && ci < today) { alert('Check-in cannot be before today.'); return; }
-                if (co && co < today) { alert('Check-out cannot be before today.'); return; }
-                if (ci && co && ci >= co) { alert('Check-in must be before check-out.'); return; }
-
+@push('scripts')
+<script>
+    (function(){
+        function initTagStrip(){
+            const strip = document.getElementById('homeTagStrip');
+            if (!strip) return;
+            const selected = new Set();
+            strip.addEventListener('click', function(e){
+                const btn = e.target.closest('.tag-btn');
+                if (!btn) return;
+                const id = btn.getAttribute('data-tag-id');
+                if (!id) return;
+                if (btn.classList.contains('btn-danger')) {
+                    btn.classList.remove('btn-danger');
+                    btn.classList.add('btn-outline-secondary');
+                    selected.delete(id);
+                } else {
+                    btn.classList.remove('btn-outline-secondary');
+                    btn.classList.add('btn-danger');
+                    selected.add(id);
+                }
                 const params = new URLSearchParams();
-                if (whereVal) params.set('where', whereVal);
-                if (checkin && checkin.value) params.set('checkin', checkin.value);
-                if (checkout && checkout.value) params.set('checkout', checkout.value);
-                if (priceSelect && priceSelect.value) params.set('price', priceSelect.value);
-                if (guestsInput && guestsInput.value) params.set('guests', guestsInput.value);
-
-                const target = form.action + (params.toString() ? ('?' + params.toString()) : '');
+                if (selected.size > 0) params.set('exclude_tags', Array.from(selected).join(','));
+                const target = '/search' + (params.toString() ? ('?' + params.toString()) : '');
                 window.location.href = target;
             });
         }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initTagStrip); else initTagStrip();
     })();
 </script>
 @endpush
