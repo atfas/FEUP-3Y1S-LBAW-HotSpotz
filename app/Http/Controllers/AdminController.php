@@ -18,7 +18,7 @@ class AdminController extends Controller
     public function index(): View
 {
         // Check if user is authorized to view admin panel
-        Gate::authorize('viewAdminPanel', User::class);
+        Gate::authorize('viewAdminPanel');
 
         $perPage = 10;
         
@@ -81,7 +81,6 @@ class AdminController extends Controller
     public function searchUsers(Request $request): JsonResponse
     {
         Gate::authorize('manageUsers');
-        Gate::authorize('manageUsers', User::class);
 
         $search = $request->input('search', '');
 
@@ -124,7 +123,6 @@ class AdminController extends Controller
         $targetUser = User::findOrFail($id);
         
         Gate::authorize('toggleUserStatus', $targetUser);
-        Gate::authorize('toggleUserStatus', [User::class, $targetUser]);
 
         $targetUser->is_blocked = !$targetUser->is_blocked;
         $targetUser->save();
@@ -140,7 +138,6 @@ class AdminController extends Controller
         $targetUser = User::findOrFail($id);
         
         Gate::authorize('changeAdminStatus', $targetUser);
-        Gate::authorize('changeAdminStatus', [User::class, $targetUser]);
 
         $targetUser->is_admin = !$targetUser->is_admin;
         $targetUser->save();
@@ -156,7 +153,6 @@ class AdminController extends Controller
         $targetUser = User::findOrFail($id);
         
         Gate::authorize('deleteUser', $targetUser);
-        Gate::authorize('deleteUser', [User::class, $targetUser]);
 
         $targetUser->is_active = false;
         $targetUser->save();
