@@ -79,7 +79,7 @@
                                     <td>{{ $user['username'] }}</td>
                                     <td>{{ $user['email'] }}</td>
                                     <td>
-                                        <span class="badge {{ $user['is_admin'] ? 'wine-badge' : 'bg-secondary' }}">
+                                        <span class="badge {{ $user['is_admin'] ? 'wine-badge' : ($user['application_status'] === 'Approved' ? 'bg-warning' : 'bg-secondary') }}">
                                             {{ $user['role'] }}
                                         </span>
                                     </td>
