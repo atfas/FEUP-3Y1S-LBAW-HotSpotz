@@ -23,6 +23,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Register the AdminPolicy
-        Gate::policy(User::class, AdminPolicy::class);
+        // Gate::policy(User::class, AdminPolicy::class);
+        // Register the UserPolicy
+        Gate::policy(User::class, \App\Policies\UserPolicy::class);
+
+        // Define Gates for AdminPolicy actions
+        Gate::define('viewAdminPanel', [AdminPolicy::class, 'viewAdminPanel']);
+        Gate::define('manageUsers', [AdminPolicy::class, 'manageUsers']);
+        Gate::define('changeAdminStatus', [AdminPolicy::class, 'changeAdminStatus']);
+        Gate::define('toggleUserStatus', [AdminPolicy::class, 'toggleUserStatus']);
+        Gate::define('deleteUser', [AdminPolicy::class, 'deleteUser']);
     }
 }

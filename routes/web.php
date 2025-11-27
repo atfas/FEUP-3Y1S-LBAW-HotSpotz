@@ -13,6 +13,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BookingController;
 
 
 // Home
@@ -61,15 +63,33 @@ Route::controller(RegisterController::class)->group(function () {
 });
 
 // Admin routes (authentication required)
-// Route::get('/admin', [AdminController::class, 'index'])->name('admin');
-//Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-// Admin routes
-// Route::middleware(['auth'])->group(function () {
-Route::group([], function () {
+Route::middleware(['auth'])->group(function () {
+
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
     Route::get('/admin/search-users', [AdminController::class, 'searchUsers'])->name('admin.search-users');
     
     Route::post('/admin/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('admin.users.toggle-status');
     Route::post('/admin/users/{id}/toggle-admin', [AdminController::class, 'toggleAdminStatus'])->name('admin.users.toggle-admin');
     Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.destroy');
+});
+
+// Profile routes (authentication required)
+Route::middleware('auth')->controller(ProfileController::class)->group(function () {
+    Route::get('/profile', 'show')->name('profile.show');
+    Route::get('/profile/edit', 'edit')->name('profile.edit');
+    Route::put('/profile', 'update')->name('profile.update');
+    Route::get('/profile/picture', 'editPicture')->name('profile.picture.edit');
+    Route::put('/profile/picture', 'updatePicture')->name('profile.picture.update');
+    Route::delete('/profile/picture', 'deletePicture')->name('profile.picture.delete');
+});
+
+
+// Booking routes
+Route::get('/booking/{listing}', [BookingController::class, 'show'])->name('booking.show');
+Route::middleware('auth')->controller(BookingController::class)->group(function () {
+    Route::post('/bookings', 'store')->name('bookings.store');
+    Route::get('/bookings', 'index')->name('bookings.index');
+    Route::get('/bookings/{booking}/edit', 'edit')->name('bookings.edit');
+    Route::put('/bookings/{booking}', 'update')->name('bookings.update');
+    Route::delete('/bookings/{booking}', 'destroy')->name('bookings.destroy');
 });

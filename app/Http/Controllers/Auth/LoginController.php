@@ -60,10 +60,15 @@ class LoginController extends Controller
             }
 
             // Check for Bcrypt hash match (standard Laravel auth)
-            if (\Illuminate\Support\Facades\Hash::check($request->password, $user->password_hash)) {
-                Auth::login($user, $request->filled('remember'));
-                $request->session()->regenerate();
-                return redirect()->intended(route('home'));
+            // Wrap in try-catch to handle non-Bcrypt hashes gracefully
+            try {
+                if (\Illuminate\Support\Facades\Hash::check($request->password, $user->password_hash)) {
+                    Auth::login($user, $request->filled('remember'));
+                    $request->session()->regenerate();
+                    return redirect()->intended(route('home'));
+                }
+            } catch (\RuntimeException $e) {
+                // Password is not in Bcrypt format, continue to fail authentication
             }
         }
 

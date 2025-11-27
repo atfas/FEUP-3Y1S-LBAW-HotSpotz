@@ -1,0 +1,100 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-5">
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show mb-5" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    <!-- Header Section -->
+                    <div class="d-flex justify-content-between align-items-center mb-5">
+                        <div class="d-flex align-items-center gap-4">
+                            <!-- Avatar Container -->
+                            <div class="position-relative rounded-circle" style="width: 120px; height: 120px; border: 4px solid #722F37;">
+                                @if($user->profile_picture_url)
+                                    <img src="{{ $user->profile_picture_url }}" alt="Profile" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                                @else
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-wine w-100 h-100" style="font-size: 3rem; background-color: #f8f9fa;">
+                                        {{ strtoupper(substr($user->full_name, 0, 1)) }}
+                                    </div>
+                                @endif
+
+                                <!-- Edit/Add Picture Button -->
+                                <a href="{{ route('profile.picture.edit') }}" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center shadow-sm border-2 border-wine" style="width: 35px; height: 35px; background-color: #722F37; border-color: #fff !important;">
+                                    <i class="fa-solid fa-pencil" style="font-size: 0.9rem;"></i>
+                                </a>
+
+                                <!-- Delete Picture Button -->
+                                @if($user->profile_picture_url)
+                                    <form action="{{ route('profile.picture.delete') }}" method="POST" class="position-absolute bottom-0 start-0">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger rounded-circle d-flex align-items-center justify-content-center shadow-sm border-2 border-white" style="width: 35px; height: 35px; border-color: #fff !important;" onclick="return confirm('Are you sure you want to remove your profile picture?')">
+                                            <i class="fa-solid fa-trash" style="font-size: 0.9rem;"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                            
+                            <!-- Name and Email -->
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <h4 class="fw-bold mb-0 text-wine">{{ $user->full_name }}</h4>
+                                    @if($user->is_admin)
+                                        <span class="badge bg-danger">Admin</span>
+                                    @elseif($user->application_status === 'Approved')
+                                        <span class="badge bg-success">Host</span>
+                                    @else
+                                        <span class="badge bg-secondary">User</span>
+                                    @endif
+                                </div>
+                                <p class="text-muted mb-0">{{ $user->email }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Edit Button -->
+                        <a href="{{ route('profile.edit') }}" class="btn btn-primary px-4" style="background-color: #722F37; border-color: #722F37;">Edit</a>
+                        <!-- Show Bookings Button -->
+                        <a href="{{ route('bookings.index') }}" class="btn btn-primary px-4" style="background-color: #722F37; border-color: #722F37;">Show Bookings</a>
+                    </div>
+
+                    <!-- Fields Grid -->
+                    <div class="row g-4">
+                        <!-- Full Name -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted">Full Name</label>
+                            <input type="text" class="form-control bg-light" value="{{ $user->full_name }}" readonly>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted">Email Address</label>
+                            <input type="text" class="form-control bg-light" value="{{ $user->email }}" readonly>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted">Phone Number</label>
+                            <input type="text" class="form-control bg-light" value="{{ $user->phone ?? 'Not provided' }}" readonly>
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted">Date of Birth</label>
+                            <input type="text" class="form-control bg-light" value="{{ \Carbon\Carbon::parse($user->date_of_birth)->format('F j, Y') }}" readonly>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

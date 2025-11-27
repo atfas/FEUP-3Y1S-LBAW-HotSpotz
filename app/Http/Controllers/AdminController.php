@@ -16,12 +16,17 @@ class AdminController extends Controller
      * Display the admin dashboard.
      */
     public function index(): View
-    {
+{
         // Check if user is authorized to view admin panel
-        //Gate::authorize('viewAdminPanel', User::class);
+        Gate::authorize('viewAdminPanel', User::class);
 
-        // Get all users with their statistics
-        $users = User::select(
+        $perPage = 10;
+        
+        // Get search query if exists
+        $search = request('search');
+
+        // Build the query
+        $query = User::select(
             'id',
             'full_name',
             'email',
@@ -31,10 +36,23 @@ class AdminController extends Controller
             'registration_date',
             'application_status'
         )
-        ->where('is_active', true) 
-        ->orderBy('registration_date', 'desc')
-        ->get()
-        ->map(function ($user) {
+        ->where('is_active', true);
+
+        // // Apply search filter if search query exists
+        // if ($search) {
+        //     $query->where(function($q) use ($search) {
+        //         $q->where('full_name', 'like', "%{$search}%")
+        //         ->orWhere('email', 'like', "%{$search}%");
+        //     });
+        // }
+
+        // Order by registration date and paginate
+        $users = $query->orderBy('registration_date', 'desc')
+            ->paginate($perPage)
+            ->withQueryString(); // Preserve query parameters across pages
+
+        // Transform the paginated collection
+        $users->getCollection()->transform(function ($user) {
             return [
                 'id' => $user->id,
                 'username' => $user->full_name,
@@ -48,7 +66,13 @@ class AdminController extends Controller
             ];
         });
 
-        return view('pages.admin', compact('users'));
+        // Get total counts for dashboard stats
+        $totalUsers = User::where('is_active', true)->count();
+        $totalAdmins = User::where('is_active', true)
+            ->where('is_admin', true)
+            ->count();
+
+        return view('pages.admin', compact('users', 'totalUsers', 'totalAdmins'));
     }
 
     /**
@@ -56,7 +80,8 @@ class AdminController extends Controller
      */
     public function searchUsers(Request $request): JsonResponse
     {
-        //Gate::authorize('manageUsers', User::class);
+        Gate::authorize('manageUsers');
+        Gate::authorize('manageUsers', User::class);
 
         $search = $request->input('search', '');
 
@@ -98,7 +123,8 @@ class AdminController extends Controller
     {
         $targetUser = User::findOrFail($id);
         
-        //Gate::authorize('toggleUserStatus', [User::class, $targetUser]);
+        Gate::authorize('toggleUserStatus', $targetUser);
+        Gate::authorize('toggleUserStatus', [User::class, $targetUser]);
 
         $targetUser->is_blocked = !$targetUser->is_blocked;
         $targetUser->save();
@@ -113,7 +139,8 @@ class AdminController extends Controller
     {
         $targetUser = User::findOrFail($id);
         
-        //Gate::authorize('changeAdminStatus', [User::class, $targetUser]);
+        Gate::authorize('changeAdminStatus', $targetUser);
+        Gate::authorize('changeAdminStatus', [User::class, $targetUser]);
 
         $targetUser->is_admin = !$targetUser->is_admin;
         $targetUser->save();
@@ -128,7 +155,8 @@ class AdminController extends Controller
     {
         $targetUser = User::findOrFail($id);
         
-        //Gate::authorize('deleteUser', [User::class, $targetUser]);
+        Gate::authorize('deleteUser', $targetUser);
+        Gate::authorize('deleteUser', [User::class, $targetUser]);
 
         $targetUser->is_active = false;
         $targetUser->save();
@@ -137,20 +165,4 @@ class AdminController extends Controller
             ->with('success', 'User deleted successfully.');
     }
 
-    /**
-     * Get admin dashboard statistics.
-     */
-    public function getStatistics(): JsonResponse
-    {
-        //Gate::authorize('viewAdminPanel', User::class);
-
-        $stats = [
-            'total_users' => User::where('is_active', true)->count(),
-            'total_admins' => User::where('is_admin', true)->where('is_active', true)->count(),
-            'blocked_users' => User::where('is_blocked', true)->where('is_active', true)->count(),
-            'pending_applications' => User::where('application_status', 'Pending')->where('is_active', true)->count(),
-        ];
-
-        return response()->json($stats);
-    }
 }
