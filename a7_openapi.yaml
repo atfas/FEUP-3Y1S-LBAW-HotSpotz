@@ -15,32 +15,12 @@ externalDocs:
 
 tags:
   - name: 'M01: Authentication'
-    description: 'Web resources related to user authentication and registration'
   - name: 'M02: Users'
-    description: 'Web resources for managing user profiles and preferences'
-  - name: 'M03: Booking'
-    description: 'Web resources associated with property booking management'
-  - name: 'M04: Search'
-    description: 'Web resources related to search features'
-  - name: 'M05: Comments'
-    description: 'Web resources associated with guest and host feedback'
-  - name: 'M06: Cost-splitting'
-    description: 'Web resources that support group bookings with cost-sharing features'
-  - name: 'M07: Admin'
-    description: 'Web resources for platform administration'
+  - name: 'M03: Listing'
+  - name: 'M04: Booking'
+  - name: 'M05: Admin'
 
 paths:
-  # M00: General
-  /home:
-    get:
-      operationId: R001
-      summary: 'R001: Home Page'
-      description: 'Show the home page with featured listings. Access: PUB'
-      tags:
-        - 'M04: Search'
-      responses:
-        '200':
-          description: 'Ok. Show home page (UI)'
 
   # M01: Authentication
   /login:
@@ -302,13 +282,25 @@ paths:
                   value: '/profile'
 
   # M03: Listings
-  /listing/{id}:
+  # General
+  /home:
     get:
       operationId: R301
-      summary: 'R301: View listing details'
+      summary: 'R301: Home Page'
+      description: 'Show the home page with featured listings. Access: PUB'
+      tags:
+        - 'M03: Listing'
+      responses:
+        '200':
+          description: 'Ok. Show home page (UI)'
+  # Listings
+  /listing/{id}:
+    get:
+      operationId: R302
+      summary: 'R302: View listing details'
       description: 'Show detailed information about a property listing. Access: PUB'
       tags:
-        - 'M03: Booking'
+        - 'M03: Listing'
       parameters:
         - in: path
           name: id
@@ -322,11 +314,11 @@ paths:
         '404':
           description: 'Listing not found'
     put:
-      operationId: R305
-      summary: 'R305: Update listing'
+      operationId: R306
+      summary: 'R306: Update listing'
       description: 'Update an existing listing. Access: HOST'
       tags:
-        - 'M03: Booking'
+        - 'M03: Listing'
       parameters:
         - in: path
           name: id
@@ -397,20 +389,20 @@ paths:
 
   /listing/add:
     get:
-      operationId: R302
-      summary: 'R302: Show create listing form'
+      operationId: R303
+      summary: 'R303: Show create listing form'
       description: 'Show form to create a new listing. Access: HOST'
       tags:
-        - 'M03: Booking'
+        - 'M03: Listing'
       responses:
         '200':
           description: 'Ok. Show create listing form (UI)'
     post:
-      operationId: R303
-      summary: 'R303: Create listing'
+      operationId: R304
+      summary: 'R304: Create listing'
       description: 'Create a new property listing. Access: HOST'
       tags:
-        - 'M03: Booking'
+        - 'M03: Listing'
       requestBody:
         required: true
         content:
@@ -471,11 +463,11 @@ paths:
 
   /listing/{id}/edit:
     get:
-      operationId: R304
-      summary: 'R304: Show edit listing form'
+      operationId: R305
+      summary: 'R305: Show edit listing form'
       description: 'Show form to edit a listing. Access: HOST'
       tags:
-        - 'M03: Booking'
+        - 'M03: Listing'
       parameters:
         - in: path
           name: id
@@ -493,11 +485,11 @@ paths:
 
   /listing/{id}/delete:
     delete:
-      operationId: R306
-      summary: 'R306: Delete listing'
+      operationId: R307
+      summary: 'R307: Delete listing'
       description: 'Delete a property listing. Access: HOST'
       tags:
-        - 'M03: Booking'
+        - 'M03: Listing'
       parameters:
         - in: path
           name: id
@@ -519,191 +511,14 @@ paths:
                 302Failure:
                   description: 'Failed to delete listing. Redirect to listing details.'
                   value: '/listing/{id}'
-
-  # M03: Booking
-  /booking/{listing}:
-    get:
-      operationId: R307
-      summary: 'R307: Show booking form for listing'
-      description: 'Show booking form with listing details. Access: PUB'
-      tags:
-        - 'M03: Booking'
-      parameters:
-        - in: path
-          name: listing
-          schema:
-            type: integer
-          required: true
-          description: 'Listing ID'
-      responses:
-        '200':
-          description: 'Ok. Show booking form (UI)'
-        '404':
-          description: 'Listing not found'
-
-  /bookings:
-    get:
-      operationId: R308
-      summary: 'R308: List user bookings'
-      description: 'Show list of bookings for authenticated user. Access: OWN'
-      tags:
-        - 'M03: Booking'
-      responses:
-        '200':
-          description: 'Ok. Show bookings dashboard (UI)'
-    post:
-      operationId: R309
-      summary: 'R309: Create booking'
-      description: 'Create a new booking. Access: USR'
-      tags:
-        - 'M03: Booking'
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                listing_id:
-                  type: integer
-                availability_id:
-                  type: integer
-                check_in_date:
-                  type: string
-                  format: date
-                check_out_date:
-                  type: string
-                  format: date
-                num_guests:
-                  type: integer
-                  minimum: 1
-              required:
-                - listing_id
-                - availability_id
-                - check_in_date
-                - check_out_date
-                - num_guests
-      responses:
-        '302':
-          description: 'Redirect after creating booking.'
-          headers:
-            Location:
-              schema:
-                type: string
-              examples:
-                302Success:
-                  description: 'Booking created. Redirect to profile.'
-                  value: '/profile'
-                302Failure:
-                  description: 'Failed. Redirect back to form.'
-                  value: '/booking/{listing}'
-
-  /bookings/{booking}/edit:
-    get:
-      operationId: R310
-      summary: 'R310: Show edit booking form'
-      description: 'Show form to edit booking. Access: OWN'
-      tags:
-        - 'M03: Booking'
-      parameters:
-        - in: path
-          name: booking
-          schema:
-            type: integer
-          required: true
-          description: 'Booking ID'
-      responses:
-        '200':
-          description: 'Ok. Show edit form (UI)'
-        '403':
-          description: 'Forbidden. Not your booking'
-        '404':
-          description: 'Booking not found'
-
-  /bookings/{booking}:
-    put:
-      operationId: R311
-      summary: 'R311: Update booking'
-      description: 'Update an existing booking. Access: OWN'
-      tags:
-        - 'M03: Booking'
-      parameters:
-        - in: path
-          name: booking
-          schema:
-            type: integer
-          required: true
-          description: 'Booking ID'
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                check_in_date:
-                  type: string
-                  format: date
-                check_out_date:
-                  type: string
-                  format: date
-                num_guests:
-                  type: integer
-                  minimum: 1
-              required:
-                - check_in_date
-                - check_out_date
-                - num_guests
-      responses:
-        '302':
-          description: 'Redirect after updating booking.'
-          headers:
-            Location:
-              schema:
-                type: string
-              examples:
-                302Success:
-                  description: 'Booking updated. Redirect to bookings list.'
-                  value: '/bookings'
-                302Failure:
-                  description: 'Failed. Redirect to edit form.'
-                  value: '/bookings/{booking}/edit'
-    delete:
-      operationId: R312
-      summary: 'R312: Delete booking'
-      description: 'Delete an existing booking. Access: OWN'
-      tags:
-        - 'M03: Booking'
-      parameters:
-        - in: path
-          name: booking
-          schema:
-            type: integer
-          required: true
-          description: 'Booking ID'
-      responses:
-        '302':
-          description: 'Redirect after deleting booking.'
-          headers:
-            Location:
-              schema:
-                type: string
-              examples:
-                302Success:
-                  description: 'Booking deleted. Redirect to bookings list.'
-                  value: '/bookings'
-                302Failure:
-                  description: 'Failed to delete booking. Redirect to bookings list.'
-                  value: '/bookings'
-
-  # M04: Search
+  # Search
   /search:
     get:
-      operationId: R401
-      summary: 'R401: Search properties'
+      operationId: R308
+      summary: 'R308: Search properties'
       description: 'Search for properties with filters and sorting. Access: PUB'
       tags:
-        - 'M04: Search'
+        - 'M03: Listing'
       parameters:
         - in: query
           name: where
@@ -769,14 +584,190 @@ paths:
                     items:
                       type: object
 
-  # M07: Admin
+  # M04: Booking
+  /booking/{listing}:
+    get:
+      operationId: R401
+      summary: 'R401: Show booking form for listing'
+      description: 'Show booking form with listing details. Access: PUB'
+      tags:
+        - 'M04: Booking'
+      parameters:
+        - in: path
+          name: listing
+          schema:
+            type: integer
+          required: true
+          description: 'Listing ID'
+      responses:
+        '200':
+          description: 'Ok. Show booking form (UI)'
+        '404':
+          description: 'Listing not found'
+
+  /bookings:
+    get:
+      operationId: R402
+      summary: 'R402: List user bookings'
+      description: 'Show list of bookings for authenticated user. Access: OWN'
+      tags:
+        - 'M04: Booking'
+      responses:
+        '200':
+          description: 'Ok. Show bookings dashboard (UI)'
+    post:
+      operationId: R403
+      summary: 'R403: Create booking'
+      description: 'Create a new booking. Access: USR'
+      tags:
+        - 'M04: Booking'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                listing_id:
+                  type: integer
+                availability_id:
+                  type: integer
+                check_in_date:
+                  type: string
+                  format: date
+                check_out_date:
+                  type: string
+                  format: date
+                num_guests:
+                  type: integer
+                  minimum: 1
+              required:
+                - listing_id
+                - availability_id
+                - check_in_date
+                - check_out_date
+                - num_guests
+      responses:
+        '302':
+          description: 'Redirect after creating booking.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Booking created. Redirect to profile.'
+                  value: '/profile'
+                302Failure:
+                  description: 'Failed. Redirect back to form.'
+                  value: '/booking/{listing}'
+
+  /bookings/{booking}/edit:
+    get:
+      operationId: R404
+      summary: 'R404: Show edit booking form'
+      description: 'Show form to edit booking. Access: OWN'
+      tags:
+        - 'M04: Booking'
+      parameters:
+        - in: path
+          name: booking
+          schema:
+            type: integer
+          required: true
+          description: 'Booking ID'
+      responses:
+        '200':
+          description: 'Ok. Show edit form (UI)'
+        '403':
+          description: 'Forbidden. Not your booking'
+        '404':
+          description: 'Booking not found'
+
+  /bookings/{booking}:
+    put:
+      operationId: R405
+      summary: 'R405: Update booking'
+      description: 'Update an existing booking. Access: OWN'
+      tags:
+        - 'M04: Booking'
+      parameters:
+        - in: path
+          name: booking
+          schema:
+            type: integer
+          required: true
+          description: 'Booking ID'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                check_in_date:
+                  type: string
+                  format: date
+                check_out_date:
+                  type: string
+                  format: date
+                num_guests:
+                  type: integer
+                  minimum: 1
+              required:
+                - check_in_date
+                - check_out_date
+                - num_guests
+      responses:
+        '302':
+          description: 'Redirect after updating booking.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Booking updated. Redirect to bookings list.'
+                  value: '/bookings'
+                302Failure:
+                  description: 'Failed. Redirect to edit form.'
+                  value: '/bookings/{booking}/edit'
+    delete:
+      operationId: R406
+      summary: 'R406: Delete booking'
+      description: 'Delete an existing booking. Access: OWN'
+      tags:
+        - 'M04: Booking'
+      parameters:
+        - in: path
+          name: booking
+          schema:
+            type: integer
+          required: true
+          description: 'Booking ID'
+      responses:
+        '302':
+          description: 'Redirect after deleting booking.'
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                302Success:
+                  description: 'Booking deleted. Redirect to bookings list.'
+                  value: '/bookings'
+                302Failure:
+                  description: 'Failed to delete booking. Redirect to bookings list.'
+                  value: '/bookings'
+
+  # M05: Admin
   /admin:
     get:
-      operationId: R701
-      summary: 'R701: Admin dashboard'
+      operationId: R501
+      summary: 'R501: Admin dashboard'
       description: 'Show admin dashboard. Access: ADM'
       tags:
-        - 'M07: Admin'
+        - 'M05: Admin'
       responses:
         '200':
           description: 'Ok. Show admin dashboard (UI)'
@@ -785,11 +776,11 @@ paths:
 
   /admin/search-users:
     get:
-      operationId: R702
-      summary: 'R702: Search users'
+      operationId: R502
+      summary: 'R502: Search users'
       description: 'Search for users by name or email. Access: ADM'
       tags:
-        - 'M07: Admin'
+        - 'M05: Admin'
       parameters:
         - in: query
           name: search
@@ -831,11 +822,11 @@ paths:
 
   /admin/users/{id}/toggle-status:
     post:
-      operationId: R703
-      summary: 'R703: Toggle user blocked status'
+      operationId: R503
+      summary: 'R503: Toggle user blocked status'
       description: 'Block or unblock a user account. Access: ADM'
       tags:
-        - 'M07: Admin'
+        - 'M05: Admin'
       parameters:
         - in: path
           name: id
@@ -864,11 +855,11 @@ paths:
 
   /admin/users/{id}/toggle-admin:
     post:
-      operationId: R704
-      summary: 'R704: Toggle user admin status'
+      operationId: R504
+      summary: 'R504: Toggle user admin status'
       description: 'Promote or demote a user to/from admin. Access: ADM'
       tags:
-        - 'M07: Admin'
+        - 'M05: Admin'
       parameters:
         - in: path
           name: id
@@ -897,11 +888,11 @@ paths:
 
   /admin/users/{id}:
     delete:
-      operationId: R705
-      summary: 'R705: Delete user'
+      operationId: R505
+      summary: 'R505: Delete user'
       description: 'Soft delete a user account. Access: ADM'
       tags:
-        - 'M07: Admin'
+        - 'M05: Admin'
       parameters:
         - in: path
           name: id
