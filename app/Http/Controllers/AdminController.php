@@ -12,11 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
-    /**
-     * Display the admin dashboard.
-     */
+
     public function index(): View
-{
+    {
         // Check if user is authorized to view admin panel
         Gate::authorize('viewAdminPanel');
 
@@ -75,9 +73,6 @@ class AdminController extends Controller
         return view('pages.admin', compact('users', 'totalUsers', 'totalAdmins'));
     }
 
-    /**
-     * Search users by name or email.
-     */
     public function searchUsers(Request $request): JsonResponse
     {
         Gate::authorize('manageUsers');
