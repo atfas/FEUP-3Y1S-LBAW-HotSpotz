@@ -71,6 +71,7 @@ Route::middleware('auth')->controller(ProfileController::class)->group(function 
     Route::get('/profile/picture', 'editPicture')->name('profile.picture.edit');
     Route::put('/profile/picture', 'updatePicture')->name('profile.picture.update');
     Route::delete('/profile/picture', 'deletePicture')->name('profile.picture.delete');
+    Route::delete('/profile', 'destroy')->name('profile.destroy');
 });
 
 

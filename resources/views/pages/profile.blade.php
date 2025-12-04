@@ -94,6 +94,23 @@
                         </div>
                     </div>
 
+                    <!-- Account Deletion -->
+                    <div class="mt-5 pt-4 border-top">
+                        <div class="alert alert-danger d-flex align-items-start gap-3" role="alert">
+                            <i class="fa-solid fa-triangle-exclamation fs-4 mt-1"></i>
+                            <div class="flex-grow-1">
+                                <p class="mb-2">Once you delete your account, there is no going back.</p>
+                                <form action="{{ route('profile.destroy') }}" method="POST" class="mt-3" onsubmit="return confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fa-solid fa-trash me-2"></i>Delete My Account
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>

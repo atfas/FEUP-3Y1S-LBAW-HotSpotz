@@ -101,4 +101,22 @@ class ProfileController extends Controller
 
         return redirect()->route('profile.show')->with('success', 'Profile picture removed successfully!');
     }
+
+    /**
+     * Soft delete the user's account.
+     */
+    public function destroy(): RedirectResponse
+    {
+        $user = Auth::user();
+        $this->authorize('delete', $user);
+        
+        // Soft delete by setting is_active to false
+        $user->is_active = false;
+        $user->save();
+
+        // Log out the user
+        Auth::logout();
+
+        return redirect()->route('home')->with('success', 'Your account has been deleted successfully.');
+    }
 }
