@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -18,7 +19,30 @@ class ProfileController extends Controller
         $this->authorize('view', $user);
 
         return view('pages.profile', [
-            'user' => $user
+            'user' => $user,
+            'isOwner' => true,
+        ]);
+    }
+
+    /**
+     * Display a public user profile (view-only).
+     */
+    public function showPublic($id): View|RedirectResponse
+    {
+        $user = User::where('id', $id)->where('is_active', true)->first();
+        
+        if (!$user) {
+            abort(404);
+        }
+        
+        // If viewing own profile, redirect to the authenticated profile view
+        if (Auth::check() && Auth::id() === $user->id) {
+            return redirect()->route('profile.show');
+        }
+
+        return view('pages.profile', [
+            'user' => $user,
+            'isOwner' => false,
         ]);
     }
 

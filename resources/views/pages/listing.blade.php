@@ -54,6 +54,21 @@
                     <div>
                         <h2 class="mb-1">{{ $listing->title }}</h2>
                         <p class="mb-1 text-muted">{{ $listing->location_address }}</p>
+                        
+                        {{-- Show host info --}}
+                        @if($host)
+                            <p class="mb-0">
+                                <i class="fa-solid fa-user me-1"></i>
+                                @if(Auth::check() && Auth::id() === $listing->host_id)
+                                    Hosted by <span class="fw-semibold" style="color: #722F37;">You</span>
+                                @else
+                                    Hosted by 
+                                    <a href="{{ route('profile.public', $host->id) }}" class="text-decoration-none fw-semibold" style="color: #722F37;">
+                                        {{ explode(' ', $host->full_name)[0] }}
+                                    </a>
+                                @endif
+                            </p>
+                        @endif
                     </div>
                 </div>
 

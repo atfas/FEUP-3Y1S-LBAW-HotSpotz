@@ -68,6 +68,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/applications/{id}/reject', [AdminController::class, 'rejectApplication'])->name('admin.applications.reject');
 });
 
+// Public profile route (no auth required)
+Route::get('/user/{id}', [ProfileController::class, 'showPublic'])->name('profile.public');
+
 // Profile routes (authentication required)
 Route::middleware('auth')->controller(ProfileController::class)->group(function () {
     Route::get('/profile', 'show')->name('profile.show');
