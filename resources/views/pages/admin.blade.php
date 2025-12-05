@@ -70,6 +70,7 @@
                                     <th>Role</th>
                                     <th>Blocked</th>
                                     <th>Joined Date</th>
+                                    <th>Application</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -89,6 +90,17 @@
                                         </span>
                                     </td>
                                     <td>{{ $user['joined_date'] }}</td>
+                                    <td>
+                                        @if($user['application_status'] === 'Pending')
+                                            <a href="{{ route('admin.applications.show', $user['id']) }}" class="btn btn-sm btn-warning">
+                                                <i class="fa-solid fa-eye me-1"></i>Review
+                                            </a>
+                                        @elseif($user['application_status'] === 'Rejected')
+                                            <span class="badge bg-danger">Rejected</span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         @if($user['id'] !== Auth::id())
                                             <!-- Toggle Status Form -->
@@ -133,7 +145,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
+                                    <td colspan="8" class="text-center text-muted py-4">
                                         <i class="fas fa-users fa-2x mb-2"></i>
                                         <p>No users found</p>
                                     </td>

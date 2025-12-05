@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -158,6 +159,69 @@ class AdminController extends Controller
 
         return redirect()->route('admin.index')
             ->with('success', 'User deleted successfully.');
+    }
+
+    /**
+     * Show a user's host application.
+     */
+    public function showApplication($id): View|RedirectResponse
+    {
+        Gate::authorize('viewAdminPanel');
+        
+        $user = User::findOrFail($id);
+        
+        // Verify user has an application
+        if ($user->application_status === null) {
+            return redirect()->route('admin.index')
+                ->with('error', 'This user has not submitted a host application.');
+        }
+        
+        return view('pages.admin_application_review', compact('user'));
+    }
+
+    /**
+     * Approve a host application.
+     */
+    public function approveApplication(Request $request, $id): RedirectResponse
+    {
+        Gate::authorize('viewAdminPanel');
+        
+        $user = User::findOrFail($id);
+        
+        if ($user->application_status !== 'Pending') {
+            return redirect()->route('admin.index')
+                ->with('error', 'This application has already been processed.');
+        }
+        
+        $user->application_status = 'Approved';
+        $user->verified_at = now();
+        $user->verifier_id = Auth::id();
+        $user->save();
+        
+        return redirect()->route('admin.index')
+            ->with('success', "Host application for {$user->full_name} has been approved.");
+    }
+
+    /**
+     * Reject a host application.
+     */
+    public function rejectApplication(Request $request, $id): RedirectResponse
+    {
+        Gate::authorize('viewAdminPanel');
+        
+        $user = User::findOrFail($id);
+        
+        if ($user->application_status !== 'Pending') {
+            return redirect()->route('admin.index')
+                ->with('error', 'This application has already been processed.');
+        }
+        
+        // Set status to Rejected
+        $user->application_status = 'Rejected';
+        $user->save();
+        
+        return redirect()->route('admin.index')
+            ->with('success', "Host application for {$user->full_name} has been rejected.");
     }
 
 }

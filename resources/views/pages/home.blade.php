@@ -58,6 +58,8 @@
     </div>
     @endif
 
+    <h3 class="mb-4 fw-bold" style="color: #ffffff;">Top 6 Hottest Spots</h3>
+
     @include('partials.cards', ['listings' => $listings])
 </div>
 

@@ -16,8 +16,8 @@ class HostApplicationController extends Controller
     {
         $user = Auth::user();
         
-        // Redirect if user already has an application or is approved
-        if ($user->application_status !== null) {
+        // Redirect if user has pending or approved application
+        if ($user->application_status === 'Pending' || $user->application_status === 'Approved') {
             return redirect()->route('profile.show')
                 ->with('error', 'You have already submitted a host application.');
         }
@@ -32,8 +32,8 @@ class HostApplicationController extends Controller
     {
         $user = Auth::user();
         
-        // Check if user already has an application
-        if ($user->application_status !== null) {
+        // Check if user has pending or approved application
+        if ($user->application_status === 'Pending' || $user->application_status === 'Approved') {
             return redirect()->route('profile.show')
                 ->with('error', 'You have already submitted a host application.');
         }
