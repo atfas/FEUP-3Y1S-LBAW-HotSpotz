@@ -8,6 +8,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HomeController;
@@ -15,7 +16,8 @@ use App\Http\Controllers\ListingController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingController;
-use App\Http\Controllers\HostApplicationController;
+use App\Http\Controllers\HostApplicationController; 
+use App\Http\Controllers\MailController;
 
 
 // Home
@@ -43,6 +45,12 @@ Route::controller(LoginController::class)->group(function () {
     Route::get('/login', 'showLoginForm')->name('login');
     Route::post('/login', 'authenticate');
 });
+
+// Password reset routes
+Route::controller(ForgotPasswordController::class)->group(function () {
+    Route::get('/forgot-password', 'showForgotForm')->name('password.request');
+});
+
 
 Route::controller(LogoutController::class)->group(function () {
     Route::get('/logout', 'logout')->name('logout');
@@ -98,3 +106,6 @@ Route::middleware('auth')->controller(BookingController::class)->group(function 
     Route::put('/bookings/{booking}', 'update')->name('bookings.update');
     Route::delete('/bookings/{booking}', 'destroy')->name('bookings.destroy');
 });
+
+// Mail routes
+Route::post('/send', [MailController::class, 'send'])->name('password.send');
