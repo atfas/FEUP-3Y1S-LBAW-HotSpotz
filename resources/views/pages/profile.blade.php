@@ -132,6 +132,11 @@
                         </div>
                     @endif
 
+                    <!-- Premium Subscription Promo (only for users who are not premium) -->
+                    @if((!isset($user->subscription) || !$user->subscription || $user->subscription->member_status !== 'Active'))
+                        @include('partials.subscription_promo')
+                    @endif
+
                     <!-- Account Deletion (only for owner) -->
                     @if($isOwner)
                         <div class="mt-5 pt-4 border-top">

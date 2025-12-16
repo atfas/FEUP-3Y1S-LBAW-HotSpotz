@@ -109,3 +109,9 @@ Route::middleware('auth')->controller(BookingController::class)->group(function 
     Route::put('/bookings/{booking}', 'update')->name('bookings.update');
     Route::delete('/bookings/{booking}', 'destroy')->name('bookings.destroy');
 });
+
+// Subscription routes -- not matching the other routes structure
+Route::prefix('subscription')->name('subscription.')->group(function () {
+    Route::get('/info', fn() => view('pages.subscription.info'))->name('info');
+    Route::get('/plans', fn() => view('pages.subscription.plans'))->name('plans');
+});
