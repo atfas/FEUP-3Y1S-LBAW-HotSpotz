@@ -83,7 +83,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🔥 HotSpotz</div>
+            <div class="logo"><img src="{{ asset('assets/hotSpotzLogo.png') }}" alt="HotSpotz" style="height: 32px; vertical-align: middle; margin-right: 8px;"></div>
         </div>
 
         <h1>Reset Your Password</h1>

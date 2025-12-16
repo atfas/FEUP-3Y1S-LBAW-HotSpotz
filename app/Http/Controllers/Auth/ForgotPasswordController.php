@@ -45,15 +45,15 @@ class ForgotPasswordController extends Controller
         // Delete any existing tokens for this email
         DB::table('password_resets')->where('email', $request->email)->delete();
 
-        // Store the hashed token in database
+        // Store the plain token in database (for lookup by token)
         DB::table('password_resets')->insert([
             'email' => $request->email,
-            'token' => Hash::make($token),
+            'token' => $token,
             'created_at' => now(),
         ]);
 
-        // Generate reset URL with the plain token (not hashed)
-        $resetUrl = route('password.reset', ['token' => $token, 'email' => $request->email]);
+        // Generate reset URL with only the token (email not exposed in URL)
+        $resetUrl = route('password.reset', ['token' => $token]);
 
         // Prepare mail data for the email template
         $mailData = [
@@ -75,35 +75,24 @@ class ForgotPasswordController extends Controller
      */
     public function showResetForm(Request $request, string $token): View|RedirectResponse
     {
-        $email = $request->query('email');
-
-        if (!$email) {
-            return redirect()->route('password.request')->with('error', 'Invalid reset link.');
-        }
-
-        // Verify the token exists and is valid before showing the form
+        // Look up the reset record by token (email is retrieved from DB, not URL)
         $resetRecord = DB::table('password_resets')
-            ->where('email', $email)
+            ->where('token', $token)
             ->first();
 
         if (!$resetRecord) {
             return redirect()->route('password.request')->with('error', 'This password reset link is invalid or has expired.');
         }
 
-        // Check if token matches
-        if (!Hash::check($token, $resetRecord->token)) {
-            return redirect()->route('password.request')->with('error', 'This password reset link is invalid.');
-        }
-
         // Check if token is expired (60 minutes)
         if (now()->diffInMinutes($resetRecord->created_at) > 60) {
-            DB::table('password_resets')->where('email', $email)->delete();
+            DB::table('password_resets')->where('token', $token)->delete();
             return redirect()->route('password.request')->with('error', 'This password reset link has expired. Please request a new one.');
         }
 
         return view('pages.reset_password', [
             'token' => $token,
-            'email' => $email,
+            'email' => $resetRecord->email,
         ]);
     }
 
@@ -118,28 +107,28 @@ class ForgotPasswordController extends Controller
             'password' => ['required', 'min:8', 'confirmed'],
         ]);
 
-        // Find the reset record
+        // Find the reset record by token
         $resetRecord = DB::table('password_resets')
-            ->where('email', $request->email)
+            ->where('token', $request->token)
             ->first();
 
         if (!$resetRecord) {
             return back()->withErrors(['email' => 'This password reset link is invalid.']);
         }
 
-        // Check if token is valid
-        if (!Hash::check($request->token, $resetRecord->token)) {
+        // Verify the email matches the token's associated email
+        if ($resetRecord->email !== $request->email) {
             return back()->withErrors(['email' => 'This password reset link is invalid.']);
         }
 
         // Check if token is expired (60 minutes)
         if (now()->diffInMinutes($resetRecord->created_at) > 60) {
-            DB::table('password_resets')->where('email', $request->email)->delete();
+            DB::table('password_resets')->where('token', $request->token)->delete();
             return back()->withErrors(['email' => 'This password reset link has expired.']);
         }
 
         // Find and update the user
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $resetRecord->email)->first();
 
         if (!$user) {
             return back()->withErrors(['email' => 'We could not find a user with that email address.']);
@@ -150,7 +139,7 @@ class ForgotPasswordController extends Controller
         $user->save();
 
         // Delete the reset token
-        DB::table('password_resets')->where('email', $request->email)->delete();
+        DB::table('password_resets')->where('token', $request->token)->delete();
 
         return redirect()->route('login')->with('status', 'Your password has been reset successfully! You can now log in with your new password.');
     }
