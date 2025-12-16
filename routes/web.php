@@ -49,6 +49,9 @@ Route::controller(LoginController::class)->group(function () {
 // Password reset routes
 Route::controller(ForgotPasswordController::class)->group(function () {
     Route::get('/forgot-password', 'showForgotForm')->name('password.request');
+    Route::post('/forgot-password', 'sendResetLink')->name('password.send');
+    Route::get('/reset-password/{token}', 'showResetForm')->name('password.reset');
+    Route::post('/reset-password', 'resetPassword')->name('password.update');
 });
 
 
@@ -106,6 +109,3 @@ Route::middleware('auth')->controller(BookingController::class)->group(function 
     Route::put('/bookings/{booking}', 'update')->name('bookings.update');
     Route::delete('/bookings/{booking}', 'destroy')->name('bookings.destroy');
 });
-
-// Mail routes
-Route::post('/send', [MailController::class, 'send'])->name('password.send');

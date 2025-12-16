@@ -191,6 +191,13 @@ CREATE TABLE notifications (
     CHECK(CASE WHEN type IN ('AdminNotice') then (admin_id IS NOT NULL AND admin_notification_id IS NOT NULL) END)
 );
 
+CREATE TABLE password_resets (
+    email VARCHAR(255) NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (email)
+);
+
 CREATE OR REPLACE FUNCTION check_if_sender_is_admin()
 RETURNS TRIGGER AS $$
 BEGIN
