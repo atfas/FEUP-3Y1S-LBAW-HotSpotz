@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Register the AdminPolicy
-        // Gate::policy(User::class, AdminPolicy::class);
+        //Gate::policy(User::class, AdminPolicy::class);
         // Register the UserPolicy
         Gate::policy(User::class, \App\Policies\UserPolicy::class);
 

@@ -14,20 +14,21 @@
                     @endif
 
                     <!-- Header Section -->
-                    <div class="d-flex justify-content-between align-items-center mb-5">
+                    <!-- Header Section -->
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-3">
                         <div class="d-flex align-items-center gap-4">
                             <!-- Avatar Container -->
                             <div class="position-relative rounded-circle" style="width: 120px; height: 120px; border: 4px solid #722F37;">
                                 @if($user->profile_picture_url)
                                     <img src="{{ $user->profile_picture_url }}" alt="Profile" class="rounded-circle w-100 h-100" style="object-fit: cover;">
                                 @else
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-wine w-100 h-100" style="font-size: 3rem; background-color: #f8f9fa;">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center w-100 h-100" style="font-size: 3rem; background-color: #f8f9fa; color: #722F37">
                                         {{ strtoupper(substr($user->full_name, 0, 1)) }}
                                     </div>
                                 @endif
 
                                 <!-- Edit/Add Picture Button -->
-                                <a href="{{ route('profile.picture.edit') }}" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center shadow-sm border-2 border-wine" style="width: 35px; height: 35px; background-color: #722F37; border-color: #fff !important;">
+                                <a href="{{ route('profile.picture.edit') }}" class="btn btn-sm btn-dark position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center shadow-sm border-2 border-white" style="width: 35px; height: 35px; background-color: #722F37; border-color: #fff !important;">
                                     <i class="fa-solid fa-pencil" style="font-size: 0.9rem;"></i>
                                 </a>
 
@@ -46,11 +47,11 @@
                             <!-- Name and Email -->
                             <div>
                                 <div class="d-flex align-items-center gap-2 mb-1">
-                                    <h4 class="fw-bold mb-0 text-wine">{{ $user->full_name }}</h4>
+                                    <h4 class="fw-bold mb-0 text-wine">{{ explode(' ', $user->full_name)[0] }}</h4>
                                     @if($user->is_admin)
                                         <span class="badge bg-danger">Admin</span>
                                     @elseif($user->application_status === 'Approved')
-                                        <span class="badge bg-success">Host</span>
+                                        <span class="badge bg-warning">Host</span>
                                     @else
                                         <span class="badge bg-secondary">User</span>
                                     @endif
@@ -59,10 +60,11 @@
                             </div>
                         </div>
 
-                        <!-- Edit Button -->
-                        <a href="{{ route('profile.edit') }}" class="btn btn-primary px-4" style="background-color: #722F37; border-color: #722F37;">Edit</a>
-                        <!-- Show Bookings Button -->
-                        <a href="{{ route('bookings.index') }}" class="btn btn-primary px-4" style="background-color: #722F37; border-color: #722F37;">Show Bookings</a>
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2 w-100 w-md-auto justify-content-center justify-content-md-end">
+                            <a href="{{ route('profile.edit') }}" class="btn btn-primary px-4">Edit</a>
+                            <a href="{{ route('bookings.index') }}" class="btn btn-primary px-4">Show Bookings</a>
+                        </div>
                     </div>
 
                     <!-- Fields Grid -->

@@ -95,6 +95,9 @@ class BookingController extends Controller
         $totalPrice = $stayDuration * $availability->price_per_night;
         
         try {
+            DB::beginTransaction();
+
+            // create booking with pending payment
             $booking = Booking::create([
                 'check_in_date' => $checkIn->toDateString(),
                 'check_out_date' => $checkOut->toDateString(),
@@ -104,11 +107,29 @@ class BookingController extends Controller
                 'availability_id' => $validated['availability_id'],
                 'guest_id' => Auth::id(),
             ]);
-            
+
+            // insert a cash transaction for the total and mark it completed
+            // use the database CURRENT_TIMESTAMP to avoid PHP/DB clock ordering issues
+            DB::table('transactions')->insert([
+                'amount' => $totalPrice,
+                'transaction_method' => 'Cash',
+                'type' => 'FullPayment',
+                'status' => 'Completed',
+                'paid_at' => DB::raw('CURRENT_TIMESTAMP'),
+                'refund_id' => null,
+                'booking_id' => $booking->id,
+            ]);
+
+            // update booking to confirmed
+            $booking->update(['status' => 'Confirmed']);
+
+            DB::commit();
+
             return redirect()->route('profile.show')
-                ->with('success', 'Sucess total: $' . $totalPrice);
-                
+                ->with('success', 'Booking Successful: payment at arrival');
+
         } catch (\Exception $e) {
+            DB::rollBack();
             return back()->withErrors([
                 'error' => 'Failed to create booking: ' . $e->getMessage()
             ])->withInput();
@@ -156,9 +177,7 @@ class BookingController extends Controller
      */
     public function edit(Booking $booking): View
     {
-        if ($booking->guest_id !== Auth::id()) {
-            abort(403, 'Unauthorized');
-        }
+        $this->authorize('update', $booking);
 
         $booking->load(['availability.listing']);
         
@@ -170,9 +189,7 @@ class BookingController extends Controller
      */
     public function update(Request $request, Booking $booking)
     {
-        if ($booking->guest_id !== Auth::id()) {
-            abort(403, 'Unauthorized');
-        }
+        $this->authorize('update', $booking);
 
         $validated = $request->validate([
             'check_in_date' => 'required|date',
@@ -247,9 +264,7 @@ class BookingController extends Controller
      */
     public function destroy(Booking $booking)
     {
-        if ($booking->guest_id !== Auth::id()) {
-            abort(403, 'Unauthorized');
-        }
+        $this->authorize('delete', $booking);
 
         $booking->delete();
         

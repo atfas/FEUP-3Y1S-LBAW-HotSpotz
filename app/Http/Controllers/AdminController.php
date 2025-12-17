@@ -12,11 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
-    /**
-     * Display the admin dashboard.
-     */
+
     public function index(): View
-{
+    {
         // Check if user is authorized to view admin panel
         Gate::authorize('viewAdminPanel');
 
@@ -57,7 +55,7 @@ class AdminController extends Controller
                 'id' => $user->id,
                 'username' => $user->full_name,
                 'email' => $user->email,
-                'role' => $user->is_admin ? 'Admin' : 'User',
+                'role' => $user->is_admin ? 'Admin' : ($user->application_status === 'Approved' ? 'Host' : 'User'),
                 'is_admin' => $user->is_admin,
                 'active' => $user->is_active,
                 'blocked' => $user->is_blocked,
@@ -75,12 +73,10 @@ class AdminController extends Controller
         return view('pages.admin', compact('users', 'totalUsers', 'totalAdmins'));
     }
 
-    /**
-     * Search users by name or email.
-     */
     public function searchUsers(Request $request): JsonResponse
     {
         Gate::authorize('manageUsers');
+        // Gate::authorize('manageUsers', User::class);
 
         $search = $request->input('search', '');
 
@@ -123,6 +119,7 @@ class AdminController extends Controller
         $targetUser = User::findOrFail($id);
         
         Gate::authorize('toggleUserStatus', $targetUser);
+        // Gate::authorize('toggleUserStatus', [User::class, $targetUser]);
 
         $targetUser->is_blocked = !$targetUser->is_blocked;
         $targetUser->save();
@@ -138,6 +135,7 @@ class AdminController extends Controller
         $targetUser = User::findOrFail($id);
         
         Gate::authorize('changeAdminStatus', $targetUser);
+        // Gate::authorize('changeAdminStatus', [User::class, $targetUser]);
 
         $targetUser->is_admin = !$targetUser->is_admin;
         $targetUser->save();
@@ -153,6 +151,7 @@ class AdminController extends Controller
         $targetUser = User::findOrFail($id);
         
         Gate::authorize('deleteUser', $targetUser);
+        // Gate::authorize('deleteUser', [User::class, $targetUser]);
 
         $targetUser->is_active = false;
         $targetUser->save();

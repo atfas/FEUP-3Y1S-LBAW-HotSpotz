@@ -11,6 +11,8 @@ use App\Http\Controllers\Auth\LogoutController;
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ListingController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingController;
 
@@ -22,24 +24,18 @@ Route::controller(HomeController::class)->group(function () {
     Route::get('/home', 'index')->name('home');
 }); 
 
-// Cards (authentication required)
-Route::middleware('auth')->controller(CardController::class)->group(function () {
-    Route::get('/cards', 'index')->name('cards.index');
-    Route::get('/cards/{card}', 'show')->name('cards.show');
-});
+// Listing show (only match numeric ids)
+Route::get('/listing/{id}', [ListingController::class, 'show'])->whereNumber('id')->name('listing.show');
+Route::get('/search', [SearchController::class, 'index'])->name('search');
 
-// API (authentication required)
-Route::middleware('auth')->controller(CardController::class)->group(function () {
-    Route::post('/api/cards', 'store');              // create card
-    Route::delete('/api/cards/{card}', 'destroy');   // delete card
+// Listing creation (auth)
+Route::middleware('auth')->group(function () {
+    Route::get('/listing/add', [ListingController::class, 'create'])->name('listing.create');
+    Route::post('/listing/add', [ListingController::class, 'store'])->name('listing.store');
+    Route::get('/listing/{id}/edit', [ListingController::class, 'edit'])->whereNumber('id')->name('listing.edit');
+    Route::put('/listing/{id}', [ListingController::class, 'update'])->whereNumber('id')->name('listing.update');
+    Route::delete('/listing/{id}/delete', [ListingController::class, 'destroy'])->whereNumber('id')->name('listing.destroy');
 });
-
-Route::middleware('auth')->controller(ItemController::class)->group(function () {
-    Route::post('/api/cards/{card}/items', 'store'); // add item to card
-    Route::patch('/api/items/{item}', 'update');     // update item
-    Route::delete('/api/items/{item}', 'destroy');   // delete item
-});
-
 
 // Authentication
 Route::controller(LoginController::class)->group(function () {
