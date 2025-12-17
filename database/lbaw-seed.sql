@@ -1178,8 +1178,7 @@ VALUES ('ReviewLeft', 'Alice G. left a 5-star review for your listing!', 6, 1);
 INSERT INTO notifications (type, content, user_id, admin_id, admin_notification_id)
 VALUES ('AdminNotice', 'A new host application from Heidi H. is ready for review.', 1, 1, 1); 
 
--- Premium Subscriptions sample data
-INSERT INTO premium_subscriptions (user_id, status, tier, plan_type, price_paid, discount_percentage, member_since, next_payment_date, total_savings)
+INSERT INTO premium_subscriptions (user_id, member_status, tier, plan_type, price_paid, discount_percentage, member_since, next_payment_date, total_savings)
 VALUES 
 (3, 'Active', 'Gold', 'Monthly', 14.99, 10, '2025-06-01 10:00:00', '2026-01-16', 45.50),
 (4, 'Active', 'Platinum', 'Annual', 179.99, 20, '2025-03-15 14:30:00', '2026-03-15', 120.00),

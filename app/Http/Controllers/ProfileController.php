@@ -13,6 +13,7 @@ class ProfileController extends Controller
     public function show(): View
     {
         $user = Auth::user();
+        $user->load('subscription');
         $this->authorize('view', $user);
 
         return view('pages.profile', [
@@ -23,7 +24,7 @@ class ProfileController extends Controller
 
     public function showPublic($id): View|RedirectResponse
     {
-        $user = User::where('id', $id)->where('is_active', true)->first();
+        $user = User::with('subscription')->where('id', $id)->where('is_active', true)->first();
         
         if (!$user) {
             abort(404);

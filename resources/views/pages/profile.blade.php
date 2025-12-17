@@ -132,8 +132,10 @@
                         </div>
                     @endif
 
-                    <!-- Premium Subscription Promo (only for users who are not premium) -->
-                    @if((!isset($user->subscription) || !$user->subscription || $user->subscription->member_status !== 'Active'))
+                    <!-- Premium Subscription Section -->
+                    @if($user->isPremium())
+                        @include('partials.subscription_status')
+                    @else
                         @include('partials.subscription_promo')
                     @endif
 

@@ -110,8 +110,12 @@ Route::middleware('auth')->controller(BookingController::class)->group(function 
     Route::delete('/bookings/{booking}', 'destroy')->name('bookings.destroy');
 });
 
-// Subscription routes -- not matching the other routes structure
+// Subscription routes
 Route::prefix('subscription')->name('subscription.')->group(function () {
     Route::get('/info', fn() => view('pages.subscription.info'))->name('info');
     Route::get('/plans', fn() => view('pages.subscription.plans'))->name('plans');
+});
+
+Route::middleware('auth')->prefix('subscription')->name('subscription.')->group(function () {
+    Route::post('/cancel', [App\Http\Controllers\SubscriptionController::class, 'cancel'])->name('cancel');
 });
