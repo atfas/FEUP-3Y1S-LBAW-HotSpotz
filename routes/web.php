@@ -15,6 +15,7 @@ use App\Http\Controllers\ListingController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\ReviewController;
 
 
 // Home
@@ -26,7 +27,7 @@ Route::controller(HomeController::class)->group(function () {
 
 // Listing show (only match numeric ids)
 Route::get('/listing/{id}', [ListingController::class, 'show'])->whereNumber('id')->name('listing.show');
-Route::get('/search', [SearchController::class, 'index'])->name('search');
+Route::get('listing/search', [SearchController::class, 'index'])->name('search');
 
 // Listing creation (auth)
 Route::middleware('auth')->group(function () {
@@ -56,7 +57,7 @@ Route::controller(RegisterController::class)->group(function () {
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
-    Route::get('/admin/search-users', [AdminController::class, 'searchUsers'])->name('admin.search-users');
+    Route::get('/admin/users/search', [AdminController::class, 'searchUsers'])->name('admin.search-users');
     
     Route::post('/admin/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('admin.users.toggle-status');
     Route::post('/admin/users/{id}/toggle-admin', [AdminController::class, 'toggleAdminStatus'])->name('admin.users.toggle-admin');
@@ -82,4 +83,13 @@ Route::middleware('auth')->controller(BookingController::class)->group(function 
     Route::get('/bookings/{booking}/edit', 'edit')->name('bookings.edit');
     Route::put('/bookings/{booking}', 'update')->name('bookings.update');
     Route::delete('/bookings/{booking}', 'destroy')->name('bookings.destroy');
+});
+
+// Review routes
+Route::middleware('auth')->group(function () {
+    Route::get('/bookings/{booking}/review', [ReviewController::class, 'create'])->name('reviews.create');
+    Route::post('/bookings/{booking}/review', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('reviews.edit');
+    Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 });

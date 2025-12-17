@@ -17,18 +17,29 @@
         </div>
     @endif
 
-    <!-- Bookings Panel Header -->
+    <!-- Bookings Panel Header with Breadcrumbs -->
     <div class="card shadow-sm mb-4">
-        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <h1 class="h3 mb-0 text-wine">My Bookings</h1>
-            <div class="d-flex gap-3 align-items-center">
-                <div class="text-center">
-                    <small class="text-muted">Total Bookings</small>
-                    <h5>{{ $totalBookings }}</h5>
-                </div>
-                <div class="text-center">
-                    <small class="text-muted">Active</small>
-                    <h5>{{ $activeBookings }}</h5>
+        <div class="card-body">
+            <!-- Breadcrumbs -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ route('home') }}"><i class="fas fa-home"></i> Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">My Bookings</li>
+                </ol>
+            </nav>
+            
+            <!-- Header Content -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <h1 class="h3 mb-0 text-wine">My Bookings</h1>
+                <div class="d-flex gap-3 align-items-center">
+                    <div class="text-center">
+                        <small class="text-muted">Total Bookings</small>
+                        <h5>{{ $totalBookings }}</h5>
+                    </div>
+                    <div class="text-center">
+                        <small class="text-muted">Active</small>
+                        <h5>{{ $activeBookings }}</h5>
+                    </div>
                 </div>
             </div>
         </div>
@@ -48,69 +59,100 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0 text-center">
-                    <thead>
-                        <tr>
-                            <th>Listing</th>
-                            <th>Location</th>
-                            <th>Check-in</th>
-                            <th>Check-out</th>
-                            <th>Guests</th>
-                            <th>Status</th>
-                            <th>Total Price</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($bookings as $booking)
-                        <tr>
-                            <td>{{ $booking['listing_title'] }}</td>
-                            <td>{{ $booking['listing_location'] }}</td>
-                            <td>{{ $booking['check_in_date'] }}</td>
-                            <td>{{ $booking['check_out_date'] }}</td>
-                            <td>{{ $booking['num_guests'] }}</td>
-                            <td>
-                                <span class="badge 
-                                    @if($booking['status'] == 'Confirmed') bg-success
-                                    @elseif($booking['status'] == 'PendingPayment') bg-warning
-                                    @elseif($booking['status'] == 'Cancelled') bg-danger
-                                    @else bg-secondary
-                                    @endif">
-                                    {{ $booking['status'] }}
-                                </span>
-                            </td>
-                            <td>${{ $booking['total_price'] }}</td>
-                            <td>
-                                <!-- Edit Button -->
-                                <a href="{{ route('bookings.edit', $booking['id']) }}" 
-                                   class="action-btn text-primary" 
-                                   title="Edit booking">
-                                    <i class="fas fa-edit"></i>
-                                </a>
+                <table class="table">
+    <thead>
+        <tr>
+            <th>Listing</th>
+            <th>Location</th>
+            <th>Check-in</th>
+            <th>Check-out</th>
+            <th>Guests</th>
+            <th>Status</th>
+            <th>Total</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($bookings as $booking)
+        <tr>
+            <td>{{ $booking['listing_title'] }}</td>
+            <td>{{ $booking['listing_location'] }}</td>
+            <td>{{ $booking['check_in_date'] }}</td>
+            <td>{{ $booking['check_out_date'] }}</td>
+            <td>{{ $booking['num_guests'] }}</td>
+            <td>
+                <span class="badge 
+                    @if($booking['status'] == 'Confirmed') bg-success
+                    @elseif($booking['status'] == 'PendingPayment') bg-warning
+                    @elseif($booking['status'] == 'Cancelled') bg-danger
+                    @elseif($booking['status'] == 'Completed') bg-info
+                    @else bg-secondary
+                    @endif">
+                    {{ $booking['status'] }}
+                </span>
+            </td>
+            <td>${{ $booking['total_price'] }}</td>
+            <td>
+                @if($booking['status'] === 'Completed' && !$booking['has_review'])
+                    <!-- Add Review Button -->
+                    <a href="{{ route('reviews.create', $booking['id']) }}" 
+                       class="action-btn text-success" 
+                       title="Leave a review">
+                        <i class="fas fa-star"></i>
+                    </a>
+                @elseif($booking['has_review'])
+                    <!-- Edit Review Button -->
+                    <a href="{{ route('reviews.edit', $booking['review_id']) }}" 
+                       class="action-btn text-warning" 
+                       title="Edit review">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    
+                    <!-- Delete Review Form -->
+                    <form action="{{ route('reviews.destroy', $booking['review_id']) }}" 
+                          method="POST" 
+                          style="display: inline;"
+                          onsubmit="return confirm('Are you sure you want to delete this review?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="action-btn text-danger" title="Delete review">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                @endif
 
-                                <!-- Delete Form -->
-                                <form action="{{ route('bookings.destroy', $booking['id']) }}" 
-                                      method="POST" 
-                                      style="display: inline;"
-                                      onsubmit="return confirm('Are you sure you want to delete this booking?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="action-btn text-danger" title="Delete booking">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
-                                <i class="fas fa-calendar-times fa-2x mb-2"></i>
-                                <p>No bookings found</p>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                @if(in_array($booking['status'], ['PendingPayment', 'Confirmed']))
+                    <!-- Edit Booking Button -->
+                    <a href="{{ route('bookings.edit', $booking['id']) }}" 
+                       class="action-btn text-primary" 
+                       title="Edit booking">
+                        <i class="fas fa-edit"></i>
+                    </a>
+
+                    <!-- Delete Booking Form -->
+                    <form action="{{ route('bookings.destroy', $booking['id']) }}" 
+                          method="POST" 
+                          style="display: inline;"
+                          onsubmit="return confirm('Are you sure you want to cancel this booking?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="action-btn text-danger" title="Cancel booking">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </form>
+                @endif
+            </td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="8" class="text-center text-muted py-4">
+                <i class="fas fa-calendar-times fa-2x mb-2"></i>
+                <p>No bookings found</p>
+            </td>
+        </tr>
+        @endforelse
+    </tbody>
+</table>
             </div>
         </div>
         
@@ -164,6 +206,34 @@
 </div>
 
 <style>
+    /* Breadcrumb Styles */
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        font-size: 0.9rem;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        font-size: 1.2rem;
+        color: #6c757d;
+    }
+    
+    .breadcrumb-item a {
+        color: #722F37;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    
+    .breadcrumb-item a:hover {
+        color: #501f25;
+        text-decoration: underline;
+    }
+    
+    .breadcrumb-item.active {
+        color: #6c757d;
+    }
+
     .nav-tabs {
         border-bottom: none;
     }

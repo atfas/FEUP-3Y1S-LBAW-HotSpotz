@@ -16,8 +16,8 @@ class AdminController extends Controller
     public function index(): View
     {
         // Check if user is authorized to view admin panel
-        Gate::authorize('viewAdminPanel');
-
+        $this->authorize('viewAdminPanel');
+        
         $perPage = 10;
         
         // Get search query if exists
@@ -75,8 +75,9 @@ class AdminController extends Controller
 
     public function searchUsers(Request $request): JsonResponse
     {
-        Gate::authorize('manageUsers');
-        // Gate::authorize('manageUsers', User::class);
+        // Gate::authorize('manageUsers');
+        $this->authorize('manageUsers');
+        
 
         $search = $request->input('search', '');
 
@@ -118,9 +119,9 @@ class AdminController extends Controller
     {
         $targetUser = User::findOrFail($id);
         
-        Gate::authorize('toggleUserStatus', $targetUser);
-        // Gate::authorize('toggleUserStatus', [User::class, $targetUser]);
-
+        // Gate::authorize('toggleUserStatus', $targetUser);
+        $this->authorize('toggleUserStatus', $targetUser);
+        
         $targetUser->is_blocked = !$targetUser->is_blocked;
         $targetUser->save();
 
@@ -134,9 +135,9 @@ class AdminController extends Controller
     {
         $targetUser = User::findOrFail($id);
         
-        Gate::authorize('changeAdminStatus', $targetUser);
-        // Gate::authorize('changeAdminStatus', [User::class, $targetUser]);
-
+        // Gate::authorize('changeAdminStatus', $targetUser);
+        $this->authorize('changeAdminStatus', $targetUser);
+        
         $targetUser->is_admin = !$targetUser->is_admin;
         $targetUser->save();
 
@@ -150,9 +151,9 @@ class AdminController extends Controller
     {
         $targetUser = User::findOrFail($id);
         
-        Gate::authorize('deleteUser', $targetUser);
-        // Gate::authorize('deleteUser', [User::class, $targetUser]);
-
+        // Gate::authorize('deleteUser', $targetUser);
+        $this->authorize('deleteUser', $targetUser);
+        
         $targetUser->is_active = false;
         $targetUser->save();
 
