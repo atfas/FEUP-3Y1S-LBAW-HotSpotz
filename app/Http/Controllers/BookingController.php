@@ -93,6 +93,12 @@ class BookingController extends Controller
         }
         
         $totalPrice = $stayDuration * $availability->price_per_night;
+
+        // Apply premium discount if applicable
+        if (Auth::check() && Auth::user()->isPremium()) {
+            $discount = Auth::user()->getDiscountPercentage();
+            $totalPrice = $totalPrice * (1 - $discount / 100);
+        }
         
         try {
             DB::beginTransaction();
@@ -249,6 +255,12 @@ class BookingController extends Controller
         }
         
         $totalPrice = $stayDuration * $availability->price_per_night;
+
+        // Apply premium discount if applicable
+        if ($booking->guest_id === Auth::id() && Auth::user()->isPremium()) {
+            $discount = Auth::user()->getDiscountPercentage();
+            $totalPrice = $totalPrice * (1 - $discount / 100);
+        }
         
         $booking->update([
             'check_in_date' => $checkIn->toDateString(),

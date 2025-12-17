@@ -54,6 +54,21 @@
                     <div>
                         <h2 class="mb-1">{{ $listing->title }}</h2>
                         <p class="mb-1 text-muted">{{ $listing->location_address }}</p>
+                        
+                        {{-- Show host info --}}
+                        @if($host)
+                            <p class="mb-0">
+                                <i class="fa-solid fa-user me-1"></i>
+                                @if(Auth::check() && Auth::id() === $listing->host_id)
+                                    Hosted by <span class="fw-semibold" style="color: #722F37;">You</span>
+                                @else
+                                    Hosted by 
+                                    <a href="{{ route('profile.public', $host->id) }}" class="text-decoration-none fw-semibold" style="color: #722F37;">
+                                        {{ explode(' ', $host->full_name)[0] }}
+                                    </a>
+                                @endif
+                            </p>
+                        @endif
                     </div>
                 </div>
 
@@ -142,8 +157,19 @@
         </div>
 
         <div class="col-12 col-md-4">
+            @php
+                $isPremium = Auth::check() && Auth::user()->isPremium();
+                $discount = $isPremium ? Auth::user()->getDiscountPercentage() : 0;
+                $discountedMinPrice = $min_price !== null ? $min_price * (1 - $discount / 100) : null;
+            @endphp
             <div class="card p-3 shadow-sm mb-3" id="priceSimulatorCard">
                 <h5 class="mb-2">Price Simulator</h5>
+                @if($isPremium && $discount > 0)
+                    <div class="alert alert-success py-2 mb-3">
+                        <i class="fa-solid fa-crown me-1"></i>
+                        <small class="fw-bold">Premium Member: {{ $discount }}% discount applied!</small>
+                    </div>
+                @endif
                 <div class="mb-2">
                     <label class="form-label small">Check-in</label>
                     <input type="date" id="sim_checkin" class="form-control" />
@@ -161,7 +187,18 @@
                 <div class="mb-2">
                     <div class="d-flex justify-content-between">
                         <div class="small text-muted">Price per night</div>
-                        <div class="fw-bold" id="sim_price_per_night">@if($min_price !== null) ${{ number_format($min_price,2) }} @else N/A @endif</div>
+                        <div class="fw-bold" id="sim_price_per_night">
+                            @if($min_price !== null)
+                                @if($isPremium && $discount > 0)
+                                    <small class="text-decoration-line-through text-muted">${{ number_format($min_price, 2) }}</small>
+                                    <span class="text-success">${{ number_format($discountedMinPrice, 2) }}</span>
+                                @else
+                                    ${{ number_format($min_price, 2) }}
+                                @endif
+                            @else
+                                N/A
+                            @endif
+                        </div>
                     </div>
                 </div>
                 <div id="sim_warning" class="text-danger small mb-2" style="display:none"></div>
@@ -178,7 +215,7 @@
                     </div>
                 </div>
                 <div class="d-grid mt-2">
-                    <button type="button" class="btn btn-outline-primary" id="sim_calc">Calculate</button>
+                    <button type="button" class="btn btn-outline-danger" id="sim_calc">Calculate</button>
                 </div>
             </div>
 
@@ -327,6 +364,7 @@
             });
 
             const availabilities = {!! json_encode($availabilities ?? []) !!};
+            const premiumDiscount = {{ Auth::check() && Auth::user()->isPremium() ? Auth::user()->getDiscountPercentage() : 0 }};
             function todayISO(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
             function localISODate(d) { const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${dd}`; }
             function parseLocalDate(s){ if(!s) return null; const parts = s.split('-'); if(parts.length!==3) return null; return new Date(parts[0], parseInt(parts[1],10)-1, parts[2]); }
@@ -426,9 +464,23 @@
                 }
 
                 const perNight = result ? result.price : null;
-                const total = (perNight !== null && nights > 0) ? (perNight * nights * guests) : null;
+                let finalPerNight = perNight;
+                
+                if (premiumDiscount > 0 && perNight !== null) {
+                    finalPerNight = perNight * (1 - premiumDiscount / 100);
+                }
 
-                document.getElementById('sim_price_per_night').textContent = perNight ? formatMoney(perNight) : 'N/A';
+                const total = (finalPerNight !== null && nights > 0) ? (finalPerNight * nights * guests) : null;
+
+                if (premiumDiscount > 0 && perNight !== null) {
+                    document.getElementById('sim_price_per_night').innerHTML = `
+                        <small class="text-decoration-line-through text-muted">${formatMoney(perNight)}</small>
+                        <span class="text-success">${formatMoney(finalPerNight)}</span>
+                    `;
+                } else {
+                    document.getElementById('sim_price_per_night').textContent = perNight ? formatMoney(perNight) : 'N/A';
+                }
+                
                 document.getElementById('sim_nights').textContent = nights;
                 document.getElementById('sim_total').textContent = total !== null ? formatMoney(total) : 'N/A';
             

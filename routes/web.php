@@ -8,6 +8,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HomeController;
@@ -16,6 +17,8 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\HostApplicationController; 
+use App\Http\Controllers\MailController;
 
 
 // Home
@@ -44,6 +47,15 @@ Route::controller(LoginController::class)->group(function () {
     Route::post('/login', 'authenticate');
 });
 
+// Password reset routes
+Route::controller(ForgotPasswordController::class)->group(function () {
+    Route::get('/forgot-password', 'showForgotForm')->name('password.request');
+    Route::post('/forgot-password', 'sendResetLink')->name('password.send');
+    Route::get('/reset-password/{token}', 'showResetForm')->name('password.reset');
+    Route::post('/reset-password', 'resetPassword')->name('password.update');
+});
+
+
 Route::controller(LogoutController::class)->group(function () {
     Route::get('/logout', 'logout')->name('logout');
 });
@@ -62,7 +74,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('admin.users.toggle-status');
     Route::post('/admin/users/{id}/toggle-admin', [AdminController::class, 'toggleAdminStatus'])->name('admin.users.toggle-admin');
     Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.destroy');
+    
+    Route::get('/admin/applications/{id}', [AdminController::class, 'showApplication'])->name('admin.applications.show');
+    Route::post('/admin/applications/{id}/approve', [AdminController::class, 'approveApplication'])->name('admin.applications.approve');
+    Route::post('/admin/applications/{id}/reject', [AdminController::class, 'rejectApplication'])->name('admin.applications.reject');
 });
+
+// Public profile route (no auth required)
+Route::get('/user/{id}', [ProfileController::class, 'showPublic'])->name('profile.public');
 
 // Profile routes (authentication required)
 Route::middleware('auth')->controller(ProfileController::class)->group(function () {
@@ -72,6 +91,13 @@ Route::middleware('auth')->controller(ProfileController::class)->group(function 
     Route::get('/profile/picture', 'editPicture')->name('profile.picture.edit');
     Route::put('/profile/picture', 'updatePicture')->name('profile.picture.update');
     Route::delete('/profile/picture', 'deletePicture')->name('profile.picture.delete');
+    Route::delete('/profile', 'destroy')->name('profile.destroy');
+});
+
+// Host application routes (authentication required)
+Route::middleware('auth')->controller(HostApplicationController::class)->group(function () {
+    Route::get('/host/apply', 'create')->name('host.apply');
+    Route::post('/host/apply', 'store')->name('host.apply.store');
 });
 
 
@@ -85,6 +111,15 @@ Route::middleware('auth')->controller(BookingController::class)->group(function 
     Route::delete('/bookings/{booking}', 'destroy')->name('bookings.destroy');
 });
 
+// Subscription routes
+Route::prefix('subscription')->name('subscription.')->group(function () {
+    Route::get('/info', fn() => view('pages.subscription.info'))->name('info');
+    Route::get('/plans', fn() => view('pages.subscription.plans'))->name('plans');
+});
+
+Route::middleware('auth')->prefix('subscription')->name('subscription.')->group(function () {
+    Route::post('/cancel', [App\Http\Controllers\SubscriptionController::class, 'cancel'])->name('cancel');
+});
 // Review routes
 Route::middleware('auth')->group(function () {
     Route::get('/bookings/{booking}/review', [ReviewController::class, 'create'])->name('reviews.create');

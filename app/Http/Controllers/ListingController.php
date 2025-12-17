@@ -129,6 +129,7 @@ class ListingController extends Controller
                 ->select('tags.id','tags.name')
                 ->get()
                 ->map(function($t){ return ['id' => $t->id, 'name' => $t->name]; })->all(),
+            'host' => $listing->host,
         ]);
     }
 

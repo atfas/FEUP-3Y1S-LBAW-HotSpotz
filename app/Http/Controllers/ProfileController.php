@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -9,22 +10,36 @@ use Illuminate\Http\RedirectResponse;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile.
-     */
     public function show(): View
     {
         $user = Auth::user();
+        $user->load('subscription');
         $this->authorize('view', $user);
 
         return view('pages.profile', [
-            'user' => $user
+            'user' => $user,
+            'isOwner' => true,
         ]);
     }
 
-    /**
-     * Show the form for editing the profile information.
-     */
+    public function showPublic($id): View|RedirectResponse
+    {
+        $user = User::with('subscription')->where('id', $id)->where('is_active', true)->first();
+        
+        if (!$user) {
+            abort(404);
+        }
+        
+        if (Auth::check() && Auth::id() === $user->id) {
+            return redirect()->route('profile.show');
+        }
+
+        return view('pages.profile', [
+            'user' => $user,
+            'isOwner' => false,
+        ]);
+    }
+
     public function edit(): View
     {
         $user = Auth::user();
@@ -35,9 +50,6 @@ class ProfileController extends Controller
         ]);
     }
 
-    /**
-     * Update the user's profile information.
-     */
     public function update(Request $request): RedirectResponse
     {
         $user = Auth::user();
@@ -57,9 +69,6 @@ class ProfileController extends Controller
         return redirect()->route('profile.show')->with('success', 'Profile information updated successfully!');
     }
 
-    /**
-     * Show the form for editing the profile picture.
-     */
     public function editPicture(): View
     {
         $user = Auth::user();
@@ -70,9 +79,6 @@ class ProfileController extends Controller
         ]);
     }
 
-    /**
-     * Update the user's profile picture.
-     */
     public function updatePicture(Request $request): RedirectResponse
     {
         $user = Auth::user();
@@ -88,17 +94,27 @@ class ProfileController extends Controller
         return redirect()->route('profile.show')->with('success', 'Profile picture updated successfully!');
     }
 
-    /**
-     * Delete the user's profile picture.
-     */
     public function deletePicture(): RedirectResponse
     {
         $user = Auth::user();
-        $this->authorize('update', $user); // Using update policy as it modifies the user model
+        $this->authorize('update', $user);
         
         $user->profile_picture_url = null;
         $user->save();
 
         return redirect()->route('profile.show')->with('success', 'Profile picture removed successfully!');
+    }
+
+    public function destroy(): RedirectResponse
+    {
+        $user = Auth::user();
+        $this->authorize('delete', $user);
+        
+        $user->is_active = false;
+        $user->save();
+
+        Auth::logout();
+
+        return redirect()->route('home')->with('success', 'Your account has been deleted successfully.');
     }
 }
