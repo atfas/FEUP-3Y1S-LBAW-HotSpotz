@@ -132,11 +132,13 @@
                         </div>
                     @endif
 
-                    <!-- Premium Subscription Section -->
-                    @if($user->isPremium())
-                        @include('partials.subscription_status')
-                    @else
-                        @include('partials.subscription_promo')
+                    <!-- Premium Subscription Section (only for owner) -->
+                    @if($isOwner)
+                        @if($user->isPremium())
+                            @include('partials.subscription_status')
+                        @else
+                            @include('partials.subscription_promo')
+                        @endif
                     @endif
 
                     <!-- Account Deletion (only for owner) -->

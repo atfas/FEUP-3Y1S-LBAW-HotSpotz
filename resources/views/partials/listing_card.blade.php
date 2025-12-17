@@ -35,7 +35,18 @@
             <p class="card-text mb-1">Rating: <strong>{{ number_format($listing->average_rating ?? 0, 2) }}</strong></p>
             <p class="card-text mb-3">Price per night: <strong>
                 @if(isset($listing->min_price) && $listing->min_price !== null)
-                    ${{ number_format($listing->min_price, 2) }}
+                    @php
+                        $isPremium = Auth::check() && Auth::user()->isPremium();
+                        $discount = $isPremium ? Auth::user()->getDiscountPercentage() : 0;
+                        $discountedPrice = $listing->min_price * (1 - $discount / 100);
+                    @endphp
+
+                    @if($isPremium && $discount > 0)
+                        <small class="text-decoration-line-through text-muted">${{ number_format($listing->min_price, 2) }}</small>
+                        <span class="text-success">${{ number_format($discountedPrice, 2) }}</span>
+                    @else
+                        ${{ number_format($listing->min_price, 2) }}
+                    @endif
                 @else
                     N/A
                 @endif
