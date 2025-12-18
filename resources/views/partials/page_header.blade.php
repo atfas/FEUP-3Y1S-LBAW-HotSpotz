@@ -35,25 +35,3 @@
         @endif
     </div>
 </div>
-
-<style>
-/* Custom breadcrumb styling */
-
-.breadcrumb-item + .breadcrumb-item::before {
-    content: "/" !important;
-    color: white;
-    padding: 0 0.5rem;
-}
-
-.breadcrumb-item a {
-    text-decoration: none;
-}
-
-.breadcrumb-item a:hover {
-    text-decoration: underline;
-}
-
-.breadcrumb-item.active {
-    color:rgb(157, 157, 157) !important;
-}
-</style>

@@ -6,7 +6,16 @@
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
 
+    <!-- Breadcrumbs -->
+        @include('partials.page_header', [
+            'breadcrumbs' => [
+                ['title' => 'Search Listings', 'url' => route('search')],
+                ['title' => $listing->title, 'url' => null]
+            ]
+        ])
     <div class="card mb-4 shadow-sm">
+
+        
         <div class="card-body p-0">
             @php $mainId = 'listingCarousel'; @endphp
             <div id="{{ $mainId }}" class="carousel slide" data-bs-ride="carousel">

@@ -13,6 +13,8 @@
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
         <link rel="stylesheet" href="{{ asset('css/listing.panel.css') }}">
         <link rel="stylesheet" href="{{ asset('css/edit.review.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/display.review.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/breadcrumb.css') }}">
         @stack('styles')
 
         <style>

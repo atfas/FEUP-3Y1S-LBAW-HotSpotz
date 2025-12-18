@@ -127,4 +127,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('reviews.edit');
     Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    // Host response routes
+    Route::post('/reviews/{review}/respond', [ReviewController::class, 'respond'])->name('reviews.respond');
+    Route::put('/reviews/{review}/response', [ReviewController::class, 'updateResponse'])->name('reviews.response.update');
+    Route::delete('/reviews/{review}/response', [ReviewController::class, 'destroyResponse'])->name('reviews.response.destroy');
 });

@@ -2,10 +2,22 @@
 
 @section('content')
 <div class="container py-4">
-    <div class="card">
-        <div class="card-body">
-            <h4>Edit Listing</h4>
+    
+    <!-- Breadcrumbs -->
+    @include('partials.page_header', [
+        'breadcrumbs' => [
+            ['title' => 'Home', 'url' => route('home')],
+            ['title' => $listing->title, 'url' => route('listing.show', $listing->id)],
+            ['title' => 'Edit Listing', 'url' => null],
+        ]
+    ])
 
+    <div class="card">
+        <div class="card-header bg-white py-3">
+            <h4 class="mb-0 fw-bold text-wine">Edit Listing - {{ $listing->title }}</h4>
+        </div>
+        
+        <div class="card-body">
             @if(session('error'))
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif

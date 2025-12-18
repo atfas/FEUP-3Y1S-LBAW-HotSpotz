@@ -1,0 +1,36 @@
+.review-item {
+    transition: all 0.2s ease;
+    background-color: #fff;
+}
+
+.review-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.review-avatar {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    font-size: 1.25rem;
+}
+
+.review-rating i {
+    font-size: 0.875rem;
+}
+
+.host-response {
+    border-left: 3px solid var(--color-wine);
+}
+
+@media (max-width: 576px) {
+    .review-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .review-item {
+        padding: 0.75rem !important;
+    }
+}

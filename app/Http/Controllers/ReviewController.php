@@ -149,4 +149,82 @@ class ReviewController extends Controller
         return redirect()->route('bookings.index')
             ->with('success', 'Review deleted successfully!');
     }
+
+    // Host Response Methods
+    public function respond(Request $request, Review $review)
+    {
+        // Check if user is the host of the listing
+        if ($review->host_id !== Auth::id()) {
+            abort(403, 'You can only respond to reviews for your own listings.');
+        }
+
+        // Check if already responded
+        if (!empty($review->answer_content)) {
+            return back()->with('error', 'You have already responded to this review.');
+        }
+
+        $validated = $request->validate([
+            'answer_content' => 'required|string|max:1000',
+        ]);
+
+        $review->update([
+            'answer_content' => $validated['answer_content'],
+            'answered_at' => now(),
+        ]);
+
+        return back()->with('success', 'Response posted successfully!');
+    }
+
+    public function updateResponse(Request $request, Review $review)
+    {
+        // Check if user is the host
+        if ($review->host_id !== Auth::id()) {
+            abort(403, 'You can only edit your own responses.');
+        }
+
+        // Check if response exists
+        if (empty($review->answer_content)) {
+            return back()->with('error', 'No response to edit.');
+        }
+
+        // Check if within edit period (2 days from response)
+        if ($review->answered_at && $review->answered_at->addDays(2) < now()) {
+            return back()->with('error', 'Response edit period has expired.');
+        }
+
+        $validated = $request->validate([
+            'answer_content' => 'required|string|max:1000',
+        ]);
+
+        $review->update([
+            'answer_content' => $validated['answer_content'],
+        ]);
+
+        return back()->with('success', 'Response updated successfully!');
+    }
+
+    public function destroyResponse(Review $review)
+    {
+        // Check if user is the host
+        if ($review->host_id !== Auth::id()) {
+            abort(403, 'You can only delete your own responses.');
+        }
+
+        // Check if response exists
+        if (empty($review->answer_content)) {
+            return back()->with('error', 'No response to delete.');
+        }
+
+        // Check if within deletion period (2 days from response)
+        if ($review->answered_at && $review->answered_at->addDays(2) < now()) {
+            return back()->with('error', 'Response deletion period has expired.');
+        }
+
+        $review->update([
+            'answer_content' => null,
+            'answered_at' => null,
+        ]);
+
+        return back()->with('success', 'Response deleted successfully!');
+    }
 }

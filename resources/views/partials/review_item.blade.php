@@ -1,5 +1,17 @@
 @php
     $r = $review;
+    $isHost = Auth::check() && Auth::id() === $r->host_id;
+    $canRespond = $isHost && empty($r->answer_content);
+    
+    // Parse answered_at date safely
+    $answeredAt = null;
+    if (!empty($r->answered_at)) {
+        $answeredAt = $r->answered_at instanceof \Carbon\Carbon 
+            ? $r->answered_at 
+            : \Illuminate\Support\Carbon::parse($r->answered_at);
+    }
+    
+    $canEditResponse = $isHost && !empty($r->answer_content) && $answeredAt && $answeredAt->addDays(2) >= now();
 @endphp
 
 <div class="review-item p-3 rounded border">
@@ -46,60 +58,114 @@
                 <p class="mb-0 text-muted fst-italic">No written review provided.</p>
             @endif
 
-            {{-- Host Response (if exists) --}}
+            {{-- Host Response Section --}}
             @if(!empty($r->answer_content))
-                <div class="host-response mt-3 p-3 bg-light rounded">
+                <div class="host-response mt-3 p-3 bg-light rounded" id="response-{{ $r->id }}">
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="fas fa-reply text-primary"></i>
-                        <strong class="small text-primary">Host Response</strong>
+                        <strong class="small text-wine">{{ $host->full_name }} (Host)</strong>
                         @if(!empty($r->answered_at))
                             <span class="text-muted small ms-auto">
-                                {{ \Illuminate\Support\Carbon::parse($r->answered_at)->diffForHumans() }}
+                                {{ $answeredAt ? $answeredAt->diffForHumans() : '' }}
                             </span>
                         @endif
+                        
+                        {{-- Edit/Delete buttons for host --}}
+                        @if($canEditResponse)
+                            <button type="button" class="btn btn-sm btn-link p-0 ms-2" 
+                                    onclick="toggleEditResponse({{ $r->id }})"
+                                    title="Edit response">
+                                <i class="fas fa-edit text-secondary"></i>
+                            </button>
+                            <form action="{{ route('reviews.response.destroy', $r->id) }}" 
+                                  method="POST" 
+                                  class="d-inline"
+                                  onsubmit="return confirm('Are you sure you want to delete this response?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-link p-0 ms-1" title="Delete response">
+                                    <i class="fas fa-trash text-danger"></i>
+                                </button>
+                            </form>
+                        @endif
                     </div>
-                    <p class="mb-0 small">{{ $r->answer_content }}</p>
+                    
+                    {{-- Display Response --}}
+                    <p class="mb-0 small" id="response-text-{{ $r->id }}">{{ $r->answer_content }}</p>
+                    
+                    {{-- Edit Response Form (Hidden by default) --}}
+                    @if($canEditResponse)
+                        <form action="{{ route('reviews.response.update', $r->id) }}" 
+                              method="POST" 
+                              class="mt-2" 
+                              id="edit-response-form-{{ $r->id }}" 
+                              style="display: none;">
+                            @csrf
+                            @method('PUT')
+                            <textarea name="answer_content" 
+                                      class="form-control form-control-sm mb-2" 
+                                      rows="3" 
+                                      maxlength="1000" 
+                                      required>{{ $r->answer_content }}</textarea>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                                <button type="button" class="btn btn-secondary btn-sm" 
+                                        onclick="toggleEditResponse({{ $r->id }})">Cancel</button>
+                            </div>
+                        </form>
+                    @endif
+                </div>
+            @endif
+
+            {{-- Add Response Form (Only show if host hasn't responded yet) --}}
+            @if($canRespond)
+                <div class="mt-3">
+                    <button type="button" 
+                            class="btn btn-sm btn-outline-primary" 
+                            onclick="toggleResponseForm({{ $r->id }})">
+                        <i class="fas fa-reply me-1"></i> Respond to Review
+                    </button>
+                    
+                    <form action="{{ route('reviews.respond', $r->id) }}" 
+                          method="POST" 
+                          class="mt-2" 
+                          id="response-form-{{ $r->id }}" 
+                          style="display: none;">
+                        @csrf
+                        <textarea name="answer_content" 
+                                  class="form-control form-control-sm mb-2" 
+                                  rows="3" 
+                                  maxlength="1000" 
+                                  placeholder="Write your response..." 
+                                  required></textarea>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">Post Response</button>
+                            <button type="button" class="btn btn-secondary btn-sm" 
+                                    onclick="toggleResponseForm({{ $r->id }})">Cancel</button>
+                        </div>
+                    </form>
                 </div>
             @endif
         </div>
     </div>
 </div>
 
-<style>
-.review-item {
-    transition: all 0.2s ease;
-    background-color: #fff;
-}
 
-    .review-item:hover {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transform: translateY(-2px);
+<script>
+function toggleResponseForm(reviewId) {
+    const form = document.getElementById(`response-form-${reviewId}`);
+    if (form) {
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
     }
-
-.review-avatar {
-    width: 48px;
-    height: 48px;
-    object-fit: cover;
-    font-size: 1.25rem;
 }
 
-.review-rating i {
-    font-size: 0.875rem;
-}
-
-.host-response {
-    border-left: 3px solid #0d6efd;
-}
-
-@media (max-width: 576px) {
-    .review-avatar {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
-    }
+function toggleEditResponse(reviewId) {
+    const text = document.getElementById(`response-text-${reviewId}`);
+    const form = document.getElementById(`edit-response-form-${reviewId}`);
     
-    .review-item {
-        padding: 0.75rem !important;
+    if (text && form) {
+        const isFormVisible = form.style.display !== 'none';
+        text.style.display = isFormVisible ? 'block' : 'none';
+        form.style.display = isFormVisible ? 'none' : 'block';
     }
 }
-</style>
+</script>

@@ -2,8 +2,17 @@
 
 @section('content')
 <div class="container py-5">
+    
     <div class="row justify-content-center">
         <div class="col-md-10">
+            
+        <!-- Breadcrumbs -->
+            @include('partials.page_header', [
+                'breadcrumbs' => [
+                    ['title' => 'Profile', 'url' => null]
+                ]
+            ])
+
             <div class="card shadow-sm border-0">
                 <div class="card-body p-5">
                     @if (session('success'))
@@ -12,6 +21,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
+
 
                     <!-- Header Section -->
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-3">
