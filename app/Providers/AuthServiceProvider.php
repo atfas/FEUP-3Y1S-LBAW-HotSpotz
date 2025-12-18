@@ -5,7 +5,13 @@ namespace App\Providers;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Listing;
+use App\Models\Notification;
+use App\Models\Booking;
+use App\Models\User;
 use App\Policies\ListingPolicy;
+use App\Policies\NotificationPolicy;
+use App\Policies\BookingPolicy;
+use App\Policies\UserPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -16,6 +22,9 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         Listing::class => ListingPolicy::class,
+        Notification::class => NotificationPolicy::class,
+        Booking::class => BookingPolicy::class,
+        User::class => UserPolicy::class,
     ];
 
     /**
