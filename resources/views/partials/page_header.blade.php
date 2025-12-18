@@ -1,19 +1,19 @@
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
+<div >
+    <div class="py-2">
         <!-- Breadcrumbs -->
-        <nav aria-label="breadcrumb" class="mb-3">
-            <ol class="breadcrumb mb-0">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 ">
                 <li class="breadcrumb-item">
-                    <a href="{{ route('home') }}"><i class="fas fa-home"></i> Home</a>
+                    <a href="{{ route('home') }}" class="text-white">Home</a>
                 </li>
                 @foreach($breadcrumbs as $breadcrumb)
                     @if($loop->last)
-                        <li class="breadcrumb-item active" aria-current="page">
+                        <li class="breadcrumb-item active text-white" aria-current="page">
                             {{ $breadcrumb['title'] }}
                         </li>
                     @else
                         <li class="breadcrumb-item">
-                            <a href="{{ $breadcrumb['url'] }}">{{ $breadcrumb['title'] }}</a>
+                            <a href="{{ $breadcrumb['url'] }}" class="text-white">{{ $breadcrumb['title'] }}</a>
                         </li>
                     @endif
                 @endforeach
@@ -21,9 +21,8 @@
         </nav>
         
         <!-- Header Content -->
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <h1 class="h3 mb-0 text-wine">{{ $title }}</h1>
-            @if(isset($stats))
+        @if(isset($stats))
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-3">
             <div class="d-flex gap-3 align-items-center">
                 @foreach($stats as $stat)
                 <div class="text-center">
@@ -32,7 +31,29 @@
                 </div>
                 @endforeach
             </div>
-            @endif
         </div>
+        @endif
     </div>
 </div>
+
+<style>
+/* Custom breadcrumb styling */
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "/" !important;
+    color: white;
+    padding: 0 0.5rem;
+}
+
+.breadcrumb-item a {
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+    color:rgb(157, 157, 157) !important;
+}
+</style>

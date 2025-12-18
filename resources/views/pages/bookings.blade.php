@@ -17,16 +17,17 @@
         </div>
     @endif
 
+    <!-- Breadcrumbs -->
+    @include('partials.page_header', [
+        'breadcrumbs' => [
+            ['title' => 'Profile', 'url' => route('profile.show')],
+            ['title' => 'My Bookings', 'url' => null],
+        ]
+    ])
     <!-- Bookings Panel Header with Breadcrumbs -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <!-- Breadcrumbs -->
-            <nav aria-label="breadcrumb" class="mb-3">
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ route('home') }}"><i class="fas fa-home"></i> Home</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">My Bookings</li>
-                </ol>
-            </nav>
+            
             
             <!-- Header Content -->
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -93,26 +94,30 @@
             </td>
             <td>${{ $booking['total_price'] }}</td>
             <td>
-                @if($booking['status'] === 'Completed' && !$booking['has_review'])
+                @if($booking['status'] === 'Completed' && 
+                    !$booking['has_review'] && 
+                    \Carbon\Carbon::parse($booking['check_out_date'])->lt(now()) &&
+                    now()->lte(\Carbon\Carbon::parse($booking['check_out_date'])->addDays(2)))
                     <!-- Add Review Button -->
                     <a href="{{ route('reviews.create', $booking['id']) }}" 
-                       class="action-btn text-success" 
-                       title="Leave a review">
+                    class="action-btn text-success" 
+                    title="Leave a review">
                         <i class="fas fa-star"></i>
                     </a>
-                @elseif($booking['has_review'])
+                @elseif($booking['has_review'] && 
+                        now()->lte(\Carbon\Carbon::parse($booking['review_created_at'])->addDays(2)))
                     <!-- Edit Review Button -->
                     <a href="{{ route('reviews.edit', $booking['review_id']) }}" 
-                       class="action-btn text-warning" 
-                       title="Edit review">
+                    class="action-btn text-warning" 
+                    title="Edit review">
                         <i class="fas fa-edit"></i>
                     </a>
                     
                     <!-- Delete Review Form -->
                     <form action="{{ route('reviews.destroy', $booking['review_id']) }}" 
-                          method="POST" 
-                          style="display: inline;"
-                          onsubmit="return confirm('Are you sure you want to delete this review?')">
+                        method="POST" 
+                        style="display: inline;"
+                        onsubmit="return confirm('Are you sure you want to delete this review?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="action-btn text-danger" title="Delete review">
@@ -124,16 +129,16 @@
                 @if(in_array($booking['status'], ['PendingPayment', 'Confirmed']))
                     <!-- Edit Booking Button -->
                     <a href="{{ route('bookings.edit', $booking['id']) }}" 
-                       class="action-btn text-primary" 
-                       title="Edit booking">
+                    class="action-btn text-primary" 
+                    title="Edit booking">
                         <i class="fas fa-edit"></i>
                     </a>
 
                     <!-- Delete Booking Form -->
                     <form action="{{ route('bookings.destroy', $booking['id']) }}" 
-                          method="POST" 
-                          style="display: inline;"
-                          onsubmit="return confirm('Are you sure you want to cancel this booking?')">
+                        method="POST" 
+                        style="display: inline;"
+                        onsubmit="return confirm('Are you sure you want to cancel this booking?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="action-btn text-danger" title="Cancel booking">

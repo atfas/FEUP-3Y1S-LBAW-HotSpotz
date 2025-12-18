@@ -152,9 +152,10 @@
                         @endif
                     </div>
                 </div>
+                </div>
             </div>
         </div>
-        </div>
+        {{-- End of col-12 col-md-8 --}}
 
         <div class="col-12 col-md-4">
             @php
@@ -247,51 +248,128 @@
                     @endauth
                 </div>
             </div>
-
         </div>
+        {{-- End of col-12 col-md-4 --}}
+    </div>
+    {{-- End of row g-4 mb-4 --}}
 
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body p-0">
-            <h5 class="card-title">Reviews</h5>
+    {{-- Reviews Section - Full Width --}}
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <i class="fas fa-star text-warning me-2" style="font-size: 1.5rem;"></i>
+                        <h5 class="card-title mb-0 fw-bold">Guest Reviews</h5>
+                        @if($reviews->total() > 0)
+                            <span class="badge bg-primary ms-auto">{{ $reviews->total() }} {{ Str::plural('Review', $reviews->total()) }}</span>
+                        @endif
+                    </div>
 
-            @if($reviews->isEmpty())
-                <p class="text-muted">No reviews yet.</p>
-            @else
-                @foreach($reviews as $review)
-                    @include('partials.review_item', ['review' => $review])
-                @endforeach
+                    @if($reviews->isEmpty())
+                        <div class="text-center py-5">
+                            <i class="fas fa-comment-slash text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <p class="text-muted mb-0">No reviews yet. Be the first to share your experience!</p>
+                        </div>
+                    @else
+                        <div class="reviews-list">
+                            @foreach($reviews as $review)
+                                @include('partials.review_item', ['review' => $review])
+                            @endforeach
+                        </div>
 
-                @if($totalPages > 1)
-                <div class="d-flex justify-content-end">
-                    <nav aria-label="Reviews pages">
-                        <ul class="pagination mb-0">
-                            @if ($currentPage <= 1)
-                                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
-                            @else
-                                <li class="page-item"><a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => $currentPage - 1]) }}" rel="prev"><i class="fas fa-chevron-left"></i></a></li>
-                            @endif
+                        @if($reviews->hasPages())
+                        <div class="d-flex justify-content-center mt-4 pt-3 border-top">
+                            <nav aria-label="Reviews pagination">
+                                <ul class="pagination pagination-sm mb-0">
+                                    {{-- Previous Button --}}
+                                    @if ($reviews->onFirstPage())
+                                        <li class="page-item disabled">
+                                            <span class="page-link rounded-start">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </span>
+                                        </li>
+                                    @else
+                                        <li class="page-item">
+                                            <a class="page-link rounded-start" href="{{ $reviews->previousPageUrl() }}" rel="prev">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    @endif
 
-                            @for($p = 1; $p <= $totalPages; $p++)
-                                @if($p == $currentPage)
-                                    <li class="page-item active"><span class="page-link">{{ $p }}</span></li>
-                                @else
-                                    <li class="page-item"><a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => $p]) }}">{{ $p }}</a></li>
-                                @endif
-                            @endfor
+                                    {{-- Page Numbers with Smart Range --}}
+                                    @php
+                                        $start = max(1, $reviews->currentPage() - 2);
+                                        $end = min($reviews->lastPage(), $reviews->currentPage() + 2);
+                                    @endphp
 
-                            @if ($currentPage < $totalPages)
-                                <li class="page-item"><a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => $currentPage + 1]) }}" rel="next"><i class="fas fa-chevron-right"></i></a></li>
-                            @else
-                                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
-                            @endif
-                        </ul>
-                    </nav>
+                                    {{-- First Page + Ellipsis --}}
+                                    @if($start > 1)
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $reviews->url(1) }}">1</a>
+                                        </li>
+                                        @if($start > 2)
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        @endif
+                                    @endif
+
+                                    {{-- Page Range --}}
+                                    @for($p = $start; $p <= $end; $p++)
+                                        @if($p == $reviews->currentPage())
+                                            <li class="page-item active" aria-current="page">
+                                                <span class="page-link">{{ $p }}</span>
+                                            </li>
+                                        @else
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ $reviews->url($p) }}">{{ $p }}</a>
+                                            </li>
+                                        @endif
+                                    @endfor
+
+                                    {{-- Ellipsis + Last Page --}}
+                                    @if($end < $reviews->lastPage())
+                                        @if($end < $reviews->lastPage() - 1)
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        @endif
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $reviews->url($reviews->lastPage()) }}">{{ $reviews->lastPage() }}</a>
+                                        </li>
+                                    @endif
+
+                                    {{-- Next Button --}}
+                                    @if ($reviews->hasMorePages())
+                                        <li class="page-item">
+                                            <a class="page-link rounded-end" href="{{ $reviews->nextPageUrl() }}" rel="next">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    @else
+                                        <li class="page-item disabled">
+                                            <span class="page-link rounded-end">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </span>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </nav>
+                        </div>
+
+                        {{-- Page Info --}}
+                        <div class="text-center mt-2">
+                            <small class="text-muted">
+                                Showing {{ $reviews->firstItem() }} to {{ $reviews->lastItem() }} of {{ $reviews->total() }} reviews
+                            </small>
+                        </div>
+                        @endif
+                    @endif
                 </div>
-                @endif
-            @endif
+            </div>
         </div>
     </div>
-
 </div>
 
 @push('scripts')

@@ -4,10 +4,19 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-white">
+            <!-- Breadcrumbs -->
+            @include('partials.page_header', [
+                'breadcrumbs' => [
+                    ['title' => 'My Bookings', 'url' => route('bookings.index')],
+                    ['title' => $booking->availability->listing->title, 'url' => route('listing.show', $booking->availability->listing->id)],
+                    ['title' => 'Edit Booking', 'url' => null],
+                ]
+            ])
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
                     <h3 class="mb-0 text-wine">
-                        <i class="fas fa-edit"></i> Edit Booking
+                        Edit Booking
                     </h3>
                 </div>
                 <div class="card-body">
@@ -92,13 +101,13 @@
                             @enderror
                         </div>
 
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Update Booking
-                            </button>
-                            <a href="{{ route('bookings.index') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Cancel
+                        <div class="d-flex justify-content-between align-items-center mt-5">
+                            <a href="{{ route('bookings.index') }}" class="text-decoration-none text-muted">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Cancel
                             </a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                Update Booking
+                            </button>
                         </div>
                     </form>
                 </div>

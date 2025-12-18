@@ -147,37 +147,39 @@ class BookingController extends Controller
      */
     public function index(): View
     {
-    $perPage = 10;
-    
-    $bookings = Booking::where('guest_id', Auth::id())
-        ->with(['availability.listing', 'review']) // Add 'review' here
-        ->orderBy('created_at', 'desc')
-        ->paginate($perPage);
+        $perPage = 10;
+        
+        $bookings = Booking::where('guest_id', Auth::id())
+            ->with(['availability.listing', 'review'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
 
-    $bookings->getCollection()->transform(function ($booking) {
-        return [
-            'id' => $booking->id,
-            'listing_title' => $booking->availability->listing->title,
-            'listing_location' => $booking->availability->listing->location_address,
-            'check_in_date' => $booking->check_in_date->format('M d, Y'),
-            'check_out_date' => $booking->check_out_date->format('M d, Y'),
-            'num_guests' => $booking->num_guests,
-            'status' => $booking->status,
-            'total_price' => number_format($booking->total_price, 2),
-            'created_at' => $booking->created_at->format('F d, Y'),
-            'raw_check_in' => $booking->check_in_date->format('Y-m-d'),
-            'raw_check_out' => $booking->check_out_date->format('Y-m-d'),
-            'has_review' => $booking->review !== null, // Add this
-            'review_id' => $booking->review?->id, // Add this
-        ];
-    });
+        $bookings->getCollection()->transform(function ($booking) {
+            return [
+                'id' => $booking->id,
+                'listing_title' => $booking->availability->listing->title,
+                'listing_location' => $booking->availability->listing->location_address,
+                'check_in_date' => $booking->check_in_date->format('M d, Y'),
+                'check_out_date' => $booking->check_out_date->format('M d, Y'),
+                'num_guests' => $booking->num_guests,
+                'status' => $booking->status,
+                'total_price' => number_format($booking->total_price, 2),
+                'created_at' => $booking->created_at->format('F d, Y'),
+                'raw_check_in' => $booking->check_in_date->format('Y-m-d'),
+                'raw_check_out' => $booking->check_out_date->format('Y-m-d'),
+                'has_review' => $booking->review !== null,
+                'review_id' => $booking->review?->id,
+                'review_created_at' => $booking->review?->created_at?->format('Y-m-d H:i:s'),
+                'check_out_date_raw' => $booking->check_out_date,
+            ];
+        });
 
-    $totalBookings = Booking::where('guest_id', Auth::id())->count();
-    $activeBookings = Booking::where('guest_id', Auth::id())
-        ->whereIn('status', ['PendingPayment', 'Confirmed'])
-        ->count();
+        $totalBookings = Booking::where('guest_id', Auth::id())->count();
+        $activeBookings = Booking::where('guest_id', Auth::id())
+            ->whereIn('status', ['PendingPayment', 'Confirmed'])
+            ->count();
 
-    return view('pages.bookings', compact('bookings', 'totalBookings', 'activeBookings'));
+        return view('pages.bookings', compact('bookings', 'totalBookings', 'activeBookings'));
     }
 
     /**

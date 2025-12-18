@@ -11,6 +11,8 @@
         <!-- Styles -->
         @vite(['resources/sass/app.scss', 'resources/js/app.js'])
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/listing.panel.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/edit.review.css') }}">
         @stack('styles')
 
         <style>

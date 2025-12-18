@@ -87,33 +87,28 @@ class ListingController extends Controller
             'check_out_time' => $r->check_out_time ?? null,
         ]; });
 
+        //Review
         $perPage = 5;
         $page = max(1, (int)$request->get('page', 1));
-        $offset = ($page - 1) * $perPage;
 
-        $reviewsQuery = DB::table('reviews')
-            ->join('bookings', 'reviews.booking_id', '=', 'bookings.id')
-            ->join('availability', 'bookings.availability_id', '=', 'availability.id')
-            ->where('availability.listing_id', $id)
-            ->orderByDesc('reviews.created_at');
-
-        $totalReviews = (int)$reviewsQuery->count();
-
-        $reviews = $reviewsQuery
-            ->select('reviews.*')
-            ->offset($offset)
-            ->limit($perPage)
-            ->get();
-
-        $totalPages = (int)ceil($totalReviews / $perPage);
+        $reviews = DB::table('reviews')
+        ->join('bookings', 'reviews.booking_id', '=', 'bookings.id')
+        ->join('availability', 'bookings.availability_id', '=', 'availability.id')
+        ->join('users', 'reviews.guest_id', '=', 'users.id')
+        ->where('availability.listing_id', $id)
+        ->select(
+            'reviews.*',
+            'users.full_name as guest_name',
+            'users.profile_picture_url as guest_photo'
+        )
+        ->orderByDesc('reviews.created_at')
+        ->paginate($perPage, ['*'], 'page', $page);
 
         return view('pages.listing', [
             'listing' => $listing,
             'photos' => $photos,
             'min_price' => $min_price,
-            'reviews' => $reviews,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
+            'reviews' => $reviews, 
             'availabilities' => $availRows->map(function($r){ return [
                 'id' => $r->id ?? null,
                 'start_date' => $r->start_date,
