@@ -116,12 +116,11 @@ CREATE TABLE bookings (
     check_in_date DATE NOT NULL,
     check_out_date DATE NOT NULL CHECK (check_out_date > check_in_date),
     num_guests INTEGER NOT NULL CHECK (num_guests >= 1) DEFAULT 1,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('PendingPayment', 'Confirmed', 'Cancelled', 'Completed', 'Rejected')) DEFAULT 'PendingPayment',
+    status VARCHAR(20) NOT NULL CHECK (status IN ('PendingPayment', 'Confirmed', 'Cancelled', 'Completed', 'Rejected', 'Deleted')) DEFAULT 'PendingPayment',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     total_price NUMERIC(10,2) NOT NULL CHECK (total_price >= 0),
     availability_id INTEGER NOT NULL REFERENCES availability(id) ON DELETE CASCADE,
-    guest_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE (check_in_date, check_out_date, availability_id)
+    guest_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE transactions (
