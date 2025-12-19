@@ -457,4 +457,39 @@ class ListingController extends Controller
 
         return redirect()->route('profile.show')->with('success', 'Listing deleted.');
     }
+
+    public function reservations($id)
+    {
+        $listing = Listing::find($id);
+        if (!$listing) abort(404);
+
+        $this->authorize('viewReservations', $listing);
+
+        $bookings = DB::table('bookings')
+            ->join('availability', 'bookings.availability_id', '=', 'availability.id')
+            ->join('users', 'bookings.guest_id', '=', 'users.id')
+            ->where('availability.listing_id', $id)
+            ->where('bookings.status', 'Confirmed')
+            ->orderByDesc('bookings.created_at')
+            ->select(
+                'bookings.id',
+                'bookings.check_in_date',
+                'bookings.check_out_date',
+                'bookings.num_guests',
+                'bookings.status',
+                'bookings.total_price',
+                'bookings.created_at',
+                'users.id as guest_id',
+                'users.full_name as guest_name',
+                'users.email as guest_email',
+                'availability.start_date as avail_start',
+                'availability.end_date as avail_end'
+            )
+            ->get();
+
+        return view('pages.listing_reservations', [
+            'listing' => $listing,
+            'bookings' => $bookings,
+        ]);
+    }
 }

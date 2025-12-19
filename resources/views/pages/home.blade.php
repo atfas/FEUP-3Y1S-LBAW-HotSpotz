@@ -4,7 +4,7 @@
 <div class="container py-4">
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <form method="GET" action="/search" class="d-flex flex-row flex-wrap gap-2 align-items-end">
+            <form method="GET" action="/listing/search" class="d-flex flex-row flex-wrap gap-2 align-items-end">
                 <div class="form-group flex-fill" style="min-width:160px">
                     <label class="form-label">Where to</label>
                     <input type="text" name="where" class="form-control" placeholder="City, address or landmark">

@@ -30,13 +30,14 @@ Route::controller(HomeController::class)->group(function () {
 
 // Listing show (only match numeric ids)
 Route::get('/listing/{id}', [ListingController::class, 'show'])->whereNumber('id')->name('listing.show');
-Route::get('listing/search', [SearchController::class, 'index'])->name('search');
+Route::get('/listing/search', [SearchController::class, 'index'])->name('search');
 
 // Listing creation (auth)
 Route::middleware('auth')->group(function () {
     Route::get('/listing/add', [ListingController::class, 'create'])->name('listing.create');
     Route::post('/listing/add', [ListingController::class, 'store'])->name('listing.store');
     Route::get('/listing/{id}/edit', [ListingController::class, 'edit'])->whereNumber('id')->name('listing.edit');
+    Route::get('/listing/{id}/reservations', [ListingController::class, 'reservations'])->whereNumber('id')->name('listing.reservations');
     Route::put('/listing/{id}', [ListingController::class, 'update'])->whereNumber('id')->name('listing.update');
     Route::delete('/listing/{id}/delete', [ListingController::class, 'destroy'])->whereNumber('id')->name('listing.destroy');
 });
@@ -87,6 +88,8 @@ Route::get('/user/{id}', [ProfileController::class, 'showPublic'])->name('profil
 Route::middleware('auth')->controller(ProfileController::class)->group(function () {
     Route::get('/profile', 'show')->name('profile.show');
     Route::get('/profile/edit', 'edit')->name('profile.edit');
+    // Host reservations now reference the authenticated host; no ID in the URL.
+    Route::get('/profile/host-reservations', 'hostReservations')->name('profile.hostReservations');
     Route::put('/profile', 'update')->name('profile.update');
     Route::get('/profile/picture', 'editPicture')->name('profile.picture.edit');
     Route::put('/profile/picture', 'updatePicture')->name('profile.picture.update');
@@ -105,10 +108,12 @@ Route::middleware('auth')->controller(HostApplicationController::class)->group(f
 Route::get('/booking/{listing}', [BookingController::class, 'show'])->name('booking.show');
 Route::middleware('auth')->controller(BookingController::class)->group(function () {
     Route::post('/bookings', 'store')->name('bookings.store');
+    Route::post('/bookings/validate', 'validateBooking')->name('bookings.validate');
     Route::get('/bookings', 'index')->name('bookings.index');
     Route::get('/bookings/{booking}/edit', 'edit')->name('bookings.edit');
     Route::put('/bookings/{booking}', 'update')->name('bookings.update');
     Route::delete('/bookings/{booking}', 'destroy')->name('bookings.destroy');
+    Route::post('/bookings/{booking}/host-reject', 'hostReject')->name('bookings.hostReject');
 });
 
 // Subscription routes

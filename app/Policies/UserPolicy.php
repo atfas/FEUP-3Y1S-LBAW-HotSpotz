@@ -36,4 +36,15 @@ class UserPolicy
         // Admins can delete any profile
         return ($authUser->id === $targetUser->id && $authUser->is_active) || $authUser->isAdmin();
     }
+
+    /**
+     * Determine whether the user can view the host reservations calendar for the target user.
+     */
+    public function viewHostReservations(User $authUser, User $targetUser): bool
+    {
+        // Only approved hosts can view their own calendar. Admins may view any host calendar.
+        if ($authUser->isAdmin()) return true;
+        $isHost = ($authUser->application_status ?? null) === 'Approved';
+        return $isHost && $authUser->id === $targetUser->id;
+    }
 }
