@@ -19,6 +19,7 @@
         {{-- Profile Picture --}}
         <div class="flex-shrink-0">
             @if(!empty($r->guest_photo))
+                
                 <img src="{{ $r->guest_photo }}" 
                      alt="{{ $r->guest_name ?? 'Guest' }}" 
                      class="review-avatar rounded-circle"
@@ -34,7 +35,10 @@
         <div class="flex-grow-1">
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
-                    <h6 class="mb-0 fw-bold">{{ $r->guest_name ?? 'Anonymous Guest' }}</h6>
+                    <a href="{{ route('profile.public', $r->guest_id) }}" class="text-decoration-none fw-semibold" style="color: #722F37;">
+                        <h6 class="mb-0 fw-bold">{{ $r->guest_name ?? 'Anonymous Guest' }}</h6>
+                    </a>
+                    
                     <div class="review-rating mt-1">
                         @for($i = 1; $i <= 5; $i++)
                             @if($i <= ($r->rating ?? 0))

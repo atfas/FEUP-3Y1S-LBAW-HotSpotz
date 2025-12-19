@@ -15,6 +15,7 @@
         <link rel="stylesheet" href="{{ asset('css/edit.review.css') }}">
         <link rel="stylesheet" href="{{ asset('css/display.review.css') }}">
         <link rel="stylesheet" href="{{ asset('css/breadcrumb.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/bookings.css') }}">
         @stack('styles')
 
         <style>
