@@ -38,6 +38,12 @@ class BookingController extends Controller
             'check_in_date' => 'required|date',
             'check_out_date' => 'required|date|after:check_in_date',
             'num_guests' => 'required|integer|min:1',
+            'payment_method' => 'nullable|string|in:pay_on_arrival,credit_card,bank_transfer',
+            'bank_reference' => 'nullable|string',
+            'cc_name' => 'nullable|string',
+            'cc_number' => 'nullable|string',
+            'cc_expiry' => 'nullable|string',
+            'cc_cvc' => 'nullable|string',
         ]);
         
         $listing = Listing::findOrFail($validated['listing_id']);
@@ -94,10 +100,11 @@ class BookingController extends Controller
         
         $totalPrice = $stayDuration * $availability->price_per_night;
         
+        $pm = $validated['payment_method'] ?? null;
+
         try {
             DB::beginTransaction();
 
-            // create booking with pending payment
             $booking = Booking::create([
                 'check_in_date' => $checkIn->toDateString(),
                 'check_out_date' => $checkOut->toDateString(),
@@ -108,11 +115,26 @@ class BookingController extends Controller
                 'guest_id' => Auth::id(),
             ]);
 
-            // insert a cash transaction for the total and mark it completed
-            // use the database CURRENT_TIMESTAMP to avoid PHP/DB clock ordering issues
+            if ($pm === 'credit_card') {
+                $transactionMethod = 'Card';
+                if (empty($validated['cc_number']) || empty($validated['cc_name'])) {
+                    DB::rollBack();
+                    return back()->withErrors(['error' => 'Credit card details required'])->withInput();
+                }
+            } elseif ($pm === 'bank_transfer') {
+                $transactionMethod = 'Bank Transfer';
+                $bankRef = $validated['bank_reference'] ?? null;
+                if (!$bankRef) {
+                    DB::rollBack();
+                    return back()->withErrors(['error' => 'Bank reference missing'])->withInput();
+                }
+            } else {
+                $transactionMethod = 'Cash';
+            }
+
             DB::table('transactions')->insert([
                 'amount' => $totalPrice,
-                'transaction_method' => 'Cash',
+                'transaction_method' => $transactionMethod,
                 'type' => 'FullPayment',
                 'status' => 'Completed',
                 'paid_at' => DB::raw('CURRENT_TIMESTAMP'),
@@ -120,13 +142,11 @@ class BookingController extends Controller
                 'booking_id' => $booking->id,
             ]);
 
-            // update booking to confirmed
             $booking->update(['status' => 'Confirmed']);
 
             DB::commit();
 
-            return redirect()->route('profile.show')
-                ->with('success', 'Booking Successful: payment at arrival');
+            return redirect()->route('profile.show')->with('success', 'Booking Successful');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -134,6 +154,71 @@ class BookingController extends Controller
                 'error' => 'Failed to create booking: ' . $e->getMessage()
             ])->withInput();
         }
+    }
+
+    /**
+     * AJAX: validate booking input before proceeding to payment
+     */
+    public function validateBooking(Request $request)
+    {
+        $validated = $request->validate([
+            'listing_id' => 'required|exists:listings,id',
+            'availability_id' => 'required|exists:availability,id',
+            'check_in_date' => 'required|date',
+            'check_out_date' => 'required|date|after:check_in_date',
+            'num_guests' => 'required|integer|min:1',
+        ]);
+
+        $listing = Listing::findOrFail($validated['listing_id']);
+        $availability = Availability::findOrFail($validated['availability_id']);
+
+        $checkIn = Carbon::parse($validated['check_in_date']);
+        $checkOut = Carbon::parse($validated['check_out_date']);
+
+        $errors = [];
+
+        // min stay
+        $stayDuration = $checkIn->diffInDays($checkOut);
+        if ($stayDuration < $listing->minimum_stay) {
+            $errors['check_out_date'] = "Min stay is {$listing->minimum_stay} nights.";
+        }
+
+        // max guests
+        if ($validated['num_guests'] > $listing->max_occupancy) {
+            $errors['num_guests'] = "Max guests is {$listing->max_occupancy}.";
+        }
+
+        // dates are within availability dates
+        $availStart = Carbon::parse($availability->start_date);
+        $availEnd = Carbon::parse($availability->end_date);
+        if ($checkIn->lt($availStart) || $checkOut->gt($availEnd)) {
+            $errors['check_in_date'] = 'Dates are outside the available period.';
+        }
+
+        // bookings on the same days (overlap)
+        $hasOverlap = DB::table('bookings as b')
+            ->join('availability as a', 'b.availability_id', '=', 'a.id')
+            ->where('a.listing_id', $listing->id)
+            ->whereIn('b.status', ['PendingPayment', 'Confirmed'])
+            ->where(function($query) use ($checkIn, $checkOut) {
+                $query->whereBetween('b.check_in_date', [$checkIn, $checkOut])
+                    ->orWhereBetween('b.check_out_date', [$checkIn, $checkOut])
+                    ->orWhere(function($q) use ($checkIn, $checkOut) {
+                        $q->where('b.check_in_date', '<=', $checkIn)
+                          ->where('b.check_out_date', '>=', $checkOut);
+                    });
+            })
+            ->exists();
+
+        if ($hasOverlap) {
+            $errors['check_in_date'] = 'Dates overlap with an existing booking.';
+        }
+
+        if (!empty($errors)) {
+            return response()->json(['ok' => false, 'errors' => $errors], 422);
+        }
+
+        return response()->json(['ok' => true]);
     }
 
     /**
@@ -270,5 +355,83 @@ class BookingController extends Controller
         
         return redirect()->route('bookings.index')
             ->with('success', 'Booking deleted successfully.');
+    }
+
+    /**
+     * Host rejects a confirmed booking and issues refund transaction.
+     * Only the listing host may perform this action.
+     */
+    public function hostReject($bookingId)
+    {
+        $userId = Auth::id();
+
+        $booking = Booking::find($bookingId);
+        if (!$booking) return redirect()->back()->with('error', 'Booking not found.');
+
+        // load availability -> listing to verify host
+        $availability = DB::table('availability')->where('id', $booking->availability_id)->first();
+        if (!$availability) return redirect()->back()->with('error', 'Associated availability not found.');
+
+        $listing = DB::table('listings')->where('id', $availability->listing_id)->first();
+        if (!$listing) return redirect()->back()->with('error', 'Associated listing not found.');
+
+        if ($listing->host_id !== $userId) {
+            return redirect()->back()->with('error', 'Only the listing host can reject bookings.');
+        }
+
+        // compute hours until start
+        $now = Carbon::now();
+        $start = Carbon::parse($booking->check_in_date)->startOfDay();
+        if ($now->greaterThanOrEqualTo($start)) {
+            $hours = 0;
+        } else {
+            $hours = $now->diffInHours($start);
+        }
+
+        $thresholdHours = 48; // 48 hours (2 days) cutoff
+        if ($hours < $thresholdHours) {
+            return redirect()->back()->with('error', "Cannot delete a reservation within {$thresholdHours} hours of its start.");
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // change booking status to Rejected
+            DB::table('bookings')->where('id', $booking->id)->update(['status' => 'Rejected']);
+
+            // find last completed transaction for this booking
+            $lastTx = DB::table('transactions')
+                ->where('booking_id', $booking->id)
+                ->where('status', 'Completed')
+                ->orderByDesc('paid_at')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$lastTx) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'No completed payment found for this booking to refund.');
+            }
+
+            // insert refund transaction. Use original paid_at to satisfy DB trigger timing constraints
+            $refundId = DB::table('transactions')->insertGetId([
+                'amount' => $lastTx->amount,
+                'transaction_method' => $lastTx->transaction_method,
+                'type' => 'Refund',
+                'status' => 'Completed',
+                'paid_at' => $lastTx->paid_at,
+                'refund_id' => $lastTx->id,
+                'booking_id' => $booking->id,
+            ]);
+
+            // update previous transaction status to Refunded
+            DB::table('transactions')->where('id', $lastTx->id)->update(['status' => 'Refunded']);
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Booking rejected and refund processed.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Failed to process refund: ' . $e->getMessage());
+        }
     }
 }

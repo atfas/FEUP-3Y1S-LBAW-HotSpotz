@@ -1,0 +1,13 @@
+#calendar a,
+#calendar .fc a,
+#calendar .fc .fc-daygrid-event__link,
+#calendar .fc .fc-daygrid-event a,
+#calendar .fc .fc-event-main a,
+#calendar .fc .fc-daygrid-day-number a,
+#calendar .fc .fc-daygrid-weekday a {
+    text-decoration: none !important;
+    -webkit-text-decoration: none !important;
+    text-decoration-skip-ink: none !important;
+    color: inherit !important;
+    border-bottom: none !important;
+}

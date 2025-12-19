@@ -196,6 +196,7 @@
                     @auth
                         @if(Auth::id() === $listing->host_id)
                             <div class="d-flex justify-content-center gap-2">
+                                <a href="{{ route('listing.reservations', ['id' => $listing->id]) }}" class="btn btn-primary btn-lg">View Reservations</a>
                                 <a href="{{ route('listing.edit', ['id' => $listing->id]) }}" class="btn btn-secondary btn-lg">Edit Listing</a>
                                 <form method="POST" action="{{ route('listing.destroy', ['id' => $listing->id]) }}" onsubmit="return confirm('Are you sure you want to delete this listing?');">
                                     @csrf

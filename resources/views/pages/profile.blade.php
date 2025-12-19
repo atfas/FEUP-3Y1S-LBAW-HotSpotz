@@ -64,6 +64,9 @@
                         <div class="d-flex gap-2 w-100 w-md-auto justify-content-center justify-content-md-end">
                             <a href="{{ route('profile.edit') }}" class="btn btn-primary px-4">Edit</a>
                             <a href="{{ route('bookings.index') }}" class="btn btn-primary px-4">Show Bookings</a>
+                            @if($user->application_status === 'Approved')
+                                <a href="{{ route('profile.hostReservations') }}" class="btn btn-primary px-4">View Reservations</a>
+                            @endif
                         </div>
                     </div>
 

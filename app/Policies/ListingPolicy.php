@@ -56,4 +56,14 @@ class ListingPolicy
 
         return Response::allow();
     }
+
+    /**
+     * Determine whether the user can view reservations for the listing.
+     */
+    public function viewReservations(User $user, Listing $listing)
+    {
+        return $user && ($user->id === $listing->host_id)
+            ? Response::allow()
+            : Response::deny('Only the listing owner can view reservations.');
+    }
 }
