@@ -4,6 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        @auth
+        <meta name="user-id" content="{{ Auth::id() }}">
+        @endauth
 
         <title>@yield('title', config('app.name', 'Laravel'))</title>
         <link rel="icon" type="image/png" href="{{ asset('assets/icon.png') }}">
@@ -72,9 +75,36 @@
                             <a class="nav-link" href="#">
                                 <i class="fa-solid fa-message"></i> <span class="nav-text">Messages</span>
                             </a>
-                            <a class="nav-link" href="#">
-                                <i class="fa-solid fa-bell"></i><span class="nav-text">Notifications</span>
-                            </a>
+                            
+                            <!-- Notifications dropdown -->
+                            <div class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle position-relative" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa-solid fa-bell"></i>
+                                    <span class="nav-text">Notifications</span>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge" id="notification-count" style="display: none;">
+                                        0
+                                    </span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationsDropdown" style="min-width: 320px; max-height: 400px; overflow-y: auto;">
+                                    <li class="dropdown-header d-flex justify-content-between align-items-center">
+                                        <span>Notifications</span>
+                                        <a href="{{ route('notifications.index') }}" class="text-primary text-decoration-none small">View all</a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <div id="notifications-dropdown-content">
+                                        <li class="text-center py-3">
+                                            <span class="text-muted small">Loading...</span>
+                                        </li>
+                                    </div>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li class="text-center py-2">
+                                        <button class="btn btn-sm btn-link text-decoration-none" id="mark-all-read-btn" style="display: none;">
+                                            Mark all as read
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                            
                             <a class="nav-link" href="#">
                                 <i class="fa-solid fa-credit-card"></i><span class="nav-text">Payments</span>
                             </a>

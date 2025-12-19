@@ -70,12 +70,18 @@
                             <td>{{ $booking['check_out_date'] }}</td>
                             <td>{{ $booking['num_guests'] }}</td>
                             <td>
-                                <span class="badge 
-                                    @if($booking['status'] == 'Confirmed') bg-success
-                                    @elseif($booking['status'] == 'PendingPayment') bg-warning
-                                    @elseif($booking['status'] == 'Cancelled') bg-danger
-                                    @else bg-secondary
-                                    @endif">
+                                <span class="badge"
+                                    style="
+                                        background-color:
+                                        @if($booking['status'] == 'Confirmed') #4caf50
+                                        @elseif($booking['status'] == 'PendingPayment') #ff9800
+                                        @elseif($booking['status'] == 'Cancelled') #f44336
+                                        @elseif($booking['status'] == 'Deleted') #212529
+                                        @elseif($booking['status'] == 'Completed') #2e7d32
+                                        @elseif($booking['status'] == 'Rejected') #b71c1c
+                                        @else #6c757d
+                                        @endif;
+                                    ">
                                     {{ $booking['status'] }}
                                 </span>
                             </td>
@@ -83,7 +89,8 @@
                             <td>
                                 <!-- Edit Button -->
                                 <a href="{{ route('bookings.edit', $booking['id']) }}" 
-                                   class="action-btn text-primary" 
+                                   class="btn btn-sm btn-outline-primary"
+                                   style="width: 25px; height: 25px; padding: 0; border-radius: 30%; border-width: 2px; display: inline-flex; align-items: center; justify-content: center;"
                                    title="Edit booking">
                                     <i class="fas fa-edit"></i>
                                 </a>
@@ -95,7 +102,9 @@
                                       onsubmit="return confirm('Are you sure you want to delete this booking?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="action-btn text-danger" title="Delete booking">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                        style="width: 25px; height: 25px; padding: 0; border-radius: 30%; border-width: 2px; display: inline-flex; align-items: center; justify-content: center;" 
+                                        title="Delete booking">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>

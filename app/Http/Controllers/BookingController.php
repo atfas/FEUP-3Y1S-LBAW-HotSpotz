@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Listing;
 use App\Models\Availability;
 use App\Models\Booking;
+use App\Models\Notification;
+use App\Events\NotificationCreated;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -123,7 +125,27 @@ class BookingController extends Controller
             // update booking to confirmed
             $booking->update(['status' => 'Confirmed']);
 
+            // Create notification for guest (booking confirmed)
+            $guestNotification = Notification::create([
+                'type' => Notification::TYPE_BOOKING_CONFIRMED,
+                'content' => "Your booking for '{$listing->title}' has been confirmed! Check-in: {$checkIn->format('M d, Y')}",
+                'user_id' => Auth::id(),
+                'booking_id' => $booking->id,
+            ]);
+
+            // Create notification for host (new booking)
+            $hostNotification = Notification::create([
+                'type' => Notification::TYPE_BOOKING_CONFIRMED,
+                'content' => "New booking received for '{$listing->title}' from {$checkIn->format('M d, Y')} to {$checkOut->format('M d, Y')}",
+                'user_id' => $listing->host_id,
+                'booking_id' => $booking->id,
+            ]);
+
             DB::commit();
+
+            // Broadcast notifications
+            event(new NotificationCreated($guestNotification));
+            event(new NotificationCreated($hostNotification));
 
             return redirect()->route('profile.show')
                 ->with('success', 'Booking Successful: payment at arrival');
@@ -144,6 +166,7 @@ class BookingController extends Controller
         $perPage = 10;
         
         $bookings = Booking::where('guest_id', Auth::id())
+            ->where('status', '!=', 'Deleted')
             ->with(['availability.listing'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
@@ -164,7 +187,9 @@ class BookingController extends Controller
             ];
         });
 
-        $totalBookings = Booking::where('guest_id', Auth::id())->count();
+        $totalBookings = Booking::where('guest_id', Auth::id())
+            ->where('status', '!=', 'Deleted')
+            ->count();
         $activeBookings = Booking::where('guest_id', Auth::id())
             ->whereIn('status', ['PendingPayment', 'Confirmed'])
             ->count();
@@ -266,9 +291,38 @@ class BookingController extends Controller
     {
         $this->authorize('delete', $booking);
 
-        $booking->delete();
+        // Load relationships for notification content
+        $booking->load('availability.listing');
+        $listing = $booking->availability->listing;
+        $hostId = $listing->host_id;
+        $guestId = $booking->guest_id;
+
+        // Create cancellation notification for host
+        $hostNotification = Notification::create([
+            'type' => Notification::TYPE_BOOKING_CANCELED,
+            'content' => "Booking for '{$listing->title}' ({$booking->check_in_date->format('M d, Y')} - {$booking->check_out_date->format('M d, Y')}) has been cancelled.",
+            'user_id' => $hostId,
+            'booking_id' => $booking->id,
+        ]);
+
+        // If the booking was cancelled by host, notify guest
+        if (Auth::id() !== $guestId) {
+            $guestNotification = Notification::create([
+                'type' => Notification::TYPE_BOOKING_CANCELED,
+                'content' => "Your booking for '{$listing->title}' has been cancelled.",
+                'user_id' => $guestId,
+                'booking_id' => $booking->id,
+            ]);
+            event(new NotificationCreated($guestNotification));
+        }
+
+        // Broadcast to host
+        event(new NotificationCreated($hostNotification));
+
+        // Soft delete?
+        $booking->update(['status' => 'Deleted']);
         
         return redirect()->route('bookings.index')
-            ->with('success', 'Booking deleted successfully.');
+            ->with('success', 'Booking cancelled successfully.');
     }
 }

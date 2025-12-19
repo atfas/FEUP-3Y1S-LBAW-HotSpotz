@@ -15,6 +15,7 @@ use App\Http\Controllers\ListingController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\NotificationController;
 
 
 // Home
@@ -82,4 +83,14 @@ Route::middleware('auth')->controller(BookingController::class)->group(function 
     Route::get('/bookings/{booking}/edit', 'edit')->name('bookings.edit');
     Route::put('/bookings/{booking}', 'update')->name('bookings.update');
     Route::delete('/bookings/{booking}', 'destroy')->name('bookings.destroy');
+});
+
+// Notification routes
+Route::middleware('auth')->controller(NotificationController::class)->group(function () {
+    Route::get('/notifications', 'index')->name('notifications.index');
+    Route::get('/notifications/unread-count', 'unreadCount')->name('notifications.unread-count');
+    Route::get('/notifications/recent', 'recent')->name('notifications.recent');
+    Route::post('/notifications/{notification}/read', 'markAsRead')->name('notifications.read');
+    Route::post('/notifications/read-all', 'markAllAsRead')->name('notifications.read-all');
+    Route::delete('/notifications/{notification}', 'destroy')->name('notifications.destroy');
 });
