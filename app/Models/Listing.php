@@ -20,7 +20,9 @@ class Listing extends Model
         'minimum_stay',
         'cancellation_policy',
         'host_id',
+        'photo_url',
     ];
+
 
     /**
      * The attributes that should be cast to a specific type.
@@ -51,4 +53,10 @@ class Listing extends Model
     {
         return $this->hasMany(Availability::class);
     }
+
+    public function photos()
+    {
+        return $this->hasMany(ListingPhoto::class, 'listing_id');
+    }
+
 }

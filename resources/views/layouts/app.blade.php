@@ -71,7 +71,7 @@
                             </a>
 
                             @auth
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="{{ route('favorites.index') }}">
                                 <i class="fa-solid fa-heart"></i><span class="nav-text">Favourites</span>
                             </a>
                             <a class="nav-link" href="#">

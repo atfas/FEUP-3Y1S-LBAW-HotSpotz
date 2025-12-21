@@ -19,7 +19,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\HostApplicationController; 
 use App\Http\Controllers\MailController;
-
+use App\Http\Controllers\FavoriteController;
 
 // Home
 Route::redirect('/', '/home');
@@ -95,6 +95,9 @@ Route::middleware('auth')->controller(ProfileController::class)->group(function 
     Route::put('/profile/picture', 'updatePicture')->name('profile.picture.update');
     Route::delete('/profile/picture', 'deletePicture')->name('profile.picture.delete');
     Route::delete('/profile', 'destroy')->name('profile.destroy');
+
+    Route::get('/profile/host-statistics', 'hostStatistics')
+        ->name('profile.hostStatistics');
 });
 
 // Host application routes (authentication required)
@@ -137,4 +140,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/reviews/{review}/respond', [ReviewController::class, 'respond'])->name('reviews.respond');
     Route::put('/reviews/{review}/response', [ReviewController::class, 'updateResponse'])->name('reviews.response.update');
     Route::delete('/reviews/{review}/response', [ReviewController::class, 'destroyResponse'])->name('reviews.response.destroy');
+});
+
+
+Route::middleware('auth')->group(function () {
+
+    Route::get('/favorites', [FavoriteController::class, 'index'])
+        ->name('favorites.index');
+
+    Route::post('/favorites/toggle/{listing}', [FavoriteController::class, 'toggle'])
+        ->name('favorites.toggle');
+
 });

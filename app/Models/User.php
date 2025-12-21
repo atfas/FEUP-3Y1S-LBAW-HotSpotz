@@ -142,5 +142,18 @@ class User extends Authenticatable
         }
         return 0;
     }
+    
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function hasFavorited($listingId): bool
+    {
+        return $this->favorites()
+            ->where('listing_id', $listingId)
+            ->exists();
+    }
 
 }

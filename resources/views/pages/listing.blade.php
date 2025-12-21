@@ -1,10 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
+
     <div class="container py-4">
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
         @if(session('error'))
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
+
 
     <!-- Breadcrumbs -->
         @include('partials.page_header', [
@@ -60,7 +66,7 @@
         <div class="col-12 col-md-8">
             <div class="card p-3 h-100">
                 <div class="d-flex justify-content-between align-items-start">
-                    <div>
+                    <div class="flex-grow-1">
                         <h2 class="mb-1">{{ $listing->title }}</h2>
                         <p class="mb-1 text-muted">{{ $listing->location_address }}</p>
                         
@@ -79,6 +85,28 @@
                             </p>
                         @endif
                     </div>
+                    
+                    {{-- Favorite Button --}}
+                    @auth
+                        @if(Auth::id() !== $listing->host_id)
+                            <form method="POST" action="{{ route('favorites.toggle', $listing->id) }}">
+                                @csrf
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-link p-0"
+                                    style="font-size: 1.5rem; color: #722F37;"
+                                    title="{{ Auth::user()->hasFavorited($listing->id) ? 'Remove from favorites' : 'Add to favorites' }}"
+                                >
+                                    <i class="fa-{{ Auth::user()->hasFavorited($listing->id) ? 'solid' : 'regular' }} fa-star"></i>
+                                </button>
+                            </form>
+                        @endif
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-link p-0" style="font-size: 1.5rem; color: #722F37;">
+                            <i class="fa-regular fa-star"></i>
+                        </a>
+                    @endauth
+
                 </div>
 
                 <hr>
