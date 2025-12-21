@@ -2,6 +2,14 @@
 
 @section('content')
 <div class="container py-4">
+    @include('partials.page_header', [
+        'breadcrumbs' => [
+            ['title' => 'Listings', 'url' => route('profile.show')], 
+            ['title' => $listing->title, 'url' => route('listing.show', $listing->id)],
+            ['title' => 'Reservations', 'url' => null],
+        ]
+])
+
     <div class="card mb-3">
         <div class="card-body bg-white p-3">
             <h3 class="mb-0">Reservations for: {{ $listing->title }}</h3>
@@ -42,8 +50,5 @@
         </div>
     @endif
 
-    <div class="mt-3">
-        <a href="{{ route('listing.show', ['id' => $listing->id]) }}" class="btn btn-light">Back to listing</a>
-    </div>
 </div>
 @endsection

@@ -180,4 +180,60 @@ class ProfileController extends Controller
 
         return redirect()->route('home')->with('success', 'Your account has been deleted successfully.');
     }
+
+    /**
+     * Show host listing statistics dashboard.
+     */
+    public function hostStatistics()
+    {
+        $host = Auth::user();
+        $this->authorize('viewHostReservations', $host);
+
+        if (($host->application_status ?? null) !== 'Approved') {
+            return redirect()->back()->with('error', 'User is not a verified host.');
+        }
+
+        // Per-listing stats
+        $listings = DB::table('listings')
+            ->where('listings.host_id', $host->id)
+            ->where('listings.is_active', true)
+            ->leftJoin('availability', 'availability.listing_id', '=', 'listings.id')
+            ->leftJoin('bookings', function ($join) {
+                $join->on('bookings.availability_id', '=', 'availability.id')
+                    ->whereIn('bookings.status', ['Confirmed', 'Completed']);
+            })
+            ->select(
+                'listings.id',
+                'listings.title',
+                DB::raw('COUNT(DISTINCT bookings.id) AS total_bookings'),
+                DB::raw('COALESCE(SUM(bookings.total_price), 0) AS total_revenue'),
+                'listings.average_rating',
+                'listings.num_reviews'
+            )
+            ->groupBy('listings.id')
+            ->orderBy('total_revenue', 'DESC')
+            ->get();
+
+        // Global stats
+        $summary = [
+            'total_listings' => $listings->count(),
+            'total_bookings' => $listings->sum('total_bookings'),
+            'total_revenue' => $listings->sum('total_revenue'),
+            'average_rating' => round(
+                $listings->where('num_reviews', '>', 0)->avg('average_rating') ?? 0,
+                2
+            ),
+        ];
+
+        return view('pages.host_statistics', [
+            'host' => $host,
+            'listings' => $listings,
+            'summary' => $summary,
+        ]);
+    }
+
+    public function hostDashboard()
+    {
+        return view('pages.host_dashboard');
+    }
 }

@@ -2,9 +2,17 @@
 
 @section('content')
 <div class="container py-4">
+    @include('partials.page_header', [
+        'breadcrumbs' => [
+            ['title' => 'Profile', 'url' => route('profile.show')],
+            ['title' => 'Host Dashboard', 'url' => route('profile.host-dashboard')],
+            ['title' => 'Host Reservations', 'url' => null],
+        ]
+    ])
     <div class="card shadow-sm mb-3">
         <div class="card-body">
             <h4 class="mb-0">Reservations calendar for {{ $target->full_name }}</h4>
+            <a href="{{ route('profile.hostStatistics') }}" class="dropdown-item">
         </div>
     </div>
 

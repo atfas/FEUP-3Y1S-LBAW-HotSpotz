@@ -89,15 +89,21 @@ Route::middleware('auth')->controller(ProfileController::class)->group(function 
     Route::get('/profile', 'show')->name('profile.show');
     Route::get('/profile/edit', 'edit')->name('profile.edit');
     // Host reservations now reference the authenticated host; no ID in the URL.
-    Route::get('/profile/host-reservations', 'hostReservations')->name('profile.hostReservations');
+    
     Route::put('/profile', 'update')->name('profile.update');
     Route::get('/profile/picture', 'editPicture')->name('profile.picture.edit');
     Route::put('/profile/picture', 'updatePicture')->name('profile.picture.update');
     Route::delete('/profile/picture', 'deletePicture')->name('profile.picture.delete');
     Route::delete('/profile', 'destroy')->name('profile.destroy');
 
+    Route::get('/profile/host-dashboard', 'hostDashboard')
+    ->name('profile.host-dashboard');
+
     Route::get('/profile/host-statistics', 'hostStatistics')
         ->name('profile.hostStatistics');
+
+    Route::get('/profile/host-reservations', 'hostReservations')->name('profile.hostReservations');
+
 });
 
 // Host application routes (authentication required)

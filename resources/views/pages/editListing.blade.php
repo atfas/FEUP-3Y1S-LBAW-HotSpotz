@@ -6,7 +6,6 @@
     <!-- Breadcrumbs -->
     @include('partials.page_header', [
         'breadcrumbs' => [
-            ['title' => 'Home', 'url' => route('home')],
             ['title' => $listing->title, 'url' => route('listing.show', $listing->id)],
             ['title' => 'Edit Listing', 'url' => null],
         ]

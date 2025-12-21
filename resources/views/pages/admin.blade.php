@@ -210,4 +210,16 @@
     </div>
 </div>
 
+<script>
+document.getElementById('userSearch').addEventListener('keyup', function () {
+    const value = this.value.toLowerCase();
+
+    document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(value)
+            ? ''
+            : 'none';
+    });
+});
+</script>
+
 @endsection
