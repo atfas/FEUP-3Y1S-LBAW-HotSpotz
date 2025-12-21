@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="{{ asset('css/admin.panel.css') }}">
 
 <div class="container my-4">
+    
     <!-- Flash Messages -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -19,6 +20,14 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
+
+    <!-- Breadcrumbs -->
+    @include('partials.page_header', [
+        'breadcrumbs' => [
+            ['title' => 'Admin panel', 'url' => null],
+        ]
+    ])
+
 
     <!-- Admin Panel Header -->
     <div class="card shadow-sm mb-4">

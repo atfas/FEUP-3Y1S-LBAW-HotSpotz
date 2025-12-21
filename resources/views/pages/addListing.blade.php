@@ -2,8 +2,15 @@
 
 @section('content')
 <div class="container py-4">
+    <!-- Breadcrumbs -->
+    @include('partials.page_header', [
+        'breadcrumbs' => [
+            ['title' => 'Add Listing', 'url' => null],
+        ]
+    ])
+
     <div class="card">
-        <div class="card-body">
+        <div class="card-header bg-white py-3">
             <h4>Add Listing</h4>
 
             @if(session('error'))
