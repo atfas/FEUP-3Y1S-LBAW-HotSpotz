@@ -8,7 +8,7 @@
             ['title' => $listing->title, 'url' => route('listing.show', $listing->id)],
             ['title' => 'Reservations', 'url' => null],
         ]
-])
+    ])
 
     <div class="card mb-3">
         <div class="card-body bg-white p-3">
