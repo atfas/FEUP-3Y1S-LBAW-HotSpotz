@@ -3,6 +3,12 @@
 
 @section('content')
 <div class="container py-5">
+    @include('partials.page_header', [
+        'breadcrumbs' => [
+            ['title' => 'Profile', 'url' => route('profile.show')],
+            ['title' => 'Subsription Info', 'url' => null],
+        ]
+    ])
     <div class="row justify-content-center">
         <div class="col-lg-10">
             

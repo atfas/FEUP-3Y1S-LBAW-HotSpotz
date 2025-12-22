@@ -3,6 +3,14 @@
 
 @section('content')
 <div class="container py-5">
+    @include('partials.page_header', [
+        'breadcrumbs' => [
+            ['title' => 'Profile', 'url' => route('profile.show')],
+            ['title' => 'Subsription Info', 'url' => route('subscription.info')],
+            ['title' => 'Subsription Plans', 'url' => route('subscription.plans')],
+            ['title' => 'Subsription Payment', 'url' => null],
+        ]
+    ])
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow-sm">
