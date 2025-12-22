@@ -127,6 +127,22 @@
                     </form>
                 @endif
 
+                @if($booking['status'] === 'PendingPayment')
+                    <a href="{{ route('bookings.showPaymentForm', $booking['id']) }}"
+                       class="action-btn text-success"
+                       title="Pay Now">
+                        <i class="fas fa-credit-card"></i>
+                    </a>
+                @endif
+                <!-- Start Chat Button -->
+                <form action="{{ route('chat.create') }}" method="POST" style="display: inline;">
+                    @csrf
+                    <input type="hidden" name="booking_id" value="{{ $booking['id'] }}">
+                    <button type="submit" class="action-btn text-info" title="Start chat">
+                        <i class="fa-solid fa-message"></i>
+                    </button>
+                </form>
+
                 @if(in_array($booking['status'], ['PendingPayment', 'Confirmed']))
                     <!-- Edit Booking Button -->
                     <a href="{{ route('bookings.edit', $booking['id']) }}" 

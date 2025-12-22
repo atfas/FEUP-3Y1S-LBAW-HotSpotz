@@ -11,3 +11,11 @@
     color: inherit !important;
     border-bottom: none !important;
 }
+
+.available-day {
+    background-color: #d4f7dc;
+}
+
+.booked-day{
+    background-color: rgb(255, 159, 137);
+}

@@ -153,23 +153,3 @@
     </div>
 </div>
 
-
-<script>
-function toggleResponseForm(reviewId) {
-    const form = document.getElementById(`response-form-${reviewId}`);
-    if (form) {
-        form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    }
-}
-
-function toggleEditResponse(reviewId) {
-    const text = document.getElementById(`response-text-${reviewId}`);
-    const form = document.getElementById(`edit-response-form-${reviewId}`);
-    
-    if (text && form) {
-        const isFormVisible = form.style.display !== 'none';
-        text.style.display = isFormVisible ? 'block' : 'none';
-        form.style.display = isFormVisible ? 'none' : 'block';
-    }
-}
-</script>

@@ -19,6 +19,9 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\HostApplicationController; 
 use App\Http\Controllers\MailController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\FavoriteController;
 
 // Home
@@ -116,6 +119,7 @@ Route::middleware('auth')->controller(HostApplicationController::class)->group(f
 // Booking routes
 Route::get('/booking/{listing}', [BookingController::class, 'show'])->name('booking.show');
 Route::middleware('auth')->controller(BookingController::class)->group(function () {
+    Route::get('/booking/{booking}/pay', 'showPaymentForm')->name('bookings.showPaymentForm');
     Route::post('/bookings', 'store')->name('bookings.store');
     Route::post('/bookings/validate', 'validateBooking')->name('bookings.validate');
     Route::get('/bookings', 'index')->name('bookings.index');
@@ -123,6 +127,27 @@ Route::middleware('auth')->controller(BookingController::class)->group(function 
     Route::put('/bookings/{booking}', 'update')->name('bookings.update');
     Route::delete('/bookings/{booking}', 'destroy')->name('bookings.destroy');
     Route::post('/bookings/{booking}/host-reject', 'hostReject')->name('bookings.hostReject');
+    Route::post('/bookings/{booking}/host-confirm-payment', 'hostConfirmPayment')->name('bookings.hostConfirmPayment');
+});
+
+// Payment routes (Stripe)
+Route::middleware('auth')->controller(PaymentController::class)->group(function () {
+    Route::post('/payments/create-intent', 'createPaymentIntent')->name('payments.create-intent');
+    Route::post('/payments/confirm', 'confirmPayment')->name('payments.confirm');
+    Route::post('/repayment/confirm', 'confirmRepayment')->name('repayment.confirm');
+    Route::post('/repayment/confirm-other', 'confirmOtherRepayment')->name('repayment.confirm_other');
+});
+
+// Transactions page
+Route::middleware('auth')->get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+
+// Chat routes
+Route::middleware('auth')->controller(ChatController::class)->group(function () {
+    Route::get('/chat', 'index')->name('chat.index');
+    Route::get('/chat/{conversation}', 'show')->name('chat.show');
+    Route::post('/chat/create', 'create')->name('chat.create');
+    Route::post('/chat/{conversation}/message', 'sendMessage')->name('chat.send-message');
+    Route::post('/chat/{conversation}/read', 'markAsRead')->name('chat.mark-read');
 });
 
 // Subscription routes

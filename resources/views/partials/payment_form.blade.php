@@ -20,23 +20,27 @@
             </div>
             <div class="mb-2">
                 <label class="form-label">Card Number</label>
-                <input type="text" class="form-control" id="cc_number" placeholder="4242 4242 4242 4242" inputmode="numeric">
-                <div class="invalid-feedback d-block" id="cc_number_error" style="display:none"></div>
+                <div id="card-number-element" class="form-control" style="padding: 0.375rem 0.75rem;">
+                </div>
+                <div class="invalid-feedback d-block" id="card-number-error" style="display:none"></div>
             </div>
             <div class="row g-2">
                 <div class="col-6">
-                    <label class="form-label">Expiry (MM/YY)</label>
-                    <input type="text" class="form-control" id="cc_expiry" placeholder="MM/YY" inputmode="numeric">
-                    <div class="invalid-feedback d-block" id="cc_expiry_error" style="display:none"></div>
+                    <label class="form-label">Expiry</label>
+                    <div id="card-expiry-element" class="form-control" style="padding: 0.375rem 0.75rem;">
+                    </div>
+                    <div class="invalid-feedback d-block" id="card-expiry-error" style="display:none"></div>
                 </div>
                 <div class="col-6">
                     <label class="form-label">CVC</label>
-                    <input type="text" class="form-control" id="cc_cvc" placeholder="CVC" inputmode="numeric">
-                    <div class="invalid-feedback d-block" id="cc_cvc_error" style="display:none"></div>
+                    <div id="card-cvc-element" class="form-control" style="padding: 0.375rem 0.75rem;">
+                    </div>
+                    <div class="invalid-feedback d-block" id="card-cvc-error" style="display:none"></div>
                 </div>
             </div>
+            <div id="card-errors" class="alert alert-danger mt-2" role="alert" style="display:none;"></div>
             <div class="mt-3">
-                <button type="button" class="btn btn-success w-100 complete-payment" data-method="credit_card">Complete Payment</button>
+                <button type="button" class="btn btn-success w-100 complete-payment" id="stripe-pay-button" data-method="credit_card" disabled>Complete Payment</button>
             </div>
         </div>
 

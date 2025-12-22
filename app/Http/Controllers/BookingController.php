@@ -22,8 +22,31 @@ class BookingController extends Controller
     {
         // Load the listing with its availabilities
         $listing->load('availabilities');
+
+        // Fetch active bookings for this listing to block dates on the calendar
+        $bookingsCollection = Booking::whereHas('availability', function ($query) use ($listing) {
+            $query->where('listing_id', $listing->id);
+        })->whereIn('status', ['Confirmed', 'PendingPayment'])->get();
+
+        $bookings = $bookingsCollection->map(function ($booking) {
+            return [
+                'id' => $booking->id,
+                'start_date' => $booking->check_in_date,
+                'end_date' => $booking->check_out_date,
+                'status' => $booking->status,
+            ];
+        });
         
-        return view('pages.booking',compact('listing'));
+        $availabilities = $listing->availabilities->map(function($r){ return [
+            'id' => $r->id ?? null,
+            'start_date' => $r->start_date,
+            'end_date' => $r->end_date,
+            'price_per_night' => (float)$r->price_per_night,
+            'check_in_time' => $r->check_in_time ?? null,
+            'check_out_time' => $r->check_out_time ?? null,
+        ]; })->all();
+
+        return view('pages.booking',compact('listing', 'bookings', 'availabilities'));
     }
     
     /**
@@ -121,12 +144,13 @@ class BookingController extends Controller
                 'guest_id' => Auth::id(),
             ]);
 
+            // Handle different payment methods
             if ($pm === 'credit_card') {
-                $transactionMethod = 'Card';
-                if (empty($validated['cc_number']) || empty($validated['cc_name'])) {
-                    DB::rollBack();
-                    return back()->withErrors(['error' => 'Credit card details required'])->withInput();
-                }
+                DB::rollBack();
+                return back()->withErrors([
+                    'error' => 'Credit card payments should be processed through the payment form.'
+                ])->withInput();
+                    
             } elseif ($pm === 'bank_transfer') {
                 $transactionMethod = 'Bank Transfer';
                 $bankRef = $validated['bank_reference'] ?? null;
@@ -134,21 +158,31 @@ class BookingController extends Controller
                     DB::rollBack();
                     return back()->withErrors(['error' => 'Bank reference missing'])->withInput();
                 }
+
+                DB::table('transactions')->insert([
+                    'amount' => $totalPrice,
+                    'transaction_method' => $transactionMethod,
+                    'type' => 'FullPayment',
+                    'status' => 'Pending',
+                    'paid_at' => null,
+                    'refund_id' => null,
+                    'booking_id' => $booking->id,
+                ]);
             } else {
                 $transactionMethod = 'Cash';
+                
+                DB::table('transactions')->insert([
+                    'amount' => $totalPrice,
+                    'transaction_method' => $transactionMethod,
+                    'type' => 'FullPayment',
+                    'status' => 'Completed',
+                    'paid_at' => DB::raw('CURRENT_TIMESTAMP'),
+                    'refund_id' => null,
+                    'booking_id' => $booking->id,
+                ]);
+
+                $booking->update(['status' => 'Confirmed']);
             }
-
-            DB::table('transactions')->insert([
-                'amount' => $totalPrice,
-                'transaction_method' => $transactionMethod,
-                'type' => 'FullPayment',
-                'status' => 'Completed',
-                'paid_at' => DB::raw('CURRENT_TIMESTAMP'),
-                'refund_id' => null,
-                'booking_id' => $booking->id,
-            ]);
-
-            $booking->update(['status' => 'Confirmed']);
 
             DB::commit();
 
@@ -183,25 +217,21 @@ class BookingController extends Controller
 
         $errors = [];
 
-        // min stay
         $stayDuration = $checkIn->diffInDays($checkOut);
         if ($stayDuration < $listing->minimum_stay) {
             $errors['check_out_date'] = "Min stay is {$listing->minimum_stay} nights.";
         }
 
-        // max guests
         if ($validated['num_guests'] > $listing->max_occupancy) {
             $errors['num_guests'] = "Max guests is {$listing->max_occupancy}.";
         }
 
-        // dates are within availability dates
         $availStart = Carbon::parse($availability->start_date);
         $availEnd = Carbon::parse($availability->end_date);
         if ($checkIn->lt($availStart) || $checkOut->gt($availEnd)) {
             $errors['check_in_date'] = 'Dates are outside the available period.';
         }
 
-        // bookings on the same days (overlap)
         $hasOverlap = DB::table('bookings as b')
             ->join('availability as a', 'b.availability_id', '=', 'a.id')
             ->where('a.listing_id', $listing->id)
@@ -265,6 +295,22 @@ class BookingController extends Controller
             ->count();
 
         return view('pages.bookings', compact('bookings', 'totalBookings', 'activeBookings'));
+    }
+
+    /**
+     * Show the payment form for a specific pending booking.
+     */
+    public function showPaymentForm(Booking $booking): View
+    {
+        $this->authorize('view', $booking);
+
+        if ($booking->status !== 'PendingPayment') {
+            return redirect()->route('bookings.index')->with('error', 'This booking does not have a pending payment.');
+        }
+
+        $booking->load('availability.listing');
+
+        return view('pages.booking-pay', compact('booking'));
     }
 
     /**
@@ -343,7 +389,6 @@ class BookingController extends Controller
         
         $totalPrice = $stayDuration * $availability->price_per_night;
 
-        // Apply premium discount if applicable
         if ($booking->guest_id === Auth::id() && Auth::user()->isPremium()) {
             $discount = Auth::user()->getDiscountPercentage();
             $totalPrice = $totalPrice * (1 - $discount / 100);
@@ -412,10 +457,8 @@ class BookingController extends Controller
         try {
             DB::beginTransaction();
 
-            // change booking status to Rejected
             DB::table('bookings')->where('id', $booking->id)->update(['status' => 'Rejected']);
 
-            // find last completed transaction for this booking
             $lastTx = DB::table('transactions')
                 ->where('booking_id', $booking->id)
                 ->where('status', 'Completed')
@@ -428,7 +471,6 @@ class BookingController extends Controller
                 return redirect()->back()->with('error', 'No completed payment found for this booking to refund.');
             }
 
-            // insert refund transaction. Use original paid_at to satisfy DB trigger timing constraints
             $refundId = DB::table('transactions')->insertGetId([
                 'amount' => $lastTx->amount,
                 'transaction_method' => $lastTx->transaction_method,
@@ -439,7 +481,6 @@ class BookingController extends Controller
                 'booking_id' => $booking->id,
             ]);
 
-            // update previous transaction status to Refunded
             DB::table('transactions')->where('id', $lastTx->id)->update(['status' => 'Refunded']);
 
             DB::commit();
@@ -448,6 +489,65 @@ class BookingController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Failed to process refund: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Host confirms a pending booking after receiving an external payment (e.g., bank transfer).
+     */
+    public function hostConfirmPayment($bookingId)
+    {
+        $userId = Auth::id();
+
+        $booking = Booking::find($bookingId);
+        if (!$booking) return redirect()->back()->with('error', 'Booking not found.');
+
+        // load availability -> listing to verify host
+        $availability = DB::table('availability')->where('id', $booking->availability_id)->first();
+        if (!$availability) return redirect()->back()->with('error', 'Associated availability not found.');
+
+        $listing = DB::table('listings')->where('id', $availability->listing_id)->first();
+        if (!$listing) return redirect()->back()->with('error', 'Associated listing not found.');
+
+        if ($listing->host_id !== $userId) {
+            return redirect()->back()->with('error', 'Only the listing host can confirm payments.');
+        }
+
+        if ($booking->status !== 'PendingPayment') {
+            return redirect()->back()->with('error', 'Booking is not pending payment.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Find a pending transaction (bank transfer) and mark it completed
+            $pendingTx = DB::table('transactions')
+                ->where('booking_id', $booking->id)
+                ->where('status', 'Pending')
+                ->orderByDesc('id')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$pendingTx) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'No pending transaction found for this booking to confirm.');
+            }
+
+            // Mark transaction as completed and set paid_at
+            DB::table('transactions')->where('id', $pendingTx->id)->update([
+                'status' => 'Completed',
+                'paid_at' => DB::raw('CURRENT_TIMESTAMP'),
+            ]);
+
+            // Update booking status to Confirmed
+            DB::table('bookings')->where('id', $booking->id)->update(['status' => 'Confirmed']);
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Payment confirmed and booking updated.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Failed to confirm payment: ' . $e->getMessage());
         }
     }
 }

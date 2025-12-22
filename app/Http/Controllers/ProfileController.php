@@ -50,7 +50,7 @@ class ProfileController extends Controller
             ->join('listings', 'availability.listing_id', '=', 'listings.id')
             ->join('users as guests', 'bookings.guest_id', '=', 'guests.id')
             ->where('listings.host_id', $target->id)
-            ->whereIn('bookings.status', ['Confirmed', 'Completed'])
+            ->whereIn('bookings.status', ['Confirmed', 'Completed', 'PendingPayment'])
             ->whereDate('bookings.check_out_date', '>=', $since)
             ->select(
                 'bookings.id',
@@ -60,7 +60,8 @@ class ProfileController extends Controller
                 'bookings.total_price',
                 'listings.id as listing_id',
                 'listings.title as listing_title',
-                'guests.full_name as guest_name'
+                'guests.full_name as guest_name',
+                DB::raw("(SELECT COUNT(1) FROM transactions t WHERE t.booking_id = bookings.id AND t.status = 'Pending') as pending_txn_count")
             )
             ->orderBy('bookings.check_in_date')
             ->get();
