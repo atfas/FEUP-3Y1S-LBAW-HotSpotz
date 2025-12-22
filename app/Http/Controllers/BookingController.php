@@ -357,6 +357,7 @@ class BookingController extends Controller
                 'review_created_at' => $booking->review?->created_at?->format('Y-m-d H:i:s'),
                 'check_out_date_raw' => $booking->check_out_date,
                 'user_paid_part' => in_array($booking->id, $paidBookingIds),
+                'is_guest' => $booking->guest_id === auth()->id(),
                 'has_assigned_tx' => in_array($booking->id, $assignedBookingIds),
                 'has_pending_tx' => in_array($booking->id, $pendingBookingIds),
             ];

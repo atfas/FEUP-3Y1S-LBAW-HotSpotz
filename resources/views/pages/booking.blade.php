@@ -72,10 +72,12 @@
                 const total = (finalPerNight !== null && nights > 0) ? (finalPerNight * nights) : 0;
                 
                 availabilityIdInput.value = availability.id;
-                availabilityIdInput.dataset.price = perNight; 
+                // store the final per-night price (after premium discount if any)
+                availabilityIdInput.dataset.price = finalPerNight;
                 totalPriceInput.value = total;
+                try { if (window.computePrice) window.computePrice(); } catch(e) { }
 
-                pricePerNightEl.textContent = formatMoney(perNight);
+                pricePerNightEl.textContent = formatMoney(finalPerNight);
                 daysEl.textContent = days;
                 totalEl.textContent = formatMoney(total);
                 summary.style.display = 'block';

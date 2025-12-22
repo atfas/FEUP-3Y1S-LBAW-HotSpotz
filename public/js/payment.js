@@ -92,6 +92,9 @@ document.addEventListener('DOMContentLoaded', function () {
         return total;
     }
 
+    // Expose computePrice globally so other page scripts can trigger a recompute
+    try { window.computePrice = computePrice; } catch (e) { /* ignore */ }
+
     // compute on changes
     [availabilitySelect, checkInEl, checkOutEl].forEach(el => {
         if (!el) return;
@@ -335,11 +338,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     // If this is the last input, append another blank one
                     const rows = splitEmailsContainer.querySelectorAll('.split-email-row');
                     if (rows[rows.length - 1] === row) {
-                        const newRow = document.createElement('div');
-                        newRow.className = 'input-group mb-2 split-email-row';
-                        newRow.innerHTML = `<input type="email" class="form-control split-email-input" placeholder="payer@example.com" /><span class="input-group-text split-email-status" style="width:2.5rem"></span><div class="invalid-feedback d-block split-email-error" style="display:none"></div>`;
-                        splitEmailsContainer.appendChild(newRow);
-                        attachSplitInputHandlers(newRow);
+                        // enforce maximum split payers = num_guests - 1
+                        const numGuestsEl = document.getElementById('num_guests');
+                        const numGuests = numGuestsEl ? parseInt(numGuestsEl.value, 10) || 1 : 1;
+                        const maxSplit = Math.max(0, numGuests - 1);
+                        if (rows.length >= maxSplit) {
+                            // show a friendly inline error on this row
+                            error.textContent = 'Maximum number of split payers reached';
+                            error.style.display = 'block';
+                        } else {
+                            const newRow = document.createElement('div');
+                            newRow.className = 'input-group mb-2 split-email-row';
+                            newRow.innerHTML = `<input type="email" class="form-control split-email-input" placeholder="payer@example.com" /><span class="input-group-text split-email-status" style="width:2.5rem"></span><div class="invalid-feedback d-block split-email-error" style="display:none"></div>`;
+                            splitEmailsContainer.appendChild(newRow);
+                            attachSplitInputHandlers(newRow);
+                        }
                     }
                     // Recompute displayed price when a split email validated
                     try { computePrice(); } catch (e) { /* ignore */ }
@@ -350,6 +363,46 @@ document.addEventListener('DOMContentLoaded', function () {
                     error.style.display = 'block';
                 }
             }, 500);
+        });
+    }
+
+    // Adjust split UI based on num_guests (hide toggle for <=1 and remove extra rows)
+    const numGuestsEl = document.getElementById('num_guests');
+    function adjustSplitUI() {
+        const numGuests = numGuestsEl ? parseInt(numGuestsEl.value, 10) || 1 : 1;
+        const maxSplit = Math.max(0, numGuests - 1);
+
+        if (toggleSplitBtn) {
+            if (numGuests <= 1) {
+                toggleSplitBtn.style.display = 'none';
+            } else {
+                toggleSplitBtn.style.display = '';
+            }
+        }
+
+        // If guests <= 1, also hide and clear split section
+        if (splitSection && numGuests <= 1) {
+            splitSection.style.display = 'none';
+            if (toggleSplitBtn) toggleSplitBtn.classList.remove('active');
+            clearSplitInputs();
+        }
+
+        // Remove extra split input rows when num_guests decreased
+        if (splitEmailsContainer) {
+            let rows = splitEmailsContainer.querySelectorAll('.split-email-row');
+            // If maxSplit is 0 we still keep a single blank input (clearSplitInputs handles visibility)
+            while (rows.length > Math.max(1, maxSplit)) {
+                const last = rows[rows.length - 1];
+                if (last) last.remove();
+                rows = splitEmailsContainer.querySelectorAll('.split-email-row');
+            }
+        }
+    }
+
+    if (numGuestsEl) {
+        numGuestsEl.addEventListener('change', function () {
+            try { adjustSplitUI(); } catch (e) { /* ignore */ }
+            try { computePrice(); } catch (e) { /* ignore */ }
         });
     }
 

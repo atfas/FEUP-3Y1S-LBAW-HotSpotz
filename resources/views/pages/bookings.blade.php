@@ -134,34 +134,36 @@
                         <i class="fas fa-credit-card"></i>
                     </a>
                 @endif
-                <!-- Start Chat Button -->
-                <form action="{{ route('chat.create') }}" method="POST" style="display: inline;">
-                    @csrf
-                    <input type="hidden" name="booking_id" value="{{ $booking['id'] }}">
-                    <button type="submit" class="action-btn text-info" title="Start chat">
-                        <i class="fa-solid fa-message"></i>
-                    </button>
-                </form>
-
-                @if(in_array($booking['status'], ['PendingPayment', 'Confirmed']))
-                    <!-- Edit Booking Button -->
-                    <a href="{{ route('bookings.edit', $booking['id']) }}" 
-                    class="action-btn text-primary" 
-                    title="Edit booking">
-                        <i class="fas fa-edit"></i>
-                    </a>
-
-                    <!-- Delete Booking Form -->
-                    <form action="{{ route('bookings.destroy', $booking['id']) }}" 
-                        method="POST" 
-                        style="display: inline;"
-                        onsubmit="return confirm('Are you sure you want to cancel this booking?')">
+                @if($booking['is_guest'] || empty($booking['has_assigned_tx']))
+                    <!-- Start Chat Button -->
+                    <form action="{{ route('chat.create') }}" method="POST" style="display: inline;">
                         @csrf
-                        @method('DELETE')
-                        <button type="submit" class="action-btn text-danger" title="Cancel booking">
-                            <i class="fas fa-times-circle"></i>
+                        <input type="hidden" name="booking_id" value="{{ $booking['id'] }}">
+                        <button type="submit" class="action-btn text-info" title="Start chat">
+                            <i class="fa-solid fa-message"></i>
                         </button>
                     </form>
+
+                    @if(in_array($booking['status'], ['PendingPayment', 'Confirmed']))
+                        <!-- Edit Booking Button -->
+                        <a href="{{ route('bookings.edit', $booking['id']) }}" 
+                        class="action-btn text-primary" 
+                        title="Edit booking">
+                            <i class="fas fa-edit"></i>
+                        </a>
+
+                        <!-- Delete Booking Form -->
+                        <form action="{{ route('bookings.destroy', $booking['id']) }}" 
+                            method="POST" 
+                            style="display: inline;"
+                            onsubmit="return confirm('Are you sure you want to cancel this booking?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="action-btn text-danger" title="Cancel booking">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </form>
+                    @endif
                 @endif
             </td>
         </tr>
