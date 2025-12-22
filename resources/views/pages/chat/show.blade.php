@@ -3,18 +3,24 @@
 @section('content')
 <div class="container mt-5 pb-5">
     <!-- Breadcrumbs -->
-    @include('partials.page_header', [
-        'breadcrumbs' => [
+    @php
+        $breadcrumbs = [
             ['title' => 'Messages', 'url' => route('chat.index')],
-            ['title' => $conversation->listing->title, 'url' => route('listing.show', $conversation->listing->id)],
-            ['title' => 'Chat with ' . $otherUser->full_name, 'url' => null],
-        ]
+        ];
+        if (isset($conversation) && $conversation->listing) {
+            $breadcrumbs[] = ['title' => $conversation->listing->title, 'url' => route('listing.show', $conversation->listing->id)];
+        }
+        $breadcrumbs[] = ['title' => 'Chat with ' . $otherUser->full_name, 'url' => null];
+    @endphp
+
+    @include('partials.page_header', [
+        'breadcrumbs' => $breadcrumbs
     ])
     <div class="row">
         <div class="col-12 col-lg-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold text-wine">{{ $conversation->listing->title }} - {{ $otherUser->full_name }}</h5>
+                    <h5 class="mb-0 fw-bold text-wine">{{ optional($conversation->listing)->title ?? 'Listing' }} - {{ $otherUser->full_name }}</h5>
                     <a href="{{ route('chat.index') }}" class="btn btn-outline-secondary btn-sm">
                         <i class="fa-solid fa-arrow-left"></i> Back to messages
                     </a>
@@ -81,11 +87,17 @@
                     @else
                         <h6>Listing Information</h6>
                         <hr>
-                        <p><strong>Title:</strong> {{ $conversation->listing->title }}</p>
-                        <p><strong>Address:</strong> {{ $conversation->listing->location_address }}</p>
-                        <a href="{{ route('listing.show', $conversation->listing->id) }}" class="btn btn-sm btn-primary mt-2">
-                            View Listing
-                        </a>
+                        <p><strong>Title:</strong> {{ optional($conversation->listing)->title ?? 'Listing not available' }}</p>
+                        <p><strong>Address:</strong> {{ optional($conversation->listing)->location_address ?? '—' }}</p>
+                        @if(isset($conversation) && $conversation->listing)
+                            <a href="{{ route('listing.show', $conversation->listing->id) }}" class="btn btn-sm btn-primary mt-2">
+                                View Listing
+                            </a>
+                        @else
+                            <a href="{{ route('bookings.index') }}" class="btn btn-sm btn-secondary mt-2">
+                                View Bookings
+                            </a>
+                        @endif
                     @endif
                     
                     <hr>
@@ -127,30 +139,35 @@
         
         // Initialize Pusher
         @if(config('broadcasting.default') === 'pusher')
-        const pusher = new Pusher('{{ config('broadcasting.connections.pusher.key') }}', {
-            cluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}',
-            encrypted: true,
-            authEndpoint: '/broadcasting/auth',
-            auth: {
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        const pusherKey = '{{ config('broadcasting.connections.pusher.key') }}';
+        if (!pusherKey) {
+            console.warn('Pusher key is not configured. Please set PUSHER_APP_KEY in your .env and run php artisan config:clear');
+        } else {
+            const pusher = new Pusher(pusherKey, {
+                cluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}',
+                encrypted: true,
+                authEndpoint: '/broadcasting/auth',
+                auth: {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
                 }
-            }
-        });
-        
-        // Subscribe to user's private channel
-        const channel = pusher.subscribe('private-user.' + userId);
-        
-        // Listen for new messages
-        channel.bind('message.sent', function(data) {
-            if (data.conversation_id === conversationId) {
-                const existingMessage = document.querySelector(`[data-message-id="${data.message.id}"]`);
-                if (!existingMessage) {
-                    addMessageToChat(data.message);
-                    scrollToBottom();
+            });
+
+            // Subscribe to user's private channel
+            const channel = pusher.subscribe('private-user.' + userId);
+
+            // Listen for new messages
+            channel.bind('message.sent', function(data) {
+                if (data.conversation_id === conversationId) {
+                    const existingMessage = document.querySelector(`[data-message-id="${data.message.id}"]`);
+                    if (!existingMessage) {
+                        addMessageToChat(data.message);
+                        scrollToBottom();
+                    }
                 }
-            }
-        });
+            });
+        }
         @endif
         
         // Message form submission

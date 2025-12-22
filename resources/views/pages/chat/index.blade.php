@@ -76,16 +76,57 @@
     document.addEventListener('DOMContentLoaded', function() {
         const userId = {{ Auth::id() }};
         
-        const pusher = new Pusher('{{ config('broadcasting.connections.pusher.key') }}', {
-            cluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}',
-            encrypted: true,
-            authEndpoint: '/broadcasting/auth',
-            auth: {
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
+            const pusherKey = '{{ config('broadcasting.connections.pusher.key') }}';
+            if (!pusherKey) {
+                console.warn('Pusher key is not configured. Please set PUSHER_APP_KEY in your .env and run php artisan config:clear');
+            } else {
+                const pusher = new Pusher(pusherKey, {
+                    cluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}',
+                    encrypted: true,
+                    authEndpoint: '/broadcasting/auth',
+                    auth: {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    }
+                });
+                const channel = pusher.subscribe('private-user.' + userId);
+
+                channel.bind('message.sent', function(data) {
+                    const conversationId = data.conversation_id;
+                    const conversationLink = document.querySelector(`[data-conversation-id="${conversationId}"]`);
+
+                    if (conversationLink) {
+                        const isGuest = conversationLink.dataset.isGuest === 'true';
+                        const expectedAuthor = isGuest ? 'Host' : 'Guest';
+                        const isReceiver = data.message.author === expectedAuthor;
+
+                        const lastMessageEl = conversationLink.querySelector('.last-message');
+                        if (lastMessageEl) {
+                            const messageContent = data.message.content;
+                            lastMessageEl.textContent = messageContent.length > 60 ? messageContent.substring(0, 60) + '...' : messageContent;
+                        }
+
+                        if (isReceiver) {
+                            const unreadBadge = conversationLink.querySelector('.unread-badge');
+                            if (unreadBadge) {
+                                const currentUnread = parseInt(unreadBadge.textContent) || 0;
+                                unreadBadge.textContent = currentUnread + 1;
+                            } else {
+                                const badge = document.createElement('span');
+                                badge.className = 'badge bg-primary rounded-pill unread-badge';
+                                badge.textContent = '1';
+                                conversationLink.querySelector('h5').appendChild(badge);
+                            }
+                        }
+
+                        const conversationsList = document.getElementById('conversations-list');
+                        if (conversationsList && conversationLink.parentNode) {
+                            conversationsList.insertBefore(conversationLink, conversationsList.firstChild);
+                        }
+                    }
+                });
             }
-        });
         
         const channel = pusher.subscribe('private-user.' + userId);
         
