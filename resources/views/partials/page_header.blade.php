@@ -1,4 +1,4 @@
-<div >
+<div>
     <div class="py-2">
         <!-- Breadcrumbs -->
         <nav aria-label="breadcrumb">

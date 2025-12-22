@@ -104,11 +104,23 @@ class ListingController extends Controller
         ->orderByDesc('reviews.created_at')
         ->paginate($perPage, ['*'], 'page', $page);
 
+        $bookings = DB::table('bookings')
+            ->join('availability', 'bookings.availability_id', '=', 'availability.id')
+            ->where('availability.listing_id', $id)
+            ->select(
+                'bookings.id',
+                'bookings.check_in_date as start_date',
+                'bookings.check_out_date as end_date',
+                'bookings.status'
+            )
+            ->get();
+
         return view('pages.listing', [
             'listing' => $listing,
             'photos' => $photos,
             'min_price' => $min_price,
-            'reviews' => $reviews, 
+            'reviews' => $reviews,
+            'bookings' => $bookings,
             'availabilities' => $availRows->map(function($r){ return [
                 'id' => $r->id ?? null,
                 'start_date' => $r->start_date,
@@ -469,7 +481,7 @@ class ListingController extends Controller
             ->join('availability', 'bookings.availability_id', '=', 'availability.id')
             ->join('users', 'bookings.guest_id', '=', 'users.id')
             ->where('availability.listing_id', $id)
-            ->where('bookings.status', 'Confirmed')
+            ->whereIn('bookings.status', ['Confirmed', 'Completed', 'PendingPayment'])
             ->orderByDesc('bookings.created_at')
             ->select(
                 'bookings.id',
@@ -483,7 +495,8 @@ class ListingController extends Controller
                 'users.full_name as guest_name',
                 'users.email as guest_email',
                 'availability.start_date as avail_start',
-                'availability.end_date as avail_end'
+                'availability.end_date as avail_end',
+                DB::raw("(SELECT COUNT(1) FROM transactions t WHERE t.booking_id = bookings.id AND t.status = 'Pending') as pending_txn_count")
             )
             ->get();
 

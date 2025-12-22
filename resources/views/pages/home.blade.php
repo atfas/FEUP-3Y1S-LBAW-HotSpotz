@@ -88,7 +88,7 @@
 
             const todayStr = localISODate(new Date());
 
-            const form = document.querySelector('form[action="/search"]');
+            const form = document.querySelector('form[action="/listing/search"]');
             const whereInput = form ? form.querySelector('input[name="where"]') : null;
             const priceSelect = form ? form.querySelector('select[name="price"]') : null;
             const guestsInput = form ? form.querySelector('input[name="guests"]') : null;

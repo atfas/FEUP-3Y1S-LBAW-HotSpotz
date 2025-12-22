@@ -73,13 +73,13 @@
                             <a class="nav-link" href="#">
                                 <i class="fa-solid fa-heart"></i><span class="nav-text">Favourites</span>
                             </a>
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="{{ route('chat.index') }}">
                                 <i class="fa-solid fa-message"></i> <span class="nav-text">Messages</span>
                             </a>
                             <a class="nav-link" href="#">
                                 <i class="fa-solid fa-bell"></i><span class="nav-text">Notifications</span>
                             </a>
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="{{ route('transactions.index') }}">
                                 <i class="fa-solid fa-credit-card"></i><span class="nav-text">Payments</span>
                             </a>
                             @endauth
