@@ -91,13 +91,13 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <button type="button" class="btn btn-primary w-100 py-3 fw-bold fs-5" disabled>
-                        <i class="fa-solid fa-lock me-2"></i>Proceed to Payment
-                    </button>
-                    <p class="text-center text-muted mt-3 mb-0">
-                        <i class="fa-solid fa-shield-halved me-1"></i>
-                        Payment integration coming soon
-                    </p>
+                    <form id="plan-checkout-form" method="GET" action="{{ route('subscription.checkout') }}">
+                        <input type="hidden" name="tier" id="formTier" value="Gold">
+                        <input type="hidden" name="billing" id="formBilling" value="Monthly">
+                        <button type="submit" id="proceedButton" class="btn btn-primary w-100 py-3 fw-bold fs-5">
+                            <i class="fa-solid fa-credit-card me-2"></i>Proceed to Payment
+                        </button>
+                    </form>
 
                 </div>
             </div>
@@ -143,6 +143,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('planPrice').textContent = '€' + price.toFixed(2);
         document.getElementById('planPeriod').textContent = period;
         document.getElementById('planSummary').textContent = tier + ' · ' + billing;
+
+        // Update hidden form fields for checkout
+        const formTier = document.getElementById('formTier');
+        const formBilling = document.getElementById('formBilling');
+        if (formTier) formTier.value = tier;
+        if (formBilling) formBilling.value = billing;
     }
 
     function updateSelection() {

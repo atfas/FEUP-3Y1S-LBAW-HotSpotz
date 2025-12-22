@@ -179,7 +179,7 @@
                 }
                 const params = new URLSearchParams();
                 if (selected.size > 0) params.set('exclude_tags', Array.from(selected).join(','));
-                const target = '/search' + (params.toString() ? ('?' + params.toString()) : '');
+                const target = '/listing/search' + (params.toString() ? ('?' + params.toString()) : '');
                 window.location.href = target;
             });
         }

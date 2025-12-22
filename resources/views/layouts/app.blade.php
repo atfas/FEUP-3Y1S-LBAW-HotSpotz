@@ -34,6 +34,26 @@
         <!-- Scripts -->
         <script src="{{ asset('js/app.js') }}" defer></script>
 
+        <script>
+            // Add required asterisk to labels whose associated inputs are required
+            document.addEventListener('DOMContentLoaded', function(){
+                try {
+                    document.querySelectorAll('input[required], select[required], textarea[required]').forEach(function(inp){
+                        var id = inp.id;
+                        if (!id) return;
+                        var lbl = document.querySelector('label[for="'+id+'"]');
+                        if (lbl && !lbl.querySelector('.required-star')) {
+                            var star = document.createElement('span');
+                            star.className = 'required-star text-danger';
+                            star.style.marginLeft = '0.25rem';
+                            star.textContent = '*';
+                            lbl.appendChild(star);
+                        }
+                    });
+                } catch(e) {}
+            });
+        </script>
+
         <script src="https://kit.fontawesome.com/b3a434d82b.js" crossorigin="anonymous"></script>
         @stack('scripts')
     </head>

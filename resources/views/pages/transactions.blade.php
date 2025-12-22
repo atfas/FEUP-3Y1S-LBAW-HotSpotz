@@ -18,7 +18,6 @@
 
     @include('partials.page_header', [
         'breadcrumbs' => [
-            ['title' => 'Profile', 'url' => route('profile.show')],
             ['title' => 'Payments', 'url' => null],
         ]
     ])
@@ -103,7 +102,7 @@
                                     </td>
                                     <td>
                                         @if($t->status === 'Pending' && $t->booking && $t->booking->status === 'PendingPayment')
-                                            <a href="{{ route('bookings.showPaymentForm', $t->booking->id) }}" class="action-btn text-success" title="Pay now">
+                                            <a href="{{ route('transactions.pay', $t->id) }}" class="action-btn text-success" title="Pay now">
                                                 <i class="fas fa-credit-card"></i>
                                             </a>
                                         @else
@@ -295,6 +294,7 @@
         color: var(--color-dark-purple);
         border: 1px solid #dee2e6;
         border-bottom: none;
+        margin: 0;
         background-color: #f8f9fa;
         border-top-left-radius: 0.375rem;
         border-top-right-radius: 0.375rem;

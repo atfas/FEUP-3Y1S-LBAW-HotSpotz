@@ -62,10 +62,38 @@ document.addEventListener('DOMContentLoaded', function () {
         const total = (pricePerNight * nights) || 0;
         const formatted = total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
 
-        document.querySelectorAll('.final-price').forEach(el => el.textContent = '$' + formatted);
+        // If split UI is visible and has valid emails, compute initiator share and show per-payer amount
+        let displayAmount = total;
+        try {
+            if (splitSection && splitSection.style.display !== 'none') {
+                const splitInputs = document.querySelectorAll('.split-email-input');
+                const validEmails = [];
+                splitInputs.forEach(si => {
+                    const v = si.value.trim(); if (v) validEmails.push(v);
+                });
+                if (validEmails.length > 0) {
+                    const totalCents = Math.round(total * 100);
+                    const splitCount = 1 + validEmails.length;
+                    const base = Math.floor(totalCents / splitCount);
+                    const remainder = totalCents - base * splitCount;
+                    const shares = Array(splitCount).fill(base);
+                    for (let i=0;i<remainder;i++) shares[i] += 1;
+                    const initiatorShare = shares[0] / 100;
+                    displayAmount = initiatorShare;
+                }
+            }
+        } catch (e) {
+            displayAmount = total;
+        }
+
+        const displayFormatted = displayAmount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+        document.querySelectorAll('.final-price').forEach(el => el.textContent = '$' + displayFormatted);
         if (totalPriceInput) totalPriceInput.value = total;
         return total;
     }
+
+    // Expose computePrice globally so other page scripts can trigger a recompute
+    try { window.computePrice = computePrice; } catch (e) { /* ignore */ }
 
     // compute on changes
     [availabilitySelect, checkInEl, checkOutEl].forEach(el => {
@@ -125,18 +153,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 body: JSON.stringify(payload),
             });
-
             if (res.status === 200) return true;
 
             const data = await res.json().catch(() => null);
-            if (data && data.errors) {
+            // Show field errors if present
+                if (data && data.errors) {
                 Object.keys(data.errors).forEach(k => setBookingError(k, data.errors[k]));
+                const calendarErr = document.getElementById('booking_calendar_error_message');
+                if (calendarErr) calendarErr.textContent = 'Please select a date and a number of guests.';
+            } else if (data && data.message) {
+                const calendarErr = document.getElementById('booking_calendar_error_message');
+                if (calendarErr) calendarErr.textContent = data.message;
+                else alert(data.message || 'Validation failed');
             } else {
-                alert('Validation failed');
+                const calendarErr = document.getElementById('booking_calendar_error_message');
+                if (calendarErr) calendarErr.textContent = 'Validation failed. Please check your input.';
+                else alert('Validation failed');
             }
             return false;
         } catch (e) {
-            alert('Unable to validate booking');
+            const calendarErr = document.getElementById('booking_calendar_error_message');
+            if (calendarErr) calendarErr.textContent = 'Unable to validate booking. Please try again.';
             return false;
         }
     }
@@ -236,6 +273,157 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // --- Split payment UI & validation ---
+    const toggleSplitBtn = document.getElementById('toggle-split-btn');
+    const splitSection = document.getElementById('split-section');
+    const splitEmailsContainer = document.getElementById('split-emails-container');
+
+    function clearSplitInputs() {
+        if (!splitEmailsContainer) return;
+        splitEmailsContainer.innerHTML = `
+            <div class="input-group mb-2 split-email-row">
+                <input type="email" class="form-control split-email-input" placeholder="payer@example.com" />
+                <span class="input-group-text split-email-status" style="width:2.5rem"></span>
+                <div class="invalid-feedback d-block split-email-error" style="display:none"></div>
+            </div>`;
+    }
+
+    async function validateEmailAjax(email) {
+        const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        const token = tokenMeta ? tokenMeta.getAttribute('content') : '';
+        try {
+            const res = await fetch('/payments/check-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ email }),
+            });
+            return await res.json();
+        } catch (e) {
+            return { exists: false };
+        }
+    }
+
+    function attachSplitInputHandlers(row) {
+        const input = row.querySelector('.split-email-input');
+        const status = row.querySelector('.split-email-status');
+        const error = row.querySelector('.split-email-error');
+
+        let lastValue = '';
+        let debounce = null;
+        input.addEventListener('input', function () {
+            const v = input.value.trim();
+            error.style.display = 'none';
+            status.textContent = '';
+            if (debounce) clearTimeout(debounce);
+            debounce = setTimeout(async () => {
+                if (!v) return;
+                if (v === lastValue) return;
+                lastValue = v;
+                // Basic client-side email regex
+                const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+                if (!emailRegex.test(v)) {
+                    error.textContent = 'Invalid email format';
+                    error.style.display = 'block';
+                    return;
+                }
+                const data = await validateEmailAjax(v);
+                if (data.exists) {
+                    status.textContent = '✓';
+                    status.style.color = 'green';
+                    error.style.display = 'none';
+                    // If this is the last input, append another blank one
+                    const rows = splitEmailsContainer.querySelectorAll('.split-email-row');
+                    if (rows[rows.length - 1] === row) {
+                        // enforce maximum split payers = num_guests - 1
+                        const numGuestsEl = document.getElementById('num_guests');
+                        const numGuests = numGuestsEl ? parseInt(numGuestsEl.value, 10) || 1 : 1;
+                        const maxSplit = Math.max(0, numGuests - 1);
+                        if (rows.length >= maxSplit) {
+                            // show a friendly inline error on this row
+                            error.textContent = 'Maximum number of split payers reached';
+                            error.style.display = 'block';
+                        } else {
+                            const newRow = document.createElement('div');
+                            newRow.className = 'input-group mb-2 split-email-row';
+                            newRow.innerHTML = `<input type="email" class="form-control split-email-input" placeholder="payer@example.com" /><span class="input-group-text split-email-status" style="width:2.5rem"></span><div class="invalid-feedback d-block split-email-error" style="display:none"></div>`;
+                            splitEmailsContainer.appendChild(newRow);
+                            attachSplitInputHandlers(newRow);
+                        }
+                    }
+                    // Recompute displayed price when a split email validated
+                    try { computePrice(); } catch (e) { /* ignore */ }
+                } else {
+                    status.textContent = '✕';
+                    status.style.color = '#a00';
+                    error.textContent = 'Email not registered on platform';
+                    error.style.display = 'block';
+                }
+            }, 500);
+        });
+    }
+
+    // Adjust split UI based on num_guests (hide toggle for <=1 and remove extra rows)
+    const numGuestsEl = document.getElementById('num_guests');
+    function adjustSplitUI() {
+        const numGuests = numGuestsEl ? parseInt(numGuestsEl.value, 10) || 1 : 1;
+        const maxSplit = Math.max(0, numGuests - 1);
+
+        if (toggleSplitBtn) {
+            if (numGuests <= 1) {
+                toggleSplitBtn.style.display = 'none';
+            } else {
+                toggleSplitBtn.style.display = '';
+            }
+        }
+
+        // If guests <= 1, also hide and clear split section
+        if (splitSection && numGuests <= 1) {
+            splitSection.style.display = 'none';
+            if (toggleSplitBtn) toggleSplitBtn.classList.remove('active');
+            clearSplitInputs();
+        }
+
+        // Remove extra split input rows when num_guests decreased
+        if (splitEmailsContainer) {
+            let rows = splitEmailsContainer.querySelectorAll('.split-email-row');
+            // If maxSplit is 0 we still keep a single blank input (clearSplitInputs handles visibility)
+            while (rows.length > Math.max(1, maxSplit)) {
+                const last = rows[rows.length - 1];
+                if (last) last.remove();
+                rows = splitEmailsContainer.querySelectorAll('.split-email-row');
+            }
+        }
+    }
+
+    if (numGuestsEl) {
+        numGuestsEl.addEventListener('change', function () {
+            try { adjustSplitUI(); } catch (e) { /* ignore */ }
+            try { computePrice(); } catch (e) { /* ignore */ }
+        });
+    }
+
+    if (toggleSplitBtn && splitSection && splitEmailsContainer) {
+        toggleSplitBtn.addEventListener('click', function () {
+            if (splitSection.style.display === 'none') {
+                splitSection.style.display = 'block';
+                toggleSplitBtn.classList.add('active');
+                // Attach handlers to initial input
+                const firstRow = splitEmailsContainer.querySelector('.split-email-row');
+                if (firstRow) attachSplitInputHandlers(firstRow);
+                try { computePrice(); } catch(e){}
+            } else {
+                splitSection.style.display = 'none';
+                toggleSplitBtn.classList.remove('active');
+                clearSplitInputs();
+                try { computePrice(); } catch(e){}
+            }
+        });
+    }
+
     // Create payment intent and handle Stripe payment
     async function handleStripePayment() {
         if (!stripe || !bookingData) {
@@ -268,6 +456,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error('Invalid amount. Please check your booking details.');
             }
 
+            // If split emails are present and validated, charge only the initiator's share
+            let amountToCharge = amount;
+            try {
+                const splitInputs = document.querySelectorAll('.split-email-input');
+                const validEmails = [];
+                splitInputs.forEach(si => {
+                    const v = si.value.trim();
+                    if (v) validEmails.push(v);
+                });
+                if (validEmails.length > 0) {
+                    const totalCents = Math.round(amount * 100);
+                    const splitCount = 1 + validEmails.length;
+                    const base = Math.floor(totalCents / splitCount);
+                    const remainder = totalCents - base * splitCount;
+                    const shares = Array(splitCount).fill(base);
+                    for (let i=0;i<remainder;i++) shares[i] += 1;
+                    const initiatorShareCents = shares[0];
+                    amountToCharge = initiatorShareCents / 100;
+                }
+            } catch (e) {
+                amountToCharge = amount;
+            }
+
             const response = await fetch('/payments/create-intent', {
                 method: 'POST',
                 headers: {
@@ -276,7 +487,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    amount: amount,
+                    amount: amountToCharge,
                 }),
             });
 
@@ -364,6 +575,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!stripe) {
                     initializeStripe();
                 }
+                // show split toggle if available
+                if (splitSection) splitSection.style.display = 'none';
             } else if (method === 'bank_transfer') {
                 document.getElementById('bank_transfer_box').style.display = 'block';
                 const ref = generateBankRef();
@@ -375,6 +588,12 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // refresh displayed price when switching methods
             computePrice();
+            // if switching away from credit card, clear split UI
+            if (method !== 'credit_card' && splitSection) {
+                splitSection.style.display = 'none';
+                if (toggleSplitBtn) toggleSplitBtn.classList.remove('active');
+                clearSplitInputs();
+            }
         });
     });
 
@@ -428,6 +647,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         check_in_date: checkInEl ? checkInEl.value : '',
                         check_out_date: checkOutEl ? checkOutEl.value : '',
                         num_guests: document.getElementById('num_guests') ? document.getElementById('num_guests').value : '',
+                        // Collect split emails from the UI (if any)
+                        split_emails: (function(){
+                            const out = [];
+                            const rows = document.querySelectorAll('.split-email-input');
+                            rows.forEach(r => {
+                                const v = r.value.trim();
+                                if (v) out.push(v);
+                            });
+                            return out;
+                        })(),
                         total_price: computePrice(),
                         _key: currentBookingKey, // Internal key to track if booking changed
                     };

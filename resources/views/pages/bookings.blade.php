@@ -128,43 +128,43 @@
                     </form>
                 @endif
 
-                @if($booking['status'] === 'PendingPayment')
+                @if($booking['status'] === 'PendingPayment' && empty($booking['user_paid_part']) && empty($booking['has_assigned_tx']) && empty($booking['has_pending_tx']))
                     <a href="{{ route('bookings.showPaymentForm', $booking['id']) }}"
                        class="action-btn text-success"
                        title="Pay Now">
                         <i class="fas fa-credit-card"></i>
                     </a>
                 @endif
-                <!-- Start Chat Button -->
-                <form action="{{ route('chat.create') }}" method="POST" style="display: inline;">
-                    @csrf
-                    <input type="hidden" name="booking_id" value="{{ $booking['id'] }}">
-                    <button type="submit" class="action-btn text-info" title="Start chat">
-                        <i class="fa-solid fa-message"></i>
-                    </button>
-                </form>
+                @if($booking['is_guest'] || empty($booking['has_assigned_tx']))
+                    <!-- Start Chat Button -->
+                    <form action="{{ route('chat.create') }}" method="POST" style="display: inline;">
+                        @csrf
+                        <input type="hidden" name="booking_id" value="{{ $booking['id'] }}">
+                        <button type="submit" class="action-btn text-info" title="Start chat">
+                            <i class="fa-solid fa-message"></i>
+                        </button>
+                    </form>
 
-                @if(in_array($booking['status'], ['PendingPayment', 'Confirmed']))
-                    <!-- Edit Booking Button -->
-                    <a href="{{ route('bookings.edit', $booking['id']) }}" 
-                    class="action-btn text-primary" 
-                    title="Edit booking">
-                        <i class="fas fa-edit"></i>
-                    </a>
+                    @if(in_array($booking['status'], ['PendingPayment', 'Confirmed']))
+                        <!-- Edit Booking Button -->
+                        <a href="{{ route('bookings.edit', $booking['id']) }}" 
+                        class="action-btn text-primary" 
+                        title="Edit booking">
+                            <i class="fas fa-edit"></i>
+                        </a>
 
-                    <!-- Delete Booking Form -->
-                    <form action="{{ route('bookings.destroy', $booking['id']) }}" 
-                                      method="POST" 
-                                      style="display: inline;"
-                                      onsubmit="return confirm('Are you sure you want to delete this booking?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                        style="width: 25px; height: 25px; padding: 0; border-radius: 30%; border-width: 2px; display: inline-flex; align-items: center; justify-content: center;" 
-                                        title="Delete booking">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                        <!-- Delete Booking Form -->
+                        <form action="{{ route('bookings.destroy', $booking['id']) }}" 
+                            method="POST" 
+                            style="display: inline;"
+                            onsubmit="return confirm('Are you sure you want to cancel this booking?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="action-btn text-danger" title="Cancel booking">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </form>
+                    @endif
                 @endif
             </td>
         </tr>

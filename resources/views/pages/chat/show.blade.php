@@ -1,14 +1,28 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mt-5">
+<div class="container mt-5 pb-5">
+    <!-- Breadcrumbs -->
+    @php
+        $breadcrumbs = [
+            ['title' => 'Messages', 'url' => route('chat.index')],
+        ];
+        if (isset($conversation) && $conversation->listing) {
+            $breadcrumbs[] = ['title' => $conversation->listing->title, 'url' => route('listing.show', $conversation->listing->id)];
+        }
+        $breadcrumbs[] = ['title' => 'Chat with ' . $otherUser->full_name, 'url' => null];
+    @endphp
+
+    @include('partials.page_header', [
+        'breadcrumbs' => $breadcrumbs
+    ])
     <div class="row">
         <div class="col-12 col-lg-8">
             <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{ $title }}</h5>
-                    <a href="{{ route('chat.index') }}" class="btn btn-light btn-sm">
-                        <i class="fa-solid fa-arrow-left"></i> Back
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-wine">{{ optional($conversation->listing)->title ?? 'Listing' }} - {{ $otherUser->full_name }}</h5>
+                    <a href="{{ route('chat.index') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa-solid fa-arrow-left"></i> Back to messages
                     </a>
                 </div>
                 <div class="card-body p-0" style="height: 600px; display: flex; flex-direction: column;">
@@ -16,10 +30,10 @@
                     <div id="messages-container" class="flex-grow-1 p-3 overflow-auto" style="max-height: 500px;">
                         @foreach($messages as $message)
                             <div class="mb-3 d-flex {{ $message->author === ($isGuest ? 'Guest' : 'Host') ? 'justify-content-end' : 'justify-content-start' }}" data-message-id="{{ $message->id }}">
-                                <div class="message-bubble {{ $message->author === ($isGuest ? 'Guest' : 'Host') ? 'bg-primary text-white' : 'bg-light' }}" 
+                                <div class="message-bubble {{ $message->author === ($isGuest ? 'Guest' : 'Host') ? 'bg-wine text-white' : 'bg-secondary text-white' }}" 
                                      style="max-width: 70%; padding: 10px 15px; border-radius: 18px;">
                                     <p class="mb-1">{{ $message->content }}</p>
-                                    <small class="{{ $message->author === ($isGuest ? 'Guest' : 'Host') ? 'text-white-50' : 'text-muted' }}">
+                                    <small class="{{ $message->author === ($isGuest ? 'Guest' : 'Host') ? 'text-white-50' : 'text-muted text-white-50' }}">
                                         {{ $message->send_at->format('M d, H:i') }}
                                     </small>
                                 </div>
@@ -37,7 +51,7 @@
                                    placeholder="Type your message..." 
                                    required
                                    autocomplete="off">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary px-4">
                                 <i class="fa-solid fa-paper-plane"></i> Send
                             </button>
                         </form>
@@ -49,8 +63,8 @@
         <!-- Details Sidebar -->
         <div class="col-12 col-lg-4 mt-4 mt-lg-0">
             <div class="card shadow-sm">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="fa-solid fa-info-circle"></i> Details</h5>
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-wine"><i class="fa-solid fa-info-circle"></i> Details</h5>
                 </div>
                 <div class="card-body">
                     @if($bookingDetails)
@@ -73,11 +87,17 @@
                     @else
                         <h6>Listing Information</h6>
                         <hr>
-                        <p><strong>Title:</strong> {{ $conversation->listing->title }}</p>
-                        <p><strong>Address:</strong> {{ $conversation->listing->location_address }}</p>
-                        <a href="{{ route('listing.show', $conversation->listing->id) }}" class="btn btn-sm btn-outline-primary mt-2">
-                            View Listing
-                        </a>
+                        <p><strong>Title:</strong> {{ optional($conversation->listing)->title ?? 'Listing not available' }}</p>
+                        <p><strong>Address:</strong> {{ optional($conversation->listing)->location_address ?? '—' }}</p>
+                        @if(isset($conversation) && $conversation->listing)
+                            <a href="{{ route('listing.show', $conversation->listing->id) }}" class="btn btn-sm btn-primary mt-2">
+                                View Listing
+                            </a>
+                        @else
+                            <a href="{{ route('bookings.index') }}" class="btn btn-sm btn-secondary mt-2">
+                                View Bookings
+                            </a>
+                        @endif
                     @endif
                     
                     <hr>
@@ -100,7 +120,7 @@
                             <small class="text-muted">{{ $isGuest ? 'Host' : 'Guest' }}</small>
                         </div>
                     </div>
-                    <a href="{{ route('profile.public', $otherUser->id) }}" class="btn btn-sm btn-outline-secondary mt-2">
+                    <a href="{{ route('profile.public', $otherUser->id) }}" class="btn btn-sm btn-secondary mt-2">
                         View Profile
                     </a>
                 </div>
@@ -119,30 +139,35 @@
         
         // Initialize Pusher
         @if(config('broadcasting.default') === 'pusher')
-        const pusher = new Pusher('{{ config('broadcasting.connections.pusher.key') }}', {
-            cluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}',
-            encrypted: true,
-            authEndpoint: '/broadcasting/auth',
-            auth: {
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        const pusherKey = '{{ config('broadcasting.connections.pusher.key') }}';
+        if (!pusherKey) {
+            console.warn('Pusher key is not configured. Please set PUSHER_APP_KEY in your .env and run php artisan config:clear');
+        } else {
+            const pusher = new Pusher(pusherKey, {
+                cluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}',
+                encrypted: true,
+                authEndpoint: '/broadcasting/auth',
+                auth: {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
                 }
-            }
-        });
-        
-        // Subscribe to user's private channel
-        const channel = pusher.subscribe('private-user.' + userId);
-        
-        // Listen for new messages
-        channel.bind('message.sent', function(data) {
-            if (data.conversation_id === conversationId) {
-                const existingMessage = document.querySelector(`[data-message-id="${data.message.id}"]`);
-                if (!existingMessage) {
-                    addMessageToChat(data.message);
-                    scrollToBottom();
+            });
+
+            // Subscribe to user's private channel
+            const channel = pusher.subscribe('private-user.' + userId);
+
+            // Listen for new messages
+            channel.bind('message.sent', function(data) {
+                if (data.conversation_id === conversationId) {
+                    const existingMessage = document.querySelector(`[data-message-id="${data.message.id}"]`);
+                    if (!existingMessage) {
+                        addMessageToChat(data.message);
+                        scrollToBottom();
+                    }
                 }
-            }
-        });
+            });
+        }
         @endif
         
         // Message form submission
@@ -205,7 +230,7 @@
             messageDiv.className = 'mb-3 d-flex ' + (message.author === (isGuest ? 'Guest' : 'Host') ? 'justify-content-end' : 'justify-content-start');
             
             const bubble = document.createElement('div');
-            bubble.className = 'message-bubble ' + (message.author === (isGuest ? 'Guest' : 'Host') ? 'bg-primary text-white' : 'bg-light');
+            bubble.className = 'message-bubble ' + (message.author === (isGuest ? 'Guest' : 'Host') ? 'bg-wine text-white' : 'bg-light');
             bubble.style.cssText = 'max-width: 70%; padding: 10px 15px; border-radius: 18px;';
             
             const date = new Date(message.send_at);
@@ -249,4 +274,3 @@
 @endpush
 
 @endsection
-

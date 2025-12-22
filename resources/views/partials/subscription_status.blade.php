@@ -49,7 +49,7 @@
 
             <!-- Action Buttons -->
             <div class="d-flex flex-wrap gap-2">
-                <a href="{{ route('subscription.info') }}" class="btn btn-outline-secondary btn-sm">
+                <a href="{{ route('subscription.info') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
                     <i class="fa-solid fa-arrows-rotate me-1"></i>Change Plan
                 </a>
                 <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelSubscriptionModal">

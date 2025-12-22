@@ -119,7 +119,9 @@ Route::middleware('auth')->controller(HostApplicationController::class)->group(f
 
 
 // Booking routes
-Route::get('/booking/{listing}', [BookingController::class, 'show'])->name('booking.show');
+Route::middleware('auth')->group(function () {
+    Route::get('/booking/{listing}', [BookingController::class, 'show'])->name('booking.show');
+});
 Route::middleware('auth')->controller(BookingController::class)->group(function () {
     Route::get('/booking/{booking}/pay', 'showPaymentForm')->name('bookings.showPaymentForm');
     Route::post('/bookings', 'store')->name('bookings.store');
@@ -135,13 +137,16 @@ Route::middleware('auth')->controller(BookingController::class)->group(function 
 // Payment routes (Stripe)
 Route::middleware('auth')->controller(PaymentController::class)->group(function () {
     Route::post('/payments/create-intent', 'createPaymentIntent')->name('payments.create-intent');
+    Route::post('/payments/check-email', 'checkUserEmail')->name('payments.check-email');
     Route::post('/payments/confirm', 'confirmPayment')->name('payments.confirm');
     Route::post('/repayment/confirm', 'confirmRepayment')->name('repayment.confirm');
     Route::post('/repayment/confirm-other', 'confirmOtherRepayment')->name('repayment.confirm_other');
+    Route::post('/repayment/record-failure', 'recordRepaymentFailure')->name('repayment.record_failure');
 });
 
 // Transactions page
 Route::middleware('auth')->get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+Route::middleware('auth')->get('/transactions/{transaction}/pay', [TransactionController::class, 'payForm'])->name('transactions.pay');
 
 // Chat routes
 Route::middleware('auth')->controller(ChatController::class)->group(function () {
@@ -160,7 +165,10 @@ Route::prefix('subscription')->name('subscription.')->group(function () {
 
 Route::middleware('auth')->prefix('subscription')->name('subscription.')->group(function () {
     Route::post('/cancel', [App\Http\Controllers\SubscriptionController::class, 'cancel'])->name('cancel');
+    Route::get('/checkout', [App\Http\Controllers\PaymentController::class, 'subscriptionCheckout'])->name('checkout');
+    Route::post('/confirm', [App\Http\Controllers\PaymentController::class, 'confirmSubscription'])->name('confirm');
 });
+
 // Review routes
 Route::middleware('auth')->group(function () {
     Route::get('/bookings/{booking}/review', [ReviewController::class, 'create'])->name('reviews.create');
