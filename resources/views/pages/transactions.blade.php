@@ -295,6 +295,7 @@
         color: var(--color-dark-purple);
         border: 1px solid #dee2e6;
         border-bottom: none;
+        margin: 0;
         background-color: #f8f9fa;
         border-top-left-radius: 0.375rem;
         border-top-right-radius: 0.375rem;
