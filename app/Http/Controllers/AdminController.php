@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +25,7 @@ class AdminController extends Controller
         // Get search query if exists
         $search = request('search');
 
-        // Build the query
+        // Build the query for users
         $query = User::select(
             'id',
             'full_name',
@@ -37,18 +38,10 @@ class AdminController extends Controller
         )
         ->where('is_active', true);
 
-        // // Apply search filter if search query exists
-        // if ($search) {
-        //     $query->where(function($q) use ($search) {
-        //         $q->where('full_name', 'like', "%{$search}%")
-        //         ->orWhere('email', 'like', "%{$search}%");
-        //     });
-        // }
-
         // Order by registration date and paginate
         $users = $query->orderBy('registration_date', 'desc')
             ->paginate($perPage)
-            ->withQueryString(); // Preserve query parameters across pages
+            ->withQueryString();
 
         // Transform the paginated collection
         $users->getCollection()->transform(function ($user) {
@@ -65,20 +58,38 @@ class AdminController extends Controller
             ];
         });
 
+        // Get reported reviews
+        $reportedReviews = Review::with([
+            'guest',
+            'host',
+            'reporter',
+            'reviewer',
+            'booking.availability.listing'
+        ])
+        ->reported()
+        ->orderByRaw("
+            CASE 
+                WHEN report_decision = 'pending' OR report_decision IS NULL 
+                THEN 0 ELSE 1 
+            END
+        ")
+        ->orderBy('reported_at', 'desc')
+        ->paginate($perPage, ['*'], 'reports_page');
+
+
         // Get total counts for dashboard stats
         $totalUsers = User::where('is_active', true)->count();
         $totalAdmins = User::where('is_active', true)
             ->where('is_admin', true)
             ->count();
+        $pendingReportsCount = Review::pendingReports()->count();
 
-        return view('pages.admin', compact('users', 'totalUsers', 'totalAdmins'));
+        return view('pages.admin', compact('users', 'reportedReviews', 'totalUsers', 'totalAdmins', 'pendingReportsCount'));
     }
 
     public function searchUsers(Request $request): JsonResponse
     {
-        // Gate::authorize('manageUsers');
         $this->authorize('manageUsers');
-        
 
         $search = $request->input('search', '');
 
@@ -120,23 +131,21 @@ class AdminController extends Controller
     {
         $targetUser = User::findOrFail($id);
         
-        // Gate::authorize('toggleUserStatus', $targetUser);
         $this->authorize('toggleUserStatus', $targetUser);
         
         $targetUser->is_blocked = !$targetUser->is_blocked;
         $targetUser->save();
 
         return redirect()->route('admin.index')
-            ->with('success', $targetUser->is_active 
-                ? 'User account enabled successfully.' 
-                : 'User account disabled successfully.');
+            ->with('success', $targetUser->is_blocked 
+                ? 'User account disabled successfully.' 
+                : 'User account enabled successfully.');
     }
 
     public function toggleAdminStatus(Request $request, $id)
     {
         $targetUser = User::findOrFail($id);
         
-        // Gate::authorize('changeAdminStatus', $targetUser);
         $this->authorize('changeAdminStatus', $targetUser);
         
         $targetUser->is_admin = !$targetUser->is_admin;
@@ -152,7 +161,6 @@ class AdminController extends Controller
     {
         $targetUser = User::findOrFail($id);
         
-        // Gate::authorize('deleteUser', $targetUser);
         $this->authorize('deleteUser', $targetUser);
         
         $targetUser->is_active = false;
@@ -225,4 +233,81 @@ class AdminController extends Controller
             ->with('success', "Host application for {$user->full_name} has been rejected.");
     }
 
+    // ========================================
+    // Report Management Methods
+    // ========================================
+
+    /**
+     * View detailed report information for a review.
+     */
+    public function viewReport($id): View
+    {
+        Gate::authorize('viewAdminPanel');
+        
+        $review = Review::with(['guest', 'host', 'booking.availability.listing', 'reporter', 'reviewer'])
+            ->findOrFail($id);
+
+        if (!$review->reported) {
+            abort(404, 'Report not found.');
+        }
+
+        return view('pages.admin_viewReport', compact('review'));  // Changed from 'pages.admin.viewReport'
+    }
+
+    /**
+     * Dismiss a report (keep the review).
+     */
+    public function dismissReport($id): RedirectResponse
+    {
+        Gate::authorize('viewAdminPanel');
+        
+        $review = Review::findOrFail($id);
+
+        if (!$review->reported) {
+            return back()->with('error', 'This review has not been reported.');
+        }
+
+        if ($review->report_decision && $review->report_decision !== 'pending') {
+            return back()->with('error', 'This report has already been processed.');
+        }
+
+        $review->update([
+            'report_decision' => 'dismissed',
+            'reviewed_by' => Auth::id(),
+            'reviewed_at' => now(),
+        ]);
+
+        return back()->with('success', 'Report dismissed successfully.');
+    }
+
+    /**
+     * Remove a reported review.
+     */
+    public function removeReportedReview($id): RedirectResponse
+    {
+        Gate::authorize('viewAdminPanel');
+        
+        $review = Review::findOrFail($id);
+
+        if (!$review->reported) {
+            return back()->with('error', 'This review has not been reported.');
+        }
+
+        if ($review->report_decision && $review->report_decision !== 'pending') {
+            return back()->with('error', 'This report has already been processed.');
+        }
+
+        // Update report status before deletion
+        $review->update([
+            'report_decision' => 'removed',
+            'reviewed_by' => Auth::id(),
+            'reviewed_at' => now(),
+        ]);
+
+        // Delete the review
+        $review->delete();
+
+        return redirect()->route('admin.index')
+            ->with('success', 'Review has been removed successfully.');
+    }
 }

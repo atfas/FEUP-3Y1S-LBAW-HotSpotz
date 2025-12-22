@@ -1,25 +1,43 @@
 @php
     $r = $review;
+
     $isHost = Auth::check() && Auth::id() === $r->host_id;
+    $isGuest = Auth::check() && Auth::id() === $r->guest_id;
+
+    $isReportedPending = $r->reported && (
+        $r->report_decision === null || $r->report_decision === 'pending'
+    );
+
+    $isReportDismissed = $r->report_decision === 'dismissed';
+
+    // Can report if:
+    // - logged in
+    // - not the guest
+    // - not currently pending
+    $canReport = Auth::check() && !$isGuest && !$isReportedPending;
+
     $canRespond = $isHost && empty($r->answer_content);
-    
-    // Parse answered_at date safely
+
+    // Safe date handling
     $answeredAt = null;
     if (!empty($r->answered_at)) {
-        $answeredAt = $r->answered_at instanceof \Carbon\Carbon 
-            ? $r->answered_at 
+        $answeredAt = $r->answered_at instanceof \Carbon\Carbon
+            ? $r->answered_at
             : \Illuminate\Support\Carbon::parse($r->answered_at);
     }
-    
-    $canEditResponse = $isHost && !empty($r->answer_content) && $answeredAt && $answeredAt->addDays(2) >= now();
+
+    $canEditResponse = $isHost
+        && !empty($r->answer_content)
+        && $answeredAt
+        && $answeredAt->addDays(2) >= now();
 @endphp
 
-<div class="review-item p-3 rounded border">
+
+<div class="review-item p-3 rounded border {{ $r->reported ? 'border-warning' : '' }}">
     <div class="d-flex align-items-start gap-3">
         {{-- Profile Picture --}}
         <div class="flex-shrink-0">
             @if(!empty($r->guest_photo))
-                
                 <img src="{{ $r->guest_photo }}" 
                      alt="{{ $r->guest_name ?? 'Guest' }}" 
                      class="review-avatar rounded-circle"
@@ -50,9 +68,28 @@
                         <span class="ms-1 text-muted small">{{ $r->rating ?? 0 }}/5</span>
                     </div>
                 </div>
-                <div class="text-muted small">
-                    <i class="far fa-clock me-1"></i>
-                    {{ isset($r->created_at) ? \Illuminate\Support\Carbon::parse($r->created_at)->diffForHumans() : '' }}
+                <div class="d-flex align-items-center gap-2">
+                    <div class="text-muted small">
+                        <i class="far fa-clock me-1"></i>
+                        {{ isset($r->created_at) ? \Illuminate\Support\Carbon::parse($r->created_at)->diffForHumans() : '' }}
+                    </div>
+                    
+                    {{-- Report Button --}}
+                    @if($canReport && !$isReportDismissed)
+                        <button type="button" 
+                                class="btn btn-sm btn-link text-danger p-0 ms-2" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#reportModal{{ $r->id }}"
+                                title="Report this review">
+                            <i class="fas fa-flag"></i>
+                        </button>
+                    @endif
+
+                    @if($r->reported && !$isReportDismissed)
+                        <span class="badge bg-warning text-dark small" title="This review has been reported">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Reported
+                        </span>
+                    @endif
                 </div>
             </div>
 
@@ -153,3 +190,51 @@
     </div>
 </div>
 
+{{-- Report Modal --}}
+@if($canReport)
+<div class="modal fade" id="reportModal{{ $r->id }}" tabindex="-1" aria-labelledby="reportModalLabel{{ $r->id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportModalLabel{{ $r->id }}">Report Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('reviews.report', $r->id) }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="report_reason{{ $r->id }}" class="form-label">Reason for reporting</label>
+                        <select class="form-select" id="report_reason{{ $r->id }}" name="report_reason" required>
+                            <option value="">Select a reason...</option>
+                            <option value="inappropriate">Inappropriate content</option>
+                            <option value="offensive">Offensive language</option>
+                            <option value="spam">Spam or advertising</option>
+                            <option value="fake">Fake or misleading</option>
+                            <option value="harassment">Harassment or bullying</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="report_details{{ $r->id }}" class="form-label">Additional details (optional)</label>
+                        <textarea class="form-control" 
+                                  id="report_details{{ $r->id }}" 
+                                  name="report_details" 
+                                  rows="3" 
+                                  maxlength="500"
+                                  placeholder="Provide more context about why you're reporting this review..."></textarea>
+                        <div class="form-text">Maximum 500 characters</div>
+                    </div>
+                    <div class="alert alert-warning small mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        False reports may result in action against your account.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif

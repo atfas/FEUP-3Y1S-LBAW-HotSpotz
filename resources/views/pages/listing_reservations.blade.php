@@ -2,6 +2,19 @@
 
 @section('content')
 <div class="container py-4">
+    @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
     @include('partials.page_header', [
         'breadcrumbs' => [
             ['title' => 'Listings', 'url' => route('profile.show')], 
@@ -16,9 +29,6 @@
         </div>
     </div>
 
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
 
     @if($bookings->isEmpty())
         <div class="alert alert-info">No reservations found for this listing.</div>

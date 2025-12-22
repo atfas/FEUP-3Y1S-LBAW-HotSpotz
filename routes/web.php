@@ -84,6 +84,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/applications/{id}', [AdminController::class, 'showApplication'])->name('admin.applications.show');
     Route::post('/admin/applications/{id}/approve', [AdminController::class, 'approveApplication'])->name('admin.applications.approve');
     Route::post('/admin/applications/{id}/reject', [AdminController::class, 'rejectApplication'])->name('admin.applications.reject');
+    
+    Route::get('/admin/reports/{id}', [AdminController::class, 'viewReport'])->name('admin.reports.view');
+    Route::post('/admin/reports/{id}/dismiss', [AdminController::class, 'dismissReport'])->name('admin.reports.dismiss');
+    Route::delete('/admin/reports/{id}/remove', [AdminController::class, 'removeReportedReview'])->name('admin.reports.remove');
 });
 
 // Public profile route (no auth required)
@@ -170,18 +174,23 @@ Route::middleware('auth')->prefix('subscription')->name('subscription.')->group(
 });
 
 // Review routes
-Route::middleware('auth')->group(function () {
-    Route::get('/bookings/{booking}/review', [ReviewController::class, 'create'])->name('reviews.create');
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/bookings/{booking}/review/create', [ReviewController::class, 'create'])->name('reviews.create');
     Route::post('/bookings/{booking}/review', [ReviewController::class, 'store'])->name('reviews.store');
     Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('reviews.edit');
     Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
-
-    // Host response routes
+    
+ 
     Route::post('/reviews/{review}/respond', [ReviewController::class, 'respond'])->name('reviews.respond');
     Route::put('/reviews/{review}/response', [ReviewController::class, 'updateResponse'])->name('reviews.response.update');
     Route::delete('/reviews/{review}/response', [ReviewController::class, 'destroyResponse'])->name('reviews.response.destroy');
+    
+    Route::post('/reviews/{review}/report', [ReviewController::class, 'report'])->name('reviews.report');
 });
+
+
 
 
 Route::middleware('auth')->group(function () {

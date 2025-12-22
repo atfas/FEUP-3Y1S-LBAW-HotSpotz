@@ -6,12 +6,19 @@ margin: 0 !important;
 }
 
 .nav-tabs .nav-link {
-color: var(--color-light-purple);
-font-weight: 500;
+    background-color: #f8f9fa; /* light grey */
+    color: var(--color-light-purple);
+    border: 1px solid #dee2e6;
+    border-bottom: none;
+    margin-right: 0.25rem;
+    transition: all 0.2s ease-in-out;
 }
 
+/* Hover effect for inactive tabs */
 .nav-tabs .nav-link:hover {
-color: var(--color-wine);
+    background-color: #fff;
+    color: var(--color-wine);
+    border-color: var(--color-wine) var(--color-wine) white var(--color-wine);
 }
 
 .btn-wine {

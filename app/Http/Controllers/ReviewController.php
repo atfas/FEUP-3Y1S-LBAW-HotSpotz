@@ -240,4 +240,44 @@ class ReviewController extends Controller
 
         return back()->with('success', 'Response deleted successfully!');
     }
+
+    // Report Methods
+    public function report(Request $request, Review $review)
+    {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            abort(403, 'You must be logged in to report reviews.');
+        }
+
+        // Check if user is not the review author
+        if ($review->guest_id === Auth::id()) {
+            return back()->with('error', 'You cannot report your own review.');
+        }
+
+        // Check if already reported
+        if ($review->reported) {
+            return back()->with('error', 'This review has already been reported.');
+        }
+
+        $validated = $request->validate([
+            'report_reason' => 'required|string|in:inappropriate,offensive,spam,fake,harassment,other',
+            'report_details' => 'nullable|string|max:500',
+        ]);
+
+        // Combine reason and details
+        $reportText = ucfirst($validated['report_reason']);
+        if (!empty($validated['report_details'])) {
+            $reportText .= ': ' . $validated['report_details'];
+        }
+
+        $review->update([
+            'reported' => true,
+            'report_reason' => $reportText,
+            'reported_at' => now(),
+            'reported_by' => Auth::id(),
+            'report_decision' => 'pending',
+        ]);
+
+        return back()->with('success', 'Review has been reported. Our team will review it shortly.');
+    }
 }

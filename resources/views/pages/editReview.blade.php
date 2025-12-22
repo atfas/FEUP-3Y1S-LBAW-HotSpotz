@@ -35,7 +35,7 @@
                             <label class="form-label">Rating *</label>
                             <div class="star-rating">
                                 @for($i = 5; $i >= 1; $i--)
-                                <input type="radio" id="star{{ $i }}" name="rating" value="{{ $i }}" {{ old('rating', $review->rating) == $i ? 'checked' : '' }} required>
+                                <input type="radio" id="star{{ $i }}" name="rating" value="{{ $i }}" {{ old('rating', $review->rating) == $i ? 'checked' : '' }}>
                                 <label for="star{{ $i }}">
                                     <i class="fas fa-star"></i>
                                 </label>

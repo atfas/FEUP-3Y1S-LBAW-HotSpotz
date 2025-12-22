@@ -56,4 +56,9 @@ class Booking extends Model
             && !$this->review 
             && $this->check_out_date < now();
     }
+
+    public function listing()
+{
+    return $this->belongsTo(Listing::class);
+}
 }
