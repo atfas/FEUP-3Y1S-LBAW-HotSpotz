@@ -37,9 +37,56 @@
             @endforeach
         </div>
 
-        <div class="d-flex justify-content-center mt-4">
-            {{ $notifications->links() }}
+        @if($notifications->hasPages())
+        <div class="card shadow-sm mt-4">
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="text-muted small">
+                        Showing {{ $notifications->firstItem() }} to {{ $notifications->lastItem() }} of {{ $notifications->total() }} entries
+                    </div>
+                    
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            {{-- Previous Button --}}
+                            @if ($notifications->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fas fa-chevron-left"></i></span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $notifications->previousPageUrl() }}" rel="prev">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            @endif
+
+                            {{-- Pagination Elements --}}
+                            @foreach ($notifications->getUrlRange(1, $notifications->lastPage()) as $page => $url)
+                                @if ($page == $notifications->currentPage())
+                                    <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                                @else
+                                    <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
+                                @endif
+                            @endforeach
+
+                            {{-- Next Button --}}
+                            @if ($notifications->hasMorePages())
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $notifications->nextPageUrl() }}" rel="next">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fas fa-chevron-right"></i></span>
+                                </li>
+                            @endif
+                        </ul>
+                    </nav>
+                </div>
+            </div>
         </div>
+        @endif
     @endif
 </div>
 @endsection
