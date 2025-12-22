@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Listing;
 use App\Models\Availability;
 use App\Models\Booking;
+use App\Models\Notification;
+use App\Events\NotificationCreated;
 use Carbon\Carbon;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
@@ -241,7 +243,7 @@ class PaymentController extends Controller
                     $payer = $email ? DB::table('users')->where('email', $email)->first() : null;
                     $payerId = $payer ? $payer->id : null;
 
-                    DB::table('transactions')->insert([
+                    $transactionId = DB::table('transactions')->insertGetId([
                         'amount' => $shares[$i] / 100,
                         'transaction_method' => 'Card',
                         'type' => 'FullPayment',
@@ -251,6 +253,18 @@ class PaymentController extends Controller
                         'booking_id' => $booking->id,
                         'user_id' => $payerId,
                     ]);
+
+                    // Notify the assigned user about their pending payment
+                    if ($payerId) {
+                        $notification = Notification::create([
+                            'type' => Notification::TYPE_PAYMENT_RECEIVED,
+                            'content' => "You have been assigned a payment of €" . number_format($shares[$i] / 100, 2) . " for a booking at '{$listing->title}'. Please complete your payment.",
+                            'user_id' => $payerId,
+                            'booking_id' => $booking->id,
+                            'transaction_id' => $transactionId,
+                        ]);
+                        event(new NotificationCreated($notification));
+                    }
                 }
 
                 // Do NOT auto-confirm booking here; DB trigger will confirm when all shares completed

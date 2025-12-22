@@ -145,6 +145,9 @@ document.addEventListener('DOMContentLoaded', function() {
             .listen('.review.left', (data) => {
                 handleNewNotification(data.notification);
             })
+            .listen('.payment.received', (data) => {
+                handleNewNotification(data.notification);
+            })
             .listen('.notification.created', (data) => {
                 handleNewNotification(data.notification);
             });
