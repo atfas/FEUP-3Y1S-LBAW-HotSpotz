@@ -668,23 +668,33 @@ class PaymentController extends Controller
         try {
             $intent = PaymentIntent::retrieve($validated['payment_intent_id']);
             if ($intent->status !== 'succeeded') {
-                return redirect()->route('subscription.plans')->with('error', 'Payment not completed.');
+                return response()->json(['error' => 'Payment not completed.'], 400);
             }
 
             $user = Auth::user();
-            // Prevent duplicate active subscription for same user
-            if ($user->subscription && $user->subscription->member_status === 'Active') {
-                return redirect()->route('profile.show')->with('error', 'You already have an active subscription.');
-            }
-
+            
             $pricePaid = $validated['price'];
             $nextPaymentDate = $validated['billing'] === 'Monthly' ? now()->addMonth()->toDateString() : now()->addYear()->toDateString();
             $discount = $validated['tier'] === 'Silver' ? 5 : ($validated['tier'] === 'Gold' ? 10 : 20);
 
-            // Insert or update premium_subscriptions
-            DB::table('premium_subscriptions')->updateOrInsert(
-                ['user_id' => $user->id],
-                [
+            $subscription = DB::table('premium_subscriptions')->where('user_id', $user->id)->first();
+
+            if ($subscription) {
+                // Update existing subscription (upgrade/downgrade/reactivation)
+                DB::table('premium_subscriptions')->where('user_id', $user->id)->update([
+                    'member_status' => 'Active',
+                    'tier' => $validated['tier'],
+                    'plan_type' => $validated['billing'] === 'Monthly' ? 'Monthly' : 'Annual',
+                    'price_paid' => $pricePaid,
+                    'discount_percentage' => $discount,
+                    'next_payment_date' => $nextPaymentDate,
+                    'cancelled_at' => null, // Clear cancellation date if present
+                    // member_since and total_savings are preserved
+                ]);
+            } else {
+                // Create new subscription
+                DB::table('premium_subscriptions')->insert([
+                    'user_id' => $user->id,
                     'member_status' => 'Active',
                     'tier' => $validated['tier'],
                     'plan_type' => $validated['billing'] === 'Monthly' ? 'Monthly' : 'Annual',
@@ -693,15 +703,17 @@ class PaymentController extends Controller
                     'member_since' => now(),
                     'next_payment_date' => $nextPaymentDate,
                     'total_savings' => 0,
-                ]
-            );
+                    'cancelled_at' => null,
+                ]);
+            }
 
-            return redirect()->route('profile.show')->with('success', 'Subscription activated.');
+            // Return JSON success for the fetch call
+            return response()->json(['success' => true]);
 
         } catch (ApiErrorException $e) {
-            return redirect()->route('subscription.plans')->with('error', 'Stripe error: ' . $e->getMessage());
+            return response()->json(['error' => 'Stripe error: ' . $e->getMessage()], 500);
         } catch (\Exception $e) {
-            return redirect()->route('subscription.plans')->with('error', 'An error occurred: ' . $e->getMessage());
+            return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
 }
