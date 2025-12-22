@@ -24,6 +24,6 @@ class SubscriptionController extends Controller
         $subscription->cancelled_at = now();
         $subscription->save();
 
-        return redirect()->route('profile.show')->with('success', 'Your subscription has been cancelled. You will retain premium benefits until ' . $subscription->next_payment_date->format('F d, Y') . '.');
+        return redirect()->route('profile.show')->with('success', 'Your subscription has been cancelled.');
     }
 }

@@ -201,7 +201,7 @@
                             </h2>
                             <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                                 <div class="accordion-body text-muted">
-                                    Yes! You can upgrade your tier at any time. The difference in price will be prorated for the remaining billing period.
+                                    Yes! You can upgrade your tier at any time. 
                                 </div>
                             </div>
                         </div>
@@ -214,7 +214,7 @@
                             </h2>
                             <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                                 <div class="accordion-body text-muted">
-                                    When you cancel, you'll keep your premium benefits until the end of your current billing period. After that, your account will revert to a standard account.
+                                    When you cancel, you'll lose all your premium benefits. Be smart when choosing if you want to cancel your subscription.
                                 </div>
                             </div>
                         </div>

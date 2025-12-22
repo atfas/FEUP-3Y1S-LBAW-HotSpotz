@@ -73,10 +73,6 @@
                     <i class="fa-solid fa-triangle-exclamation me-2"></i>
                     Are you sure you want to cancel your {{ $user->subscription->tier }} subscription?
                 </div>
-                <p class="text-muted mb-0">
-                    You will continue to enjoy premium benefits until <strong>{{ $user->subscription->next_payment_date->format('F d, Y') }}</strong>. 
-                    After that, your account will revert to a standard account.
-                </p>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Subscription</button>

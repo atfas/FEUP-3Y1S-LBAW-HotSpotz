@@ -112,7 +112,7 @@ class BookingController extends Controller
                     ->orWhereBetween('b.check_out_date', [$checkIn, $checkOut])
                     ->orWhere(function($q) use ($checkIn, $checkOut) {
                         $q->where('b.check_in_date', '<=', $checkIn)
-                          ->where('b.check_out_date', '>=', $checkOut);
+                        ->where('b.check_out_date', '>=', $checkOut);
                     });
             })
             ->exists();
@@ -123,12 +123,15 @@ class BookingController extends Controller
             ])->withInput();
         }
         
-        $totalPrice = $stayDuration * $availability->price_per_night;
+        $originalPrice = $stayDuration * $availability->price_per_night;
+        $totalPrice = $originalPrice;
+        $savings = 0;
 
         // Apply premium discount if applicable
         if (Auth::check() && Auth::user()->isPremium()) {
             $discount = Auth::user()->getDiscountPercentage();
             $totalPrice = $totalPrice * (1 - $discount / 100);
+            $savings = $originalPrice - $totalPrice;
         }
         
         $pm = $validated['payment_method'] ?? null;
@@ -184,7 +187,13 @@ class BookingController extends Controller
                 ]);
 
                 $booking->update(['status' => 'Confirmed']);
-            }
+
+                if ($savings > 0) {
+                    $subscription = Auth::user()->subscription;
+                    $subscription->total_savings += $savings;
+                    $subscription->save();
+                }
+            } // <-- THIS WAS THE MISSING CLOSING BRACE
 
             // Create notification for guest (booking confirmed)
             $guestNotification = Notification::create([
@@ -412,11 +421,20 @@ class BookingController extends Controller
             ])->withInput();
         }
         
-        $totalPrice = $stayDuration * $availability->price_per_night;
+        // Calculate old savings to adjust
+        $oldStayDuration = Carbon::parse($booking->check_in_date)->diffInDays(Carbon::parse($booking->check_out_date));
+        $oldOriginalPrice = $oldStayDuration * $availability->price_per_night;
+        $oldSavings = max(0, $oldOriginalPrice - $booking->total_price);
 
+        $newOriginalPrice = $stayDuration * $availability->price_per_night;
+        $totalPrice = $newOriginalPrice;
+        $newSavings = 0;
+
+        // Apply premium discount if applicable
         if ($booking->guest_id === Auth::id() && Auth::user()->isPremium()) {
             $discount = Auth::user()->getDiscountPercentage();
             $totalPrice = $totalPrice * (1 - $discount / 100);
+            $newSavings = $newOriginalPrice - $totalPrice;
         }
         
         $booking->update([
@@ -425,6 +443,15 @@ class BookingController extends Controller
             'num_guests' => $validated['num_guests'],
             'total_price' => $totalPrice,
         ]);
+
+        $savingsDiff = $newSavings - $oldSavings;
+        if (abs($savingsDiff) > 0.001) {
+            $subscription = Auth::user()->subscription;
+            if ($subscription) {
+                $subscription->total_savings += $savingsDiff;
+                $subscription->save();
+            }
+        }
         
         return redirect()->route('bookings.index')
             ->with('success', 'Booking updated successfully!');
@@ -436,6 +463,32 @@ class BookingController extends Controller
     public function destroy(Booking $booking)
     {
         $this->authorize('delete', $booking);
+
+        // Revert savings if applicable
+        $stayDuration = Carbon::parse($booking->check_in_date)->diffInDays(Carbon::parse($booking->check_out_date));
+        $originalPrice = $stayDuration * $booking->availability->price_per_night;
+        $savings = max(0, $originalPrice - $booking->total_price);
+
+        if ($savings > 0) {
+            $guest = $booking->guest;
+            if ($guest && $guest->subscription) {
+                $guest->subscription->total_savings = max(0, $guest->subscription->total_savings - $savings);
+                $guest->subscription->save();
+            }
+        }
+
+        // Revert savings if applicable
+        $stayDuration = Carbon::parse($booking->check_in_date)->diffInDays(Carbon::parse($booking->check_out_date));
+        $originalPrice = $stayDuration * $booking->availability->price_per_night;
+        $savings = max(0, $originalPrice - $booking->total_price);
+
+        if ($savings > 0) {
+            $guest = $booking->guest;
+            if ($guest && $guest->subscription) {
+                $guest->subscription->total_savings = max(0, $guest->subscription->total_savings - $savings);
+                $guest->subscription->save();
+            }
+        }
 
         // Load relationships for notification content
         $booking->load('availability.listing');
@@ -513,6 +566,20 @@ class BookingController extends Controller
 
             DB::table('bookings')->where('id', $booking->id)->update(['status' => 'Rejected']);
 
+            // Revert savings if applicable
+            $stayDuration = Carbon::parse($booking->check_in_date)->diffInDays(Carbon::parse($booking->check_out_date));
+            $originalPrice = $stayDuration * $availability->price_per_night;
+            $savings = max(0, $originalPrice - $booking->total_price);
+
+            if ($savings > 0) {
+                $guest = \App\Models\User::find($booking->guest_id);
+                if ($guest && $guest->subscription) {
+                    $guest->subscription->total_savings = max(0, $guest->subscription->total_savings - $savings);
+                    $guest->subscription->save();
+                }
+            }
+
+            // find last completed transaction for this booking
             $lastTx = DB::table('transactions')
                 ->where('booking_id', $booking->id)
                 ->where('status', 'Completed')
