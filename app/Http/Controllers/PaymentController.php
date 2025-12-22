@@ -266,8 +266,6 @@ class PaymentController extends Controller
                         event(new NotificationCreated($notification));
                     }
                 }
-
-                // Do NOT auto-confirm booking here; DB trigger will confirm when all shares completed
             } else {
                 // Non-split (original flow)
 
@@ -458,8 +456,6 @@ class PaymentController extends Controller
 
                 // Booking confirmation will be handled by DB trigger when sums match
             } else {
-                // Legacy flow: pay full booking total
-                // Verify amount matches full booking total
                 $expectedAmount = (int)($booking->total_price * 100);
                 if ($paymentIntent->amount !== $expectedAmount) {
                     DB::rollBack();

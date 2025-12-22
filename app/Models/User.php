@@ -53,7 +53,6 @@ class User extends Authenticatable
 
     /**
      * The attributes that should be hidden when serializing the model
-     * (e.g., to arrays or JSON).
      *
      * @var list<string>
      */

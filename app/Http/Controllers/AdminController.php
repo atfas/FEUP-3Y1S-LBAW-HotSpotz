@@ -233,9 +233,7 @@ class AdminController extends Controller
             ->with('success', "Host application for {$user->full_name} has been rejected.");
     }
 
-    // ========================================
-    // Report Management Methods
-    // ========================================
+
 
     /**
      * View detailed report information for a review.

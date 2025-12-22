@@ -48,7 +48,6 @@ class Review extends Model
         return $this->belongsTo(Booking::class);
     }
 
-    // NEW: Add these relationships
     public function reporter()
     {
         return $this->belongsTo(User::class, 'reported_by');
@@ -59,7 +58,6 @@ class Review extends Model
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
-    // NEW: Add these scope methods
     public function scopeReported($query)
     {
         return $query->where('reported', true);

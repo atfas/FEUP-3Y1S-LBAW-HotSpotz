@@ -35,7 +35,7 @@
         <script src="{{ asset('js/app.js') }}" defer></script>
 
         <script>
-            // Add required asterisk to labels whose associated inputs are required
+
             document.addEventListener('DOMContentLoaded', function(){
                 try {
                     document.querySelectorAll('input[required], select[required], textarea[required]').forEach(function(inp){

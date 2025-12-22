@@ -303,8 +303,6 @@ class BookingController extends Controller
 
         $userId = Auth::id();
 
-        // Include bookings where the user is the guest OR where the user has a pending assigned FullPayment transaction for the booking
-        // Note: do NOT include bookings where the user's assigned transaction is already Completed (other users shouldn't see completed bookings)
         $bookingsQuery = Booking::where(function($q) use ($userId) {
                 $q->where('guest_id', $userId)
                       ->orWhereExists(function($sq) use ($userId) {
