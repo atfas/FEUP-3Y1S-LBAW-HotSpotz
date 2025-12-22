@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 use App\Models\Booking;
+use App\Models\Notification;
+use App\Events\NotificationCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -78,13 +80,24 @@ class ReviewController extends Controller
         $listing = $booking->availability->listing;
 
         DB::transaction(function () use ($validated, $booking, $listing) {
-            Review::create([
+            $review = Review::create([
                 'rating' => $validated['rating'],
                 'comment' => $validated['comment'],
                 'guest_id' => Auth::id(),
                 'host_id' => $listing->host_id,
                 'booking_id' => $booking->id,
             ]);
+
+            // Notify host about new review
+            $notification = Notification::create([
+                'user_id' => $listing->host_id,
+                'type' => Notification::TYPE_REVIEW_LEFT,
+                'content' => 'You received a new ' . $validated['rating'] . '-star review from ' . Auth::user()->full_name . ' for ' . $listing->title,
+                'booking_id' => $booking->id,
+                'review_id' => $review->id,
+            ]);
+
+            broadcast(new NotificationCreated($notification));
         });
 
         return redirect()->route('bookings.index')

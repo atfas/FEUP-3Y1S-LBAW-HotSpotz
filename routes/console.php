@@ -44,7 +44,7 @@ Schedule::call(function () {
                 try {
                     $notification = Notification::create([
                         'type' => Notification::TYPE_REMAINDER,
-                        'content' => "Reminder: Your {$subscription->tier} subscription payment of €{$subscription->price_paid} is due tomorrow. Your subscription will renew automatically.",
+                        'content' => "Reminder: Your {$subscription->tier} subscription payment of €{$subscription->price_paid} is gonna renew automatically tomorrow.",
                         'user_id' => $subscription->user_id,
                         'booking_id' => null,
                     ]);

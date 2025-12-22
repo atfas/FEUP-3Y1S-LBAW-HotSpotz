@@ -142,6 +142,9 @@ document.addEventListener('DOMContentLoaded', function() {
             .listen('.message.received', (data) => {
                 handleNewNotification(data.notification);
             })
+            .listen('.review.left', (data) => {
+                handleNewNotification(data.notification);
+            })
             .listen('.notification.created', (data) => {
                 handleNewNotification(data.notification);
             });

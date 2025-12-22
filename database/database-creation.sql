@@ -182,7 +182,7 @@ CREATE TABLE notifications (
     booking_id INTEGER REFERENCES bookings(id) ON DELETE SET NULL,
     transaction_id INTEGER REFERENCES transactions(id) ON DELETE SET NULL,
     message_id INTEGER REFERENCES messages(id) ON DELETE SET NULL,
-    review_id INTEGER REFERENCES reviews(id) ON DELETE SET NULL,
+    review_id INTEGER REFERENCES reviews(id) ON DELETE CASCADE,
     CHECK(CASE WHEN type IN ('BookingConfirmed', 'BookingCanceled') then (booking_id IS NOT NULL) END),
     CHECK(CASE WHEN type IN ('PaymentReceived') then (transaction_id IS NOT NULL) END),
     CHECK(CASE WHEN type IN ('MessageReceived') then (message_id IS NOT NULL) END),
