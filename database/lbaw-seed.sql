@@ -490,8 +490,8 @@ BEGIN
         RAISE EXCEPTION 'review created_at must be >= booking check_out_date';
     END IF;
     
-    IF NEW.created_at > booking_check_out_date + INTERVAL '2 days' THEN
-        RAISE EXCEPTION 'review must be created within 2 days of check_out_date';
+    IF NEW.created_at > booking_check_out_date + INTERVAL '7 days' THEN
+        RAISE EXCEPTION 'review must be created within 7 days of check_out_date';
     END IF;
     
     IF NEW.guest_id <> booking_guest_id THEN
@@ -1133,67 +1133,6 @@ UPDATE transactions SET status = 'Failed' WHERE booking_id = 4;
 UPDATE bookings SET status = 'Confirmed', created_at = '2025-01-28 13:59:00' WHERE id = 5;
 UPDATE transactions SET status = 'Completed', paid_at = '2025-01-28 14:00:00' WHERE booking_id = 5;
 
-BEGIN;
-INSERT INTO reviews (id, rating, comment, guest_id, host_id, booking_id, created_at)
-VALUES (
-    1,
-    5, 
-    'Absolutely perfect location! David was a great host. Highly recommend.', 
-    3, 
-    6, 
-    120, 
-    '2025-01-13 12:00:00' 
-);
-COMMIT;
-
-BEGIN;
-INSERT INTO reviews (id, rating, comment, guest_id, host_id, booking_id, created_at)
-VALUES (
-    2,
-    4, 
-    'The view was amazing, but the Wi-Fi was a bit slow. Overall a good stay.', 
-    3, 
-    6, 
-    121, 
-    '2025-01-16 11:00:00' 
-);
-COMMIT;
-
-BEGIN;
-INSERT INTO conversations (id, guest_id, host_id, listing_id) VALUES (1, 5, 6, 1);
-INSERT INTO messages (author, content, conversation_id) VALUES
-('Guest', 'Hi David, is the apartment pet-friendly?', 1),
-('Host', 'Hi Charlie, unfortunately, we do not allow pets.', 1),
-('Guest', 'No problem, thanks for the quick reply!', 1);
-
-INSERT INTO conversations (id, guest_id, host_id, booking_id) VALUES (2, 5, 8, 3);
-INSERT INTO messages (author, content, conversation_id) VALUES
-('Guest', 'Hi Frank, we are excited for our stay! Just wondering if the cabin has a coffee maker?', 2),
-('Host', 'Hello! Yes, it has a standard drip coffee maker with filters provided.', 2);
-
-INSERT INTO conversations (id, guest_id, host_id, listing_id) VALUES (3, 4, 9, 4);
-INSERT INTO messages (author, content, conversation_id) VALUES
-('Guest', 'Is the Wi-Fi fast? I need to work remotely.', 3);
-
-COMMIT;
-
-INSERT INTO notifications (type, content, user_id, booking_id)
-VALUES ('BookingConfirmed', 'Your booking for Cozy Downtown Apartment is confirmed!', 3, 1); 
-
-INSERT INTO notifications (type, content, user_id, booking_id)
-VALUES ('BookingCanceled', 'Your booking for Quiet Suburban House has been cancelled.', 4, 5); 
-
-INSERT INTO notifications (type, content, user_id, review_id)
-VALUES ('ReviewLeft', 'Alice G. left a 5-star review for your listing!', 6, 1); 
-
-INSERT INTO notifications (type, content, user_id, admin_id, admin_notification_id)
-VALUES ('AdminNotice', 'A new host application from Heidi H. is ready for review.', 1, 1, 1); 
-
-INSERT INTO premium_subscriptions (user_id, member_status, tier, plan_type, price_paid, discount_percentage, member_since, next_payment_date, total_savings)
-VALUES 
-(3, 'Active', 'Gold', 'Monthly', 14.99, 10, '2025-06-01 10:00:00', '2026-01-16', 45.50),
-(4, 'Active', 'Platinum', 'Annual', 179.99, 20, '2025-03-15 14:30:00', '2026-03-15', 120.00),
-(12, 'Active', 'Silver', 'Monthly', 7.99, 5, '2025-09-01 09:00:00', '2026-01-01', 15.25);
 
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
 SELECT setval('admin_notification_id_seq', (SELECT MAX(id) FROM admin_notification));
@@ -1207,3 +1146,97 @@ SELECT setval('conversations_id_seq', (SELECT MAX(id) FROM conversations));
 SELECT setval('messages_id_seq', (SELECT MAX(id) FROM messages));
 SELECT setval('notifications_id_seq', (SELECT MAX(id) FROM notifications));
 SELECT setval('premium_subscriptions_id_seq', (SELECT MAX(id) FROM premium_subscriptions));
+
+
+
+BEGIN;
+DO $$
+DECLARE 
+    new_booking_id INT;
+    alice_id INT := 3;
+    available_listing_id INT;
+    available_availability_id INT;
+    available_host_id INT;
+    avail_start_date DATE;
+    avail_end_date DATE;
+    checkout_date DATE;
+    checkin_date DATE;
+BEGIN
+    -- Use listing 7 (Lakeview Cottage) with availability_id 20
+    -- Availability: 2026-03-01 to 2026-03-07
+    available_listing_id := 7;
+    available_availability_id := 20;
+    available_host_id := 14; -- Laura Palmer
+    
+    -- Get the availability dates
+    SELECT start_date, end_date INTO avail_start_date, avail_end_date
+    FROM availability WHERE id = available_availability_id;
+    
+    -- Set dates within the availability range
+    -- But we need dates in the past for a completed booking
+    -- Let's create a new availability in the past first
+    
+END $$;
+COMMIT;
+
+-- Let's create a new availability in the past for listing 7
+INSERT INTO availability (start_date, end_date, price_per_night, check_in_time, check_out_time, listing_id)
+VALUES (CURRENT_DATE - INTERVAL '10 days', CURRENT_DATE - INTERVAL '3 days', 160.00, '14:00', '12:00', 7);
+
+-- Now create the booking
+BEGIN;
+DO $$
+DECLARE 
+    new_booking_id INT;
+    new_availability_id INT;
+    alice_id INT := 3;
+    available_host_id INT := 14; -- Laura Palmer
+    checkout_date DATE;
+    checkin_date DATE;
+BEGIN
+    -- Get the newly created availability ID
+    SELECT id INTO new_availability_id 
+    FROM availability 
+    WHERE listing_id = 7 
+    AND start_date = CURRENT_DATE - INTERVAL '10 days'
+    LIMIT 1;
+    
+    -- Set booking dates within this availability
+    checkin_date := CURRENT_DATE - INTERVAL '7 days';
+    checkout_date := CURRENT_DATE - INTERVAL '4 days';
+    
+    -- Create a completed booking for Alice
+    INSERT INTO bookings (id, check_in_date, check_out_date, num_guests, status, total_price, availability_id, guest_id, created_at)
+    VALUES (
+        200,
+        checkin_date,
+        checkout_date, 
+        2, 
+        'Completed', 
+        480.00, -- 3 nights * 160
+        new_availability_id, 
+        alice_id,
+        checkin_date - INTERVAL '2 days'
+    )
+    RETURNING id INTO new_booking_id;
+    
+    -- Create a completed transaction
+    INSERT INTO transactions (amount, transaction_method, type, status, paid_at, booking_id)
+    VALUES (
+        480.00, 
+        'Card', 
+        'FullPayment', 
+        'Completed', 
+        checkin_date - INTERVAL '1 day',
+        new_booking_id
+    );
+    
+    RAISE NOTICE 'Created booking ID % for Alice at Lakeview Cottage (listing 7, host Laura Palmer)', new_booking_id;
+    RAISE NOTICE 'Check-in: %, Check-out: %', checkin_date, checkout_date;
+    RAISE NOTICE 'Alice can review with: guest_id=3, host_id=14, booking_id=%', new_booking_id;
+END $$;
+COMMIT;
+
+-- Update sequences
+SELECT setval('availability_id_seq', (SELECT MAX(id) FROM availability));
+SELECT setval('bookings_id_seq', (SELECT MAX(id) FROM bookings));

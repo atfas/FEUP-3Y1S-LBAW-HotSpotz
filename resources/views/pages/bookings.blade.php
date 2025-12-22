@@ -94,13 +94,14 @@
             </td>
             <td>${{ $booking['total_price'] }}</td>
             <td>
+
                 @if($booking['status'] === 'Completed' && 
                     !$booking['has_review'] && 
                     \Carbon\Carbon::parse($booking['check_out_date'])->lt(now()) &&
-                    now()->lte(\Carbon\Carbon::parse($booking['check_out_date'])->addDays(2)))
+                    now()->lte(\Carbon\Carbon::parse($booking['check_out_date'])->addDays(7)))
                     <!-- Add Review Button -->
                     <a href="{{ route('reviews.create', $booking['id']) }}" 
-                    class="action-btn text-success" 
+                    class="action-btn text-wine" 
                     title="Leave a review">
                         <i class="fas fa-star"></i>
                     </a>

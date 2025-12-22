@@ -35,10 +35,10 @@ class ReviewController extends Controller
                 ->with('error', 'You can only review after your stay is complete.');
         }
 
-        // Check if within 2 days of check-out
-        if ($booking->check_out_date->addDays(2) < now()) {
+        // Check if within 7 days of check-out
+        if ($booking->check_out_date->addDays(7) < now()) {
             return redirect()->route('bookings.index')
-                ->with('error', 'Review period has expired. You must review within 2 days of check-out.');
+                ->with('error', 'Review period has expired. You must review within 7 days of check-out.');
         }
 
         $booking->load(['availability.listing']);
@@ -66,7 +66,7 @@ class ReviewController extends Controller
             return back()->with('error', 'You can only review after your stay is complete.');
         }
 
-        if ($booking->check_out_date->addDays(2) < now()) {
+        if ($booking->check_out_date->addDays(7) < now()) {
             return back()->with('error', 'Review period has expired.');
         }
 

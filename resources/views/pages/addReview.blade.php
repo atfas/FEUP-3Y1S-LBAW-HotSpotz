@@ -4,9 +4,17 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Leave a Review</h4>
+            <!-- Breadcrumbs -->
+            @include('partials.page_header', [
+                'breadcrumbs' => [
+                    ['title' => 'My Bookings', 'url' => route('bookings.index')],
+                    ['title' => $booking->availability->listing->title, 'url' => route('listing.show', $booking->availability->listing->id)],
+                    ['title' => 'Add Review', 'url' => null],
+                ]
+            ])
+             <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0 fw-bold text-wine">{{ $booking->availability->listing->title }} - Add Your Review</h4>
                 </div>
                 <div class="card-body">
                     <div class="mb-4">
@@ -47,9 +55,13 @@
                             @enderror
                         </div>
 
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">Submit Review</button>
-                            <a href="{{ route('bookings.index') }}" class="btn btn-secondary">Cancel</a>
+                        <div class="d-flex justify-content-between align-items-center mt-5">
+                            <a href="{{ route('bookings.index') }}" class="text-decoration-none text-muted">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Back to Bookings
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                Submit Review
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -58,29 +70,4 @@
     </div>
 </div>
 
-<style>
-.star-rating {
-    display: flex;
-    flex-direction: row-reverse;
-    justify-content: flex-end;
-    gap: 5px;
-}
-
-.star-rating input {
-    display: none;
-}
-
-.star-rating label {
-    cursor: pointer;
-    font-size: 2rem;
-    color: #ddd;
-    transition: color 0.2s;
-}
-
-.star-rating input:checked ~ label,
-.star-rating label:hover,
-.star-rating label:hover ~ label {
-    color: #ffc107;
-}
-</style>
 @endsection
