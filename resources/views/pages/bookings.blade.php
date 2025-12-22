@@ -127,7 +127,7 @@
                     </form>
                 @endif
 
-                @if($booking['status'] === 'PendingPayment')
+                @if($booking['status'] === 'PendingPayment' && empty($booking['user_paid_part']) && empty($booking['has_assigned_tx']) && empty($booking['has_pending_tx']))
                     <a href="{{ route('bookings.showPaymentForm', $booking['id']) }}"
                        class="action-btn text-success"
                        title="Pay Now">

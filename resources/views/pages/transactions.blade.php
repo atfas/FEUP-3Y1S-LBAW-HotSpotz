@@ -103,7 +103,7 @@
                                     </td>
                                     <td>
                                         @if($t->status === 'Pending' && $t->booking && $t->booking->status === 'PendingPayment')
-                                            <a href="{{ route('bookings.showPaymentForm', $t->booking->id) }}" class="action-btn text-success" title="Pay now">
+                                            <a href="{{ route('transactions.pay', $t->id) }}" class="action-btn text-success" title="Pay now">
                                                 <i class="fas fa-credit-card"></i>
                                             </a>
                                         @else

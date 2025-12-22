@@ -33,6 +33,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             window.availabilities = {!! json_encode($availabilities ?? []) !!};
+            window.listingMinimum = {{ $listing->minimum_stay }};
             window.bookings = {!! json_encode($bookings ?? []) !!};
             const premiumDiscount = {{ Auth::check() && Auth::user()->isPremium() ? Auth::user()->getDiscountPercentage() : 0 }};
 
@@ -70,12 +71,10 @@
                 }
                 const total = (finalPerNight !== null && nights > 0) ? (finalPerNight * nights) : 0;
                 
-                // Update hidden inputs for form submission
                 availabilityIdInput.value = availability.id;
-                availabilityIdInput.dataset.price = perNight; // for payment.js
+                availabilityIdInput.dataset.price = perNight; 
                 totalPriceInput.value = total;
 
-                // Update visual summary
                 pricePerNightEl.textContent = formatMoney(perNight);
                 daysEl.textContent = days;
                 totalEl.textContent = formatMoney(total);

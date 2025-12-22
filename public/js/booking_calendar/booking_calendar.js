@@ -110,16 +110,32 @@
     }
 
     function findAvailabilityForRange(startStr, endStr) {
-      const endExclusive = addDaysToLocal(endStr, 1);
-      for (const av of avRanges) { if (av.start_date <= startStr && av.end >= endExclusive) return av; }
+      const startD = parseDateAsUTC(startStr);
+      const endD = parseDateAsUTC(endStr);
+      if (!startD || !endD) return null;
+      for (const av of avRanges) {
+        const avStart = parseDateAsUTC(av.start_date);
+        const avEnd = parseDateAsUTC(av.end);
+        if (!avStart || !avEnd) continue;
+        // inclusive: check start >= avStart && end <= avEnd
+        if (startD.getTime() >= avStart.getTime() && endD.getTime() <= avEnd.getTime()) return av;
+      }
       return null;
     }
 
     function isRangeValid(startStr, endStr) {
       const availability = findAvailabilityForRange(startStr, endStr);
       if (!availability) return false;
-      const endExclusive = addDaysToLocal(endStr, 1);
-      for (const book of bookingEvents) { if (startStr < book.end && endExclusive > book.start) return false; }
+      const startD = parseDateAsUTC(startStr);
+      const endD = parseDateAsUTC(endStr);
+      if (!startD || !endD) return false;
+      for (const book of bookingEvents) {
+        const bStart = parseDateAsUTC(book.start);
+        const bEnd = parseDateAsUTC(book.end);
+        if (!bStart || !bEnd) continue;
+        // bookingEvents use end as exclusive; overlap if start < bEnd && end >= bStart
+        if (startD.getTime() < bEnd.getTime() && endD.getTime() >= bStart.getTime()) return false;
+      }
       return true;
     }
 
@@ -172,8 +188,22 @@
             selectionState.mode = 'none'; selectionState.checkin = null; clearHighlights(); return;
           }
           const availability = findAvailabilityForRange(checkinDate, checkoutDate);
-          if (!availability || !isRangeValid(checkinDate, checkoutDate)) {
-            showError('The selected range is not valid (must be within a single availability and not overlap bookings). Selection has been reset.');
+          // enforce availability and minimum stay
+              if (!availability || !isRangeValid(checkinDate, checkoutDate)) {
+                showError('The selected range is not valid (must be within a single availability and not overlap bookings). Selection has been reset.');
+                selectionState.mode = 'none'; selectionState.checkin = null; clearHighlights(); return;
+              }
+
+          // compute nights and enforce minimum stay if provided
+          const startD = parseLocalDate(checkinDate);
+          const endD = parseLocalDate(checkoutDate);
+          if (!startD || !endD) {
+            showError('Invalid dates selected.'); selectionState.mode = 'none'; selectionState.checkin = null; clearHighlights(); return;
+          }
+          const nights = Math.floor((endD.getTime() - startD.getTime()) / (1000*60*60*24));
+          const minStay = (availability && availability.minimum_stay) ? parseInt(availability.minimum_stay, 10) : (window.listingMinimum || 1);
+          if (nights < minStay) {
+            showError('The selected range does not meet the minimum stay requirement of ' + minStay + ' night(s). Selection has been reset.');
             selectionState.mode = 'none'; selectionState.checkin = null; clearHighlights(); return;
           }
           calendar.addEvent({ id: 'selection_range', start: checkinDate, end: addDaysToLocal(checkoutDate, 1), allDay: true, display: 'background', backgroundColor: '#a2d2ff' });

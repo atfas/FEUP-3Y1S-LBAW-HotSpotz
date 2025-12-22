@@ -13,6 +13,21 @@
 
         <div id="credit_card_box" class="payment-box" style="display:none;">
             <p class="mb-2">Final price: <strong class="final-price">$0.00</strong></p>
+            <div class="mb-3">
+                <button type="button" id="toggle-split-btn" class="btn btn-sm btn-outline-primary">Split payment</button>
+            </div>
+            <div id="split-section" style="display:none;">
+                <label class="form-label">Split with other payers (emails)</label>
+                <div id="split-emails-container">
+                    <div class="input-group mb-2 split-email-row">
+                        <input type="email" class="form-control split-email-input" placeholder="payer@example.com" />
+                        <span class="input-group-text split-email-status" style="width:2.5rem"></span>
+                        <div class="invalid-feedback d-block split-email-error" style="display:none"></div>
+                    </div>
+                </div>
+                <div class="form-text small">Add emails of other payers; a new field appears when the previous email is valid.</div>
+                <hr>
+            </div>
             <div class="mb-2">
                 <label class="form-label">Cardholder Name</label>
                 <input type="text" class="form-control" id="cc_name" placeholder="Full name on card">

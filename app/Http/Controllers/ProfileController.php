@@ -61,7 +61,7 @@ class ProfileController extends Controller
                 'listings.id as listing_id',
                 'listings.title as listing_title',
                 'guests.full_name as guest_name',
-                DB::raw("(SELECT COUNT(1) FROM transactions t WHERE t.booking_id = bookings.id AND t.status = 'Pending') as pending_txn_count")
+                DB::raw("(SELECT COUNT(1) FROM transactions t WHERE t.booking_id = bookings.id AND t.status = 'Pending' AND (t.user_id IS NULL OR t.user_id = listings.host_id)) as pending_txn_count")
             )
             ->orderBy('bookings.check_in_date')
             ->get();

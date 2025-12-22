@@ -421,6 +421,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         
         window.availabilities = {!! json_encode($availabilities ?? []) !!};
+        window.listingMinimum = {{ $listing->minimum_stay }};
         window.bookings = {!! json_encode( $bookings ?? []) !!};
         const premiumDiscount = {{ Auth::check() && Auth::user()->isPremium() ? Auth::user()->getDiscountPercentage() : 0 }};
         function parseLocalDate(s){ if(!s) return null; const parts = s.split('-'); if(parts.length!==3) return null; return new Date(parts[0], parseInt(parts[1],10)-1, parts[2]); }
