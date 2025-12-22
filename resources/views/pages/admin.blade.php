@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="{{ asset('css/admin.panel.css') }}">
 
 <div class="container my-4">
+    
     <!-- Flash Messages -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -19,6 +20,14 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
+
+    <!-- Breadcrumbs -->
+    @include('partials.page_header', [
+        'breadcrumbs' => [
+            ['title' => 'Admin panel', 'url' => null],
+        ]
+    ])
+
 
     <!-- Admin Panel Header -->
     <div class="card shadow-sm mb-4">
@@ -70,6 +79,7 @@
                                     <th>Role</th>
                                     <th>Blocked</th>
                                     <th>Joined Date</th>
+                                    <th>Application</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -89,6 +99,17 @@
                                         </span>
                                     </td>
                                     <td>{{ $user['joined_date'] }}</td>
+                                    <td>
+                                        @if($user['application_status'] === 'Pending')
+                                            <a href="{{ route('admin.applications.show', $user['id']) }}" class="btn btn-sm btn-warning">
+                                                <i class="fa-solid fa-eye me-1"></i>Review
+                                            </a>
+                                        @elseif($user['application_status'] === 'Rejected')
+                                            <span class="badge bg-danger">Rejected</span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         @if($user['id'] !== Auth::id())
                                             <!-- Toggle Status Form -->
@@ -133,7 +154,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
+                                    <td colspan="8" class="text-center text-muted py-4">
                                         <i class="fas fa-users fa-2x mb-2"></i>
                                         <p>No users found</p>
                                     </td>
@@ -197,5 +218,17 @@
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('userSearch').addEventListener('keyup', function () {
+    const value = this.value.toLowerCase();
+
+    document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(value)
+            ? ''
+            : 'none';
+    });
+});
+</script>
 
 @endsection

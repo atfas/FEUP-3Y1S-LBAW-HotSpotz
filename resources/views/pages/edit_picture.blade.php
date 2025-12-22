@@ -4,6 +4,12 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            @include('partials.page_header', [
+                'breadcrumbs' => [
+                    ['title' => 'Profile', 'url' => route('profile.show')],
+                    ['title' => 'Edit Profile Picture', 'url' => null]
+                ]
+            ])
             <div class="card shadow-sm">
                 <div class="card-header bg-white py-3">
                     <h4 class="mb-0 fw-bold text-wine">Edit Profile Picture</h4>

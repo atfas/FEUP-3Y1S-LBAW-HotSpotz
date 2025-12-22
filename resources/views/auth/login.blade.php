@@ -53,11 +53,16 @@
                             @enderror
                         </div>
 
-                        <div class="mb-3 form-check">
-                            <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                            <label class="form-check-label" for="remember">
-                                Remember Me
-                            </label>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                                <label class="form-check-label" for="remember">
+                                    Remember Me
+                                </label>
+                            </div>
+                            <a class="text-decoration-none small" href="{{ route('password.request') }}" style="color: #722F37;">
+                                Forgot password?
+                            </a>
                         </div>
 
                         <div class="d-grid gap-2">

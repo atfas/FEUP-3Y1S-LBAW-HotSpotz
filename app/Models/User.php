@@ -116,4 +116,44 @@ class User extends Authenticatable
         return $this->password_hash;
     }
 
+    /**
+     * Get the user's subscription.
+     */
+    public function subscription()
+    {
+        return $this->hasOne(Subscription::class);
+    }
+
+    /**
+     * Check if the user has an active premium subscription.
+     */
+    public function isPremium(): bool
+    {
+        return $this->subscription && $this->subscription->isActive();
+    }
+
+    /**
+     * Get the user's discount percentage.
+     */
+    public function getDiscountPercentage(): int
+    {
+        if ($this->isPremium()) {
+            return $this->subscription->discount_percentage;
+        }
+        return 0;
+    }
+    
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function hasFavorited($listingId): bool
+    {
+        return $this->favorites()
+            ->where('listing_id', $listingId)
+            ->exists();
+    }
+
 }

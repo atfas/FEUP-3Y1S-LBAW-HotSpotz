@@ -87,33 +87,40 @@ class ListingController extends Controller
             'check_out_time' => $r->check_out_time ?? null,
         ]; });
 
+        //Review
         $perPage = 5;
         $page = max(1, (int)$request->get('page', 1));
-        $offset = ($page - 1) * $perPage;
 
-        $reviewsQuery = DB::table('reviews')
-            ->join('bookings', 'reviews.booking_id', '=', 'bookings.id')
+        $reviews = DB::table('reviews')
+        ->join('bookings', 'reviews.booking_id', '=', 'bookings.id')
+        ->join('availability', 'bookings.availability_id', '=', 'availability.id')
+        ->join('users', 'reviews.guest_id', '=', 'users.id')
+        ->where('availability.listing_id', $id)
+        ->select(
+            'reviews.*',
+            'users.full_name as guest_name',
+            'users.profile_picture_url as guest_photo'
+        )
+        ->orderByDesc('reviews.created_at')
+        ->paginate($perPage, ['*'], 'page', $page);
+
+        $bookings = DB::table('bookings')
             ->join('availability', 'bookings.availability_id', '=', 'availability.id')
             ->where('availability.listing_id', $id)
-            ->orderByDesc('reviews.created_at');
-
-        $totalReviews = (int)$reviewsQuery->count();
-
-        $reviews = $reviewsQuery
-            ->select('reviews.*')
-            ->offset($offset)
-            ->limit($perPage)
+            ->select(
+                'bookings.id',
+                'bookings.check_in_date as start_date',
+                'bookings.check_out_date as end_date',
+                'bookings.status'
+            )
             ->get();
-
-        $totalPages = (int)ceil($totalReviews / $perPage);
 
         return view('pages.listing', [
             'listing' => $listing,
             'photos' => $photos,
             'min_price' => $min_price,
             'reviews' => $reviews,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
+            'bookings' => $bookings,
             'availabilities' => $availRows->map(function($r){ return [
                 'id' => $r->id ?? null,
                 'start_date' => $r->start_date,
@@ -129,6 +136,7 @@ class ListingController extends Controller
                 ->select('tags.id','tags.name')
                 ->get()
                 ->map(function($t){ return ['id' => $t->id, 'name' => $t->name]; })->all(),
+            'host' => $listing->host,
         ]);
     }
 
@@ -460,5 +468,41 @@ class ListingController extends Controller
         $listing->save();
 
         return redirect()->route('profile.show')->with('success', 'Listing deleted.');
+    }
+
+    public function reservations($id)
+    {
+        $listing = Listing::find($id);
+        if (!$listing) abort(404);
+
+        $this->authorize('viewReservations', $listing);
+
+        $bookings = DB::table('bookings')
+            ->join('availability', 'bookings.availability_id', '=', 'availability.id')
+            ->join('users', 'bookings.guest_id', '=', 'users.id')
+            ->where('availability.listing_id', $id)
+            ->whereIn('bookings.status', ['Confirmed', 'Completed', 'PendingPayment'])
+            ->orderByDesc('bookings.created_at')
+            ->select(
+                'bookings.id',
+                'bookings.check_in_date',
+                'bookings.check_out_date',
+                'bookings.num_guests',
+                'bookings.status',
+                'bookings.total_price',
+                'bookings.created_at',
+                'users.id as guest_id',
+                'users.full_name as guest_name',
+                'users.email as guest_email',
+                'availability.start_date as avail_start',
+                'availability.end_date as avail_end',
+                DB::raw("(SELECT COUNT(1) FROM transactions t WHERE t.booking_id = bookings.id AND t.status = 'Pending') as pending_txn_count")
+            )
+            ->get();
+
+        return view('pages.listing_reservations', [
+            'listing' => $listing,
+            'bookings' => $bookings,
+        ]);
     }
 }

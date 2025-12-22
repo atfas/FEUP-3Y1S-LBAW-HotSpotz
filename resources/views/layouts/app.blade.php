@@ -14,6 +14,12 @@
         <!-- Styles -->
         @vite(['resources/sass/app.scss', 'resources/js/app.js'])
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/listing.panel.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/edit.review.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/display.review.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/breadcrumb.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/bookings.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/host_statistics.css') }}">
         @stack('styles')
 
         <style>
@@ -45,8 +51,8 @@
                     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                         <div class="navbar-nav ms-auto align-items-center">
                             @auth
-                                @if(!Auth::user()->application_status === 'Approved')
-                                    <a class="btn btn-outline-danger btn-sm ms-2" href="#">
+                                @if(Auth::user()->application_status === null || Auth::user()->application_status === 'Rejected')
+                                    <a class="btn btn-outline-danger btn-sm ms-2" href="{{ route('host.apply') }}">
                                         Become a Host
                                     </a>
                                 @endif
@@ -69,10 +75,10 @@
                             </a>
 
                             @auth
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="{{ route('favorites.index') }}">
                                 <i class="fa-solid fa-heart"></i><span class="nav-text">Favourites</span>
                             </a>
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="{{ route('chat.index') }}">
                                 <i class="fa-solid fa-message"></i> <span class="nav-text">Messages</span>
                             </a>
                             
@@ -105,7 +111,7 @@
                                 </ul>
                             </div>
                             
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="{{ route('transactions.index') }}">
                                 <i class="fa-solid fa-credit-card"></i><span class="nav-text">Payments</span>
                             </a>
                             @endauth
@@ -145,12 +151,12 @@
                 <div class="container-fluid px-4">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#about-us-modal">
                                 <i class="fa-solid fa-info-circle"></i> About Us
                             </a>
                         </li>
-                        <li class="nav-item" data-bs-toggle="modal" data-bs-target="#contact-us-modal">
-                            <a class="nav-link" href="#">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#contact-us-modal">
                                 <i class="fa-solid fa-envelope"></i> Contact
                             </a>
                         </li>
@@ -160,29 +166,43 @@
                     </span>
                 </div>
             </nav>
-      
 
-            <!-- Contact us modal-->
-            <div class="modal fade" id="contact-us-modal" tabindex="-1" aria-labelledby="contact-us-modalLabel" aria-hidden="true">
+            <!-- Contact Us Modal -->
+            <div class="modal fade" id="contact-us-modal" tabindex="-1" aria-labelledby="contactUsModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header d-flex justify-content-center position-relative">
-                            <h1 class="modal-title fs-5" id="contact-us-modalLabel">Contact Us</h1>
+                            <h1 class="modal-title fs-5" id="contactUsModalLabel">Contact Us</h1>
                             <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-
-                         <div class="modal-body d-flex justify-content-center align-items-center">
+                        <div class="modal-body d-flex justify-content-center align-items-center">
                             <span class="text-center">
-                                Afonso Saraiva - <a href="mailto:up202304461@up.pt">up202304461</a><br>
-                                Inês Francisco - <a href="mailto:up202304912@up.pt">up202304912</a><br>
-                                Pedro Peixoto - <a href="mailto:up202304912@up.pt">up202304912</a><br>
-                                Vasco Alves - <a href="mailto:up202304912@up.pt">up202304912</a>
+                                Afonso Saraiva - <a href="mailto:up202304461@up.pt">up202304461@up.pt</a><br>
+                                Inês Francisco - <a href="mailto:up202304912@up.pt">up202304912@up.pt</a><br>
+                                Pedro Peixoto - <a href="mailto:up202304912@up.pt">up202304912@up.pt</a><br>
+                                Vasco Alves - <a href="mailto:up202304912@up.pt">up202304912@up.pt</a>
                             </span>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- About Us Modal -->
+            <div class="modal fade" id="about-us-modal" tabindex="-1" aria-labelledby="aboutUsModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header d-flex justify-content-center position-relative">
+                            <h1 class="modal-title fs-5" id="aboutUsModalLabel">About Us</h1>
+                            <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body d-flex justify-content-center align-items-center">
+                            <span class="text-center">
+                                HotSpotz is a smart reservation platform that helps explorers find and book the hottest places, from stylish to cozy spaces. In just a few taps, users can lock in unique spots that turn any trip into an adventure.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         </main>
     </body>

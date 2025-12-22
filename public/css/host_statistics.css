@@ -1,0 +1,43 @@
+
+.action-btn {
+    background: transparent;
+    border: none;
+    margin: 0 6px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.action-btn:hover {
+    transform: scale(1.15);
+}
+
+.action-view {
+    color: var(--color-dark-purple);
+}
+
+.action-view:hover {
+    color: var(--color-purple);
+}
+
+
+.action-edit {
+    color: var(--color-gold);
+}
+
+.action-edit:hover {
+    color: var(--color-light-gold);
+}
+
+
+.action-calendar {
+    color: var(--color-wine);
+}
+
+.action-calendar:hover {
+    color: var(--color-light-purple);
+}
+.action-btn:hover {
+    background-color: rgba(0,0,0,0.03);
+    border-radius: 6px;
+}

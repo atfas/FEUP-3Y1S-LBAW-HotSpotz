@@ -23,7 +23,7 @@ color: white;
 .btn-wine:hover {
 background-color: var(--color-purple);
 border-color: var(--color-purple);
-color: white;
+color: rgb(8, 5, 5);
 }
 
 .btn-outline-wine {

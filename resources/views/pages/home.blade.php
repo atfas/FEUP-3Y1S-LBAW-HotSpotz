@@ -4,7 +4,7 @@
 <div class="container py-4">
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <form method="GET" action="/search" class="d-flex flex-row flex-wrap gap-2 align-items-end">
+            <form method="GET" action="/listing/search" class="d-flex flex-row flex-wrap gap-2 align-items-end">
                 <div class="form-group flex-fill" style="min-width:160px">
                     <label class="form-label">Where to</label>
                     <input type="text" name="where" class="form-control" placeholder="City, address or landmark">
@@ -58,6 +58,8 @@
     </div>
     @endif
 
+    <h3 class="mb-4 fw-bold" style="color: #ffffff;">Top 6 Hottest Spots</h3>
+
     @include('partials.cards', ['listings' => $listings])
 </div>
 
@@ -86,7 +88,7 @@
 
             const todayStr = localISODate(new Date());
 
-            const form = document.querySelector('form[action="/search"]');
+            const form = document.querySelector('form[action="/listing/search"]');
             const whereInput = form ? form.querySelector('input[name="where"]') : null;
             const priceSelect = form ? form.querySelector('select[name="price"]') : null;
             const guestsInput = form ? form.querySelector('input[name="guests"]') : null;

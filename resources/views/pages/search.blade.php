@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container py-4">
-    <form method="GET" action="/search">
+    <form method="GET" action="/listing/search">
     <div class="row g-4">
         <div class="col-12 col-md-3">
             <div class="card mb-4 p-3">
@@ -133,7 +133,7 @@
 
             const todayStr = localISODate(new Date());
             
-            const form = document.querySelector('form[action="/search"]');
+            const form = document.querySelector('form[action="/listing/search"]');
             const resultsContainer = document.getElementById('search-results-container');
             const checkin = document.getElementById('checkin');
             const checkout = document.getElementById('checkout');
