@@ -29,25 +29,25 @@
                 <hr>
             </div>
             <div class="mb-2">
-                <label class="form-label">Cardholder Name</label>
+                <label class="form-label">Cardholder Name <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" id="cc_name" placeholder="Full name on card">
                 <div class="invalid-feedback d-block" id="cc_name_error" style="display:none"></div>
             </div>
             <div class="mb-2">
-                <label class="form-label">Card Number</label>
+                <label class="form-label">Card Number <span class="text-danger">*</span></label>
                 <div id="card-number-element" class="form-control" style="padding: 0.375rem 0.75rem;">
                 </div>
                 <div class="invalid-feedback d-block" id="card-number-error" style="display:none"></div>
             </div>
             <div class="row g-2">
                 <div class="col-6">
-                    <label class="form-label">Expiry</label>
+                    <label class="form-label">Expiry <span class="text-danger">*</span></label>
                     <div id="card-expiry-element" class="form-control" style="padding: 0.375rem 0.75rem;">
                     </div>
                     <div class="invalid-feedback d-block" id="card-expiry-error" style="display:none"></div>
                 </div>
                 <div class="col-6">
-                    <label class="form-label">CVC</label>
+                    <label class="form-label">CVC <span class="text-danger">*</span></label>
                     <div id="card-cvc-element" class="form-control" style="padding: 0.375rem 0.75rem;">
                     </div>
                     <div class="invalid-feedback d-block" id="card-cvc-error" style="display:none"></div>

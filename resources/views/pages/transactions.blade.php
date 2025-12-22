@@ -18,7 +18,6 @@
 
     @include('partials.page_header', [
         'breadcrumbs' => [
-            ['title' => 'Profile', 'url' => route('profile.show')],
             ['title' => 'Payments', 'url' => null],
         ]
     ])

@@ -163,7 +163,10 @@ Route::prefix('subscription')->name('subscription.')->group(function () {
 
 Route::middleware('auth')->prefix('subscription')->name('subscription.')->group(function () {
     Route::post('/cancel', [App\Http\Controllers\SubscriptionController::class, 'cancel'])->name('cancel');
+    Route::get('/checkout', [App\Http\Controllers\PaymentController::class, 'subscriptionCheckout'])->name('checkout');
+    Route::post('/confirm', [App\Http\Controllers\PaymentController::class, 'confirmSubscription'])->name('confirm');
 });
+
 // Review routes
 Route::middleware('auth')->group(function () {
     Route::get('/bookings/{booking}/review', [ReviewController::class, 'create'])->name('reviews.create');

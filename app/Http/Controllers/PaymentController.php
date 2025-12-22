@@ -622,4 +622,86 @@ class PaymentController extends Controller
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Render subscription checkout (card-only) for chosen tier and billing.
+     */
+    public function subscriptionCheckout(Request $request)
+    {
+        $tier = $request->query('tier', 'Gold');
+        $billing = $request->query('billing', 'Monthly');
+
+        $prices = [
+            'Silver' => ['Monthly' => 7.99, 'Annual' => 79.99],
+            'Gold' => ['Monthly' => 14.99, 'Annual' => 149.99],
+            'Platinum' => ['Monthly' => 24.99, 'Annual' => 249.99],
+        ];
+
+        if (!isset($prices[$tier])) {
+            $tier = 'Gold';
+        }
+        if (!in_array($billing, ['Monthly', 'Annual'])) {
+            $billing = 'Monthly';
+        }
+
+        $price = $prices[$tier][$billing]; // float euros
+
+        return view('payments.card-only', [
+            'tier' => $tier,
+            'billing' => $billing,
+            'price' => $price,
+        ]);
+    }
+
+    /**
+     * Confirm subscription after successful Stripe payment intent.
+     */
+    public function confirmSubscription(Request $request)
+    {
+        $validated = $request->validate([
+            'payment_intent_id' => 'required|string',
+            'tier' => 'required|string|in:Silver,Gold,Platinum',
+            'billing' => 'required|string|in:Monthly,Annual',
+            'price' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            $intent = PaymentIntent::retrieve($validated['payment_intent_id']);
+            if ($intent->status !== 'succeeded') {
+                return redirect()->route('subscription.plans')->with('error', 'Payment not completed.');
+            }
+
+            $user = Auth::user();
+            // Prevent duplicate active subscription for same user
+            if ($user->subscription && $user->subscription->member_status === 'Active') {
+                return redirect()->route('profile.show')->with('error', 'You already have an active subscription.');
+            }
+
+            $pricePaid = $validated['price'];
+            $nextPaymentDate = $validated['billing'] === 'Monthly' ? now()->addMonth()->toDateString() : now()->addYear()->toDateString();
+            $discount = $validated['tier'] === 'Silver' ? 5 : ($validated['tier'] === 'Gold' ? 10 : 20);
+
+            // Insert or update premium_subscriptions
+            DB::table('premium_subscriptions')->updateOrInsert(
+                ['user_id' => $user->id],
+                [
+                    'member_status' => 'Active',
+                    'tier' => $validated['tier'],
+                    'plan_type' => $validated['billing'] === 'Monthly' ? 'Monthly' : 'Annual',
+                    'price_paid' => $pricePaid,
+                    'discount_percentage' => $discount,
+                    'member_since' => now(),
+                    'next_payment_date' => $nextPaymentDate,
+                    'total_savings' => 0,
+                ]
+            );
+
+            return redirect()->route('profile.show')->with('success', 'Subscription activated.');
+
+        } catch (ApiErrorException $e) {
+            return redirect()->route('subscription.plans')->with('error', 'Stripe error: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            return redirect()->route('subscription.plans')->with('error', 'An error occurred: ' . $e->getMessage());
+        }
+    }
 }
