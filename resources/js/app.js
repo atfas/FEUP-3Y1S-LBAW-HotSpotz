@@ -138,6 +138,9 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .listen('.booking.new', (data) => {
                 handleNewNotification(data.notification);
+            })
+            .listen('.message.received', (data) => {
+                handleNewNotification(data.notification);
             });
     }
     

@@ -6,6 +6,8 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Listing;
 use App\Models\Booking;
+use App\Models\Notification;
+use App\Events\NotificationCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -221,14 +223,14 @@ class ChatController extends Controller
         ]);
         
         $otherUserId = $isGuest ? $conversation->host_id : $conversation->guest_id;
-        DB::table('notifications')->insert([
-            'type' => 'MessageReceived',
+        $notification = Notification::create([
+            'type' => Notification::TYPE_MESSAGE_RECEIVED,
             'content' => 'You have a new message',
-            'created_at' => now(),
-            'is_read' => false,
             'user_id' => $otherUserId,
             'message_id' => $message->id,
         ]);
+        
+        event(new NotificationCreated($notification));
         
         if (config('broadcasting.default') === 'pusher') {
             event(new \App\Events\MessageSent($message, $conversation));

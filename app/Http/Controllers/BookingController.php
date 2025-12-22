@@ -193,7 +193,7 @@ class BookingController extends Controller
                     $subscription->total_savings += $savings;
                     $subscription->save();
                 }
-            } // <-- THIS WAS THE MISSING CLOSING BRACE
+            }
 
             // Create notification for guest (booking confirmed)
             $guestNotification = Notification::create([
@@ -296,7 +296,7 @@ class BookingController extends Controller
         $perPage = 10;
         
         $bookings = Booking::where('guest_id', Auth::id())
-            ->where('status', '!=', 'Deleted')
+            ->whereNotIn('status', ['Deleted', 'Cancelled'])
             ->with(['availability.listing', 'review'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
@@ -322,7 +322,7 @@ class BookingController extends Controller
         });
 
         $totalBookings = Booking::where('guest_id', Auth::id())
-            ->where('status', '!=', 'Deleted')
+            ->whereNotIn('status', ['Deleted', 'Cancelled'])
             ->count();
         $activeBookings = Booking::where('guest_id', Auth::id())
             ->whereIn('status', ['PendingPayment', 'Confirmed'])
@@ -458,71 +458,59 @@ class BookingController extends Controller
     }
 
     /**
-     * Delete a booking.
+     * Delete a booking (soft delete with notifications).
      */
     public function destroy(Booking $booking)
     {
         $this->authorize('delete', $booking);
 
-        // Revert savings if applicable
-        $stayDuration = Carbon::parse($booking->check_in_date)->diffInDays(Carbon::parse($booking->check_out_date));
-        $originalPrice = $stayDuration * $booking->availability->price_per_night;
-        $savings = max(0, $originalPrice - $booking->total_price);
+        try {
+            DB::beginTransaction();
 
-        if ($savings > 0) {
-            $guest = $booking->guest;
-            if ($guest && $guest->subscription) {
-                $guest->subscription->total_savings = max(0, $guest->subscription->total_savings - $savings);
-                $guest->subscription->save();
-            }
-        }
+            // Load relationships for notification content
+            $booking->load('availability.listing');
+            $listing = $booking->availability->listing;
+            $hostId = $listing->host_id;
+            $guestId = $booking->guest_id;
 
-        // Revert savings if applicable
-        $stayDuration = Carbon::parse($booking->check_in_date)->diffInDays(Carbon::parse($booking->check_out_date));
-        $originalPrice = $stayDuration * $booking->availability->price_per_night;
-        $savings = max(0, $originalPrice - $booking->total_price);
+            // Revert savings if applicable
+            $this->revertBookingSavings($booking);
 
-        if ($savings > 0) {
-            $guest = $booking->guest;
-            if ($guest && $guest->subscription) {
-                $guest->subscription->total_savings = max(0, $guest->subscription->total_savings - $savings);
-                $guest->subscription->save();
-            }
-        }
-
-        // Load relationships for notification content
-        $booking->load('availability.listing');
-        $listing = $booking->availability->listing;
-        $hostId = $listing->host_id;
-        $guestId = $booking->guest_id;
-
-        // Create cancellation notification for host
-        $hostNotification = Notification::create([
-            'type' => Notification::TYPE_BOOKING_CANCELED,
-            'content' => "Booking for '{$listing->title}' ({$booking->check_in_date->format('M d, Y')} - {$booking->check_out_date->format('M d, Y')}) has been cancelled.",
-            'user_id' => $hostId,
-            'booking_id' => $booking->id,
-        ]);
-
-        // If the booking was cancelled by host, notify guest
-        if (Auth::id() !== $guestId) {
-            $guestNotification = Notification::create([
+            // Create cancellation notification for host
+            $hostNotification = Notification::create([
                 'type' => Notification::TYPE_BOOKING_CANCELED,
-                'content' => "Your booking for '{$listing->title}' has been cancelled.",
-                'user_id' => $guestId,
+                'content' => "Booking for '{$listing->title}' ({$booking->check_in_date->format('M d, Y')} - {$booking->check_out_date->format('M d, Y')}) has been cancelled.",
+                'user_id' => $hostId,
                 'booking_id' => $booking->id,
             ]);
-            event(new NotificationCreated($guestNotification));
+
+            // If the booking was cancelled by host, notify guest
+            if (Auth::id() !== $guestId) {
+                $guestNotification = Notification::create([
+                    'type' => Notification::TYPE_BOOKING_CANCELED,
+                    'content' => "Your booking for '{$listing->title}' has been cancelled.",
+                    'user_id' => $guestId,
+                    'booking_id' => $booking->id,
+                ]);
+                event(new NotificationCreated($guestNotification));
+            }
+
+            // Broadcast to host
+            event(new NotificationCreated($hostNotification));
+
+            // Soft delete by changing status
+            $booking->update(['status' => 'Deleted']);
+
+            DB::commit();
+            
+            return redirect()->route('bookings.index')
+                ->with('success', 'Booking cancelled successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'Failed to cancel booking: ' . $e->getMessage());
         }
-
-        // Broadcast to host
-        event(new NotificationCreated($hostNotification));
-
-        // Soft delete?
-        $booking->update(['status' => 'Deleted']);
-        
-        return redirect()->route('bookings.index')
-            ->with('success', 'Booking cancelled successfully.');
     }
 
     /**
@@ -564,20 +552,15 @@ class BookingController extends Controller
         try {
             DB::beginTransaction();
 
+            // Load booking relationships for notifications
+            $booking->load('availability.listing');
+            $listingTitle = $booking->availability->listing->title;
+            $guestId = $booking->guest_id;
+
             DB::table('bookings')->where('id', $booking->id)->update(['status' => 'Rejected']);
 
             // Revert savings if applicable
-            $stayDuration = Carbon::parse($booking->check_in_date)->diffInDays(Carbon::parse($booking->check_out_date));
-            $originalPrice = $stayDuration * $availability->price_per_night;
-            $savings = max(0, $originalPrice - $booking->total_price);
-
-            if ($savings > 0) {
-                $guest = \App\Models\User::find($booking->guest_id);
-                if ($guest && $guest->subscription) {
-                    $guest->subscription->total_savings = max(0, $guest->subscription->total_savings - $savings);
-                    $guest->subscription->save();
-                }
-            }
+            $this->revertBookingSavings($booking);
 
             // find last completed transaction for this booking
             $lastTx = DB::table('transactions')
@@ -603,6 +586,15 @@ class BookingController extends Controller
             ]);
 
             DB::table('transactions')->where('id', $lastTx->id)->update(['status' => 'Refunded']);
+
+            // Notify guest about the rejection and refund
+            $guestNotification = Notification::create([
+                'type' => Notification::TYPE_BOOKING_CANCELED,
+                'content' => "Your booking for '{$listingTitle}' has been rejected by the host. A full refund has been processed.",
+                'user_id' => $guestId,
+                'booking_id' => $booking->id,
+            ]);
+            event(new NotificationCreated($guestNotification));
 
             DB::commit();
 
@@ -669,6 +661,24 @@ class BookingController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Failed to confirm payment: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Revert premium subscription savings for a booking.
+     */
+    private function revertBookingSavings(Booking $booking): void
+    {
+        $stayDuration = Carbon::parse($booking->check_in_date)->diffInDays(Carbon::parse($booking->check_out_date));
+        $originalPrice = $stayDuration * $booking->availability->price_per_night;
+        $savings = max(0, $originalPrice - $booking->total_price);
+
+        if ($savings > 0) {
+            $guest = $booking->guest;
+            if ($guest && $guest->subscription) {
+                $guest->subscription->total_savings = max(0, $guest->subscription->total_savings - $savings);
+                $guest->subscription->save();
+            }
         }
     }
 }
