@@ -1,8 +1,8 @@
-<div id="payment-step" style="display:none; margin-top:1rem;">
+<div id="payment-step" style="display:none; margin-top:1rem; padding: 1.5rem;">
     <div class="mb-3 d-flex gap-2">
-        <button type="button" class="btn btn-outline-secondary w-100 payment-option" data-method="pay_on_arrival">Pay On Arrival</button>
-        <button type="button" class="btn btn-outline-secondary w-100 payment-option" data-method="credit_card">Credit Card</button>
-        <button type="button" class="btn btn-outline-secondary w-100 payment-option" data-method="bank_transfer">Bank Transfer</button>
+        <button type="button" class="btn btn-primary w-100 payment-option" data-method="pay_on_arrival">Pay On Arrival</button>
+        <button type="button" class="btn btn-primary w-100 payment-option" data-method="credit_card">Credit Card</button>
+        <button type="button" class="btn btn-primary w-100 payment-option" data-method="bank_transfer">Bank Transfer</button>
     </div>
 
     <div id="payment-forms">
@@ -74,4 +74,5 @@
     <div class="mt-3 d-flex gap-2">
         <button type="button" id="backToBooking" class="btn btn-outline-secondary">Back to booking selection</button>
     </div>
+    
 </div>

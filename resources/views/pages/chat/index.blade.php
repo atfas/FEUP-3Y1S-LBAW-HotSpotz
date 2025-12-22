@@ -2,10 +2,16 @@
 
 @section('content')
 <div class="container mt-5">
+    <!-- Breadcrumbs -->
+    @include('partials.page_header', [
+        'breadcrumbs' => [
+            ['title' => 'Messages', 'url' => null],
+        ]
+    ])
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-wine text-white">
                     <h4 class="mb-0"><i class="fa-solid fa-message"></i> Messages</h4>
                 </div>
                 <div class="card-body p-0">

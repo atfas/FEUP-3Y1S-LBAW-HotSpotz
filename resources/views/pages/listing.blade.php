@@ -279,7 +279,7 @@
                                 <form action="{{ route('chat.create') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="listing_id" value="{{ $listing->id }}">
-                                    <button type="submit" class="btn btn-outline-primary btn-lg w-100">
+                                    <button type="submit" class="btn btn-secondary btn-lg w-100">
                                         <i class="fa-solid fa-message"></i> Start Chat
                                     </button>
                                 </form>
@@ -288,7 +288,7 @@
                     @else
                         <div class="d-flex flex-column gap-2">
                             <a href="/booking/{{ $listing->id }}" class="btn btn-primary btn-lg">Reserve Now</a>
-                            <a href="{{ route('login') }}" class="btn btn-outline-primary btn-lg w-100">
+                            <a href="{{ route('login') }}" class="btn btn-secondary btn-lg w-100">
                                 <i class="fa-solid fa-message"></i> Start Chat
                             </a>
                         </div>
