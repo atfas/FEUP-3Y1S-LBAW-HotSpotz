@@ -98,10 +98,6 @@
                             <i class="fa-solid fa-credit-card me-2"></i>Proceed to Payment
                         </button>
                     </form>
-                    <p class="text-center text-muted mt-3 mb-0">
-                        <i class="fa-solid fa-shield-halved me-1"></i>
-                        Payment integration coming soon
-                    </p>
 
                 </div>
             </div>

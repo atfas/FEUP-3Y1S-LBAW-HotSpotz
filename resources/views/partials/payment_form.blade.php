@@ -72,7 +72,7 @@
     </div>
 
     <div class="mt-3 d-flex gap-2">
-        <button type="button" id="backToBooking" class="btn btn-outline-secondary">Back to booking selection</button>
+        <button type="button" id="backToBooking" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Back to booking selection</button>
     </div>
     
 </div>

@@ -8,7 +8,7 @@
             <div class="card shadow-sm">
                 <div class="card-body p-4">
                     <h4 class="mb-3">Subscribe — {{ $tier }} · {{ $billing }}</h4>
-                    <p class="mb-3">First payment: <strong>€{{ number_format($price, 2) }}</strong> <small class="text-muted">({{ $billing === 'Monthly' ? 'per month' : 'per year' }})</small></p>
+                    <p class="mb-3">Payment: <strong>€{{ number_format($price, 2) }}</strong> <small class="text-muted">({{ $billing === 'Monthly' ? 'per month' : 'per year' }})</small></p>
 
                     @include('partials.payment_form')
 
@@ -66,9 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Repurpose the Back button to go back to subscription plans/info
     const backBtn = document.getElementById('backToBooking');
     if (backBtn) {
-        backBtn.textContent = 'Back to subscription info';
-        backBtn.classList.remove('btn-outline-secondary');
-        backBtn.classList.add('btn-outline-primary');
+        backBtn.innerHTML = '<i class="fa-solid fa-arrow-left me-1"></i>Back to subscription info';
         backBtn.addEventListener('click', function () {
             window.location.href = '{{ route('subscription.plans') }}';
         });
@@ -93,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const payButton = document.getElementById('stripe-pay-button');
     if (payButton) {
         payButton.textContent = 'Pay €' + price.toFixed(2);
+        payButton.disabled = false;
     }
 
     // Handle submit using the existing stripe-pay-button from partial
