@@ -1174,6 +1174,13 @@ BEGIN
 END $$;
 COMMIT;
 
+INSERT INTO premium_subscriptions (user_id, member_status, tier, plan_type, price_paid, discount_percentage, member_since, next_payment_date, total_savings)
+VALUES 
+(3, 'Active', 'Gold', 'Monthly', 14.99, 10, '2025-06-01 10:00:00', '2026-01-16', 45.50),
+(4, 'Active', 'Platinum', 'Annual', 179.99, 20, '2025-03-15 14:30:00', '2026-03-15', 120.00),
+(12, 'Active', 'Silver', 'Monthly', 7.99, 5, '2025-09-01 09:00:00', '2026-01-01', 15.25);
+
+
 INSERT INTO availability (start_date, end_date, price_per_night, check_in_time, check_out_time, listing_id)
 VALUES (CURRENT_DATE - INTERVAL '10 days', CURRENT_DATE - INTERVAL '3 days', 160.00, '14:00', '12:00', 7);
 

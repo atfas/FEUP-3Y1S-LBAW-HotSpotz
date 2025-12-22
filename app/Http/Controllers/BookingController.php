@@ -110,7 +110,7 @@ class BookingController extends Controller
                     ->orWhereBetween('b.check_out_date', [$checkIn, $checkOut])
                     ->orWhere(function($q) use ($checkIn, $checkOut) {
                         $q->where('b.check_in_date', '<=', $checkIn)
-                          ->where('b.check_out_date', '>=', $checkOut);
+                        ->where('b.check_out_date', '>=', $checkOut);
                     });
             })
             ->exists();
@@ -184,13 +184,14 @@ class BookingController extends Controller
                     'booking_id' => $booking->id,
                 ]);
 
-            $booking->update(['status' => 'Confirmed']);
+                $booking->update(['status' => 'Confirmed']);
 
-            if ($savings > 0) {
-                $subscription = Auth::user()->subscription;
-                $subscription->total_savings += $savings;
-                $subscription->save();
-            }
+                if ($savings > 0) {
+                    $subscription = Auth::user()->subscription;
+                    $subscription->total_savings += $savings;
+                    $subscription->save();
+                }
+            } // <-- THIS WAS THE MISSING CLOSING BRACE
 
             DB::commit();
 
