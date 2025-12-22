@@ -58,11 +58,6 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link position-relative" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">
                 Reports
-                @if(isset($pendingReportsCount) && $pendingReportsCount > 0)
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        {{ $pendingReportsCount }}
-                    </span>
-                @endif
             </button>
         </li>
     </ul>
