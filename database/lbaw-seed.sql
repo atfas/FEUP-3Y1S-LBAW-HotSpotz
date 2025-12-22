@@ -1162,50 +1162,40 @@ DECLARE
     checkout_date DATE;
     checkin_date DATE;
 BEGIN
-    -- Use listing 7 (Lakeview Cottage) with availability_id 20
-    -- Availability: 2026-03-01 to 2026-03-07
+
     available_listing_id := 7;
     available_availability_id := 20;
-    available_host_id := 14; -- Laura Palmer
+    available_host_id := 14;
     
-    -- Get the availability dates
+
     SELECT start_date, end_date INTO avail_start_date, avail_end_date
     FROM availability WHERE id = available_availability_id;
-    
-    -- Set dates within the availability range
-    -- But we need dates in the past for a completed booking
-    -- Let's create a new availability in the past first
     
 END $$;
 COMMIT;
 
--- Let's create a new availability in the past for listing 7
 INSERT INTO availability (start_date, end_date, price_per_night, check_in_time, check_out_time, listing_id)
 VALUES (CURRENT_DATE - INTERVAL '10 days', CURRENT_DATE - INTERVAL '3 days', 160.00, '14:00', '12:00', 7);
 
--- Now create the booking
 BEGIN;
 DO $$
 DECLARE 
     new_booking_id INT;
     new_availability_id INT;
     alice_id INT := 3;
-    available_host_id INT := 14; -- Laura Palmer
+    available_host_id INT := 14;
     checkout_date DATE;
     checkin_date DATE;
 BEGIN
-    -- Get the newly created availability ID
     SELECT id INTO new_availability_id 
     FROM availability 
     WHERE listing_id = 7 
     AND start_date = CURRENT_DATE - INTERVAL '10 days'
     LIMIT 1;
-    
-    -- Set booking dates within this availability
+
     checkin_date := CURRENT_DATE - INTERVAL '7 days';
     checkout_date := CURRENT_DATE - INTERVAL '4 days';
     
-    -- Create a completed booking for Alice
     INSERT INTO bookings (id, check_in_date, check_out_date, num_guests, status, total_price, availability_id, guest_id, created_at)
     VALUES (
         200,
@@ -1213,14 +1203,13 @@ BEGIN
         checkout_date, 
         2, 
         'Completed', 
-        480.00, -- 3 nights * 160
+        480.00,
         new_availability_id, 
         alice_id,
         checkin_date - INTERVAL '2 days'
     )
     RETURNING id INTO new_booking_id;
-    
-    -- Create a completed transaction
+
     INSERT INTO transactions (amount, transaction_method, type, status, paid_at, booking_id)
     VALUES (
         480.00, 
@@ -1237,6 +1226,5 @@ BEGIN
 END $$;
 COMMIT;
 
--- Update sequences
 SELECT setval('availability_id_seq', (SELECT MAX(id) FROM availability));
 SELECT setval('bookings_id_seq', (SELECT MAX(id) FROM bookings));
