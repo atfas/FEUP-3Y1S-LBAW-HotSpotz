@@ -41,7 +41,7 @@
             @if(!$notification->is_read)
                 <form action="{{ route('notifications.read', $notification) }}" method="POST" class="d-inline">
                     @csrf
-                    <button type="submit" class="btn btn-sm btn-outline-primary" style="width: 32px; height: 32px; padding: 0; border-radius: 30%; border-width: 2px;" title="Mark as read">
+                    <button type="submit" class="btn btn-sm text-primary" title="Mark as read">
                         <i class="fa-solid fa-eye"></i>
                     </button>
                 </form>
@@ -49,7 +49,7 @@
             <form action="{{ route('notifications.destroy', $notification) }}" method="POST" class="d-inline">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="btn btn-sm btn-outline-danger" style="width: 32px; height: 32px; padding: 0; border-radius: 30%; border-width: 2px;" title="Delete" onclick="return confirm('Delete this notification?')">
+                <button type="submit" class="btn btn-sm text-danger" title="Delete" onclick="return confirm('Delete this notification?')">
                     <i class="fa-solid fa-trash"></i>
                 </button>
             </form>
