@@ -20,6 +20,12 @@ class BookingController extends Controller
      */
     public function show(Listing $listing): View
     {
+        // Only allow logged-in users who are not the host to view the booking form
+        $userId = Auth::id();
+        if (!$userId || $listing->host_id === $userId) {
+            abort(403, 'You are not authorized to make a booking for this listing.');
+        }
+
         // Load the listing with its availabilities
         $listing->load('availabilities');
 
@@ -272,13 +278,68 @@ class BookingController extends Controller
     public function index(): View
     {
         $perPage = 10;
-        
-        $bookings = Booking::where('guest_id', Auth::id())
-            ->with(['availability.listing', 'review'])
+
+        $userId = Auth::id();
+
+                // Include bookings where the user is the guest OR where the user has a pending assigned FullPayment transaction for the booking
+                // Note: do NOT include bookings where the user's assigned transaction is already Completed (other users shouldn't see completed bookings)
+                $bookingsQuery = Booking::where(function($q) use ($userId) {
+                        $q->where('guest_id', $userId)
+                              ->orWhereExists(function($sq) use ($userId) {
+                                  $sq->select(DB::raw(1))
+                                     ->from('transactions')
+                                     ->whereColumn('transactions.booking_id', 'bookings.id')
+                                     ->where('transactions.user_id', $userId)
+                                     ->whereIn('transactions.status', ['Pending', 'Completed'])
+                                     ->where('transactions.type', 'FullPayment');
+                              });
+                });
+
+        $bookings = $bookingsQuery->with(['availability.listing', 'review'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
 
-        $bookings->getCollection()->transform(function ($booking) {
+        // Counts should reflect the bookings visible to the user
+        $totalBookings = (clone $bookingsQuery)->count();
+        $activeBookings = (clone $bookingsQuery)->whereIn('status', ['PendingPayment', 'Confirmed'])->count();
+
+        // Determine which of the paginated bookings the current user has already paid for (completed per-user tx)
+        $pageBookingIds = $bookings->getCollection()->pluck('id')->all();
+        $paidBookingIds = [];
+        if (!empty($pageBookingIds)) {
+            $paidBookingIds = DB::table('transactions')
+                ->whereIn('booking_id', $pageBookingIds)
+                ->where('user_id', $userId)
+                ->where('status', 'Completed')
+                ->where('type', 'FullPayment')
+                ->pluck('booking_id')
+                ->unique()
+                ->toArray();
+        }
+
+        // Determine which of the paginated bookings have any transaction assigned to the current user
+        $assignedBookingIds = [];
+        if (!empty($pageBookingIds)) {
+            $assignedBookingIds = DB::table('transactions')
+                ->whereIn('booking_id', $pageBookingIds)
+                ->where('user_id', $userId)
+                ->pluck('booking_id')
+                ->unique()
+                ->toArray();
+        }
+
+        // Determine which of the paginated bookings have any pending transactions (split flows)
+        $pendingBookingIds = [];
+        if (!empty($pageBookingIds)) {
+            $pendingBookingIds = DB::table('transactions')
+                ->whereIn('booking_id', $pageBookingIds)
+                ->where('status', 'Pending')
+                ->pluck('booking_id')
+                ->unique()
+                ->toArray();
+        }
+
+        $bookings->getCollection()->transform(function ($booking) use ($paidBookingIds, $assignedBookingIds, $pendingBookingIds) {
             return [
                 'id' => $booking->id,
                 'listing_title' => $booking->availability->listing->title,
@@ -295,13 +356,11 @@ class BookingController extends Controller
                 'review_id' => $booking->review?->id,
                 'review_created_at' => $booking->review?->created_at?->format('Y-m-d H:i:s'),
                 'check_out_date_raw' => $booking->check_out_date,
+                'user_paid_part' => in_array($booking->id, $paidBookingIds),
+                'has_assigned_tx' => in_array($booking->id, $assignedBookingIds),
+                'has_pending_tx' => in_array($booking->id, $pendingBookingIds),
             ];
         });
-
-        $totalBookings = Booking::where('guest_id', Auth::id())->count();
-        $activeBookings = Booking::where('guest_id', Auth::id())
-            ->whereIn('status', ['PendingPayment', 'Confirmed'])
-            ->count();
 
         return view('pages.bookings', compact('bookings', 'totalBookings', 'activeBookings'));
     }
@@ -556,7 +615,6 @@ class BookingController extends Controller
         $booking = Booking::find($bookingId);
         if (!$booking) return redirect()->back()->with('error', 'Booking not found.');
 
-        // load availability -> listing to verify host
         $availability = DB::table('availability')->where('id', $booking->availability_id)->first();
         if (!$availability) return redirect()->back()->with('error', 'Associated availability not found.');
 
@@ -574,7 +632,6 @@ class BookingController extends Controller
         try {
             DB::beginTransaction();
 
-            // Find a pending transaction (bank transfer) and mark it completed
             $pendingTx = DB::table('transactions')
                 ->where('booking_id', $booking->id)
                 ->where('status', 'Pending')
@@ -587,13 +644,11 @@ class BookingController extends Controller
                 return redirect()->back()->with('error', 'No pending transaction found for this booking to confirm.');
             }
 
-            // Mark transaction as completed and set paid_at
             DB::table('transactions')->where('id', $pendingTx->id)->update([
                 'status' => 'Completed',
                 'paid_at' => DB::raw('CURRENT_TIMESTAMP'),
             ]);
 
-            // Update booking status to Confirmed
             DB::table('bookings')->where('id', $booking->id)->update(['status' => 'Confirmed']);
 
             DB::commit();

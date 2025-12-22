@@ -1,4 +1,4 @@
-<div class="col-md-6">
+<div class="col-md-6 pb-5">
     <div class="card shadow-lg border-0">
         <div class="card-body p-4">
             <h3 class="card-title mb-4">
@@ -72,10 +72,10 @@
                                     </div>
                                     <input type="hidden" name="total_price" id="total_price_input" value="">
                                 </div>
-                </div>
-                <div id="booking-controls">                    <button type="button" id="selectPaymentBtn" class="btn btn-primary btn-lg w-100">
-                        <i class="fa-solid fa-credit-card"></i> Select Payment
-                    </button>
+                                <div id="booking-controls">                    <button type="button" id="selectPaymentBtn" class="btn btn-primary btn-lg w-100">
+                                        <i class="fa-solid fa-credit-card"></i> Select Payment
+                                    </button>
+                                </div>
                 </div>
 
                 @include('partials.payment_form')

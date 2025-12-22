@@ -496,7 +496,7 @@ class ListingController extends Controller
                 'users.email as guest_email',
                 'availability.start_date as avail_start',
                 'availability.end_date as avail_end',
-                DB::raw("(SELECT COUNT(1) FROM transactions t WHERE t.booking_id = bookings.id AND t.status = 'Pending') as pending_txn_count")
+                DB::raw("(SELECT COUNT(1) FROM transactions t WHERE t.booking_id = bookings.id AND t.status = 'Pending' AND (t.user_id IS NULL OR t.user_id = (SELECT host_id FROM listings WHERE id = availability.listing_id))) as pending_txn_count")
             )
             ->get();
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Transaction;
+use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
@@ -12,8 +13,14 @@ class TransactionController extends Controller
     {
         $perPage = 12;
 
-        $baseQuery = Transaction::whereHas('booking', function ($q) {
-            $q->where('guest_id', Auth::id());
+        $userId = Auth::id();
+
+        $baseQuery = Transaction::where(function ($q) use ($userId) {
+            $q->whereNull('user_id')
+              ->whereHas('booking', function ($bq) use ($userId) {
+                  $bq->where('guest_id', $userId);
+              })
+            ->orWhere('user_id', $userId);
         });
 
         $totalTransactions = (clone $baseQuery)->count();
@@ -36,5 +43,29 @@ class TransactionController extends Controller
         return view('pages.transactions', compact(
             'payments', 'refunds', 'totalTransactions', 'pendingTransactions', 'totalPayments', 'totalRefunds'
         ));
+    }
+
+    public function payForm(Transaction $transaction)
+    {
+        // Only allow viewing/ paying if transaction is pending and user is allowed
+        $userId = Auth::id();
+
+        if ($transaction->status !== 'Pending') {
+            return redirect()->route('transactions.index')->with('error', 'This transaction is not pending payment.');
+        }
+
+        // If transaction is scoped to a user, only that user can access
+        if ($transaction->user_id !== null) {
+            if ($transaction->user_id != $userId) {
+                abort(403);
+            }
+        } else {
+            // Otherwise, only the booking guest may access
+            if (!$transaction->booking || $transaction->booking->guest_id != $userId) {
+                abort(403);
+            }
+        }
+
+        return view('pages.transaction-pay', ['transaction' => $transaction]);
     }
 }

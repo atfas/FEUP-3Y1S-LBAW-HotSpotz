@@ -1,8 +1,8 @@
-<div id="payment-step" style="display:none; margin-top:1rem;">
+<div id="payment-step" style="display:none; margin-top:1rem; padding: 1.5rem;">
     <div class="mb-3 d-flex gap-2">
-        <button type="button" class="btn btn-outline-secondary w-100 payment-option" data-method="pay_on_arrival">Pay On Arrival</button>
-        <button type="button" class="btn btn-outline-secondary w-100 payment-option" data-method="credit_card">Credit Card</button>
-        <button type="button" class="btn btn-outline-secondary w-100 payment-option" data-method="bank_transfer">Bank Transfer</button>
+        <button type="button" class="btn btn-primary w-100 payment-option" data-method="pay_on_arrival">Pay On Arrival</button>
+        <button type="button" class="btn btn-primary w-100 payment-option" data-method="credit_card">Credit Card</button>
+        <button type="button" class="btn btn-primary w-100 payment-option" data-method="bank_transfer">Bank Transfer</button>
     </div>
 
     <div id="payment-forms">
@@ -13,6 +13,21 @@
 
         <div id="credit_card_box" class="payment-box" style="display:none;">
             <p class="mb-2">Final price: <strong class="final-price">$0.00</strong></p>
+            <div class="mb-3">
+                <button type="button" id="toggle-split-btn" class="btn btn-sm btn-outline-primary">Split payment</button>
+            </div>
+            <div id="split-section" style="display:none;">
+                <label class="form-label">Split with other payers (emails)</label>
+                <div id="split-emails-container">
+                    <div class="input-group mb-2 split-email-row">
+                        <input type="email" class="form-control split-email-input" placeholder="payer@example.com" />
+                        <span class="input-group-text split-email-status" style="width:2.5rem"></span>
+                        <div class="invalid-feedback d-block split-email-error" style="display:none"></div>
+                    </div>
+                </div>
+                <div class="form-text small">Add emails of other payers; a new field appears when the previous email is valid.</div>
+                <hr>
+            </div>
             <div class="mb-2">
                 <label class="form-label">Cardholder Name</label>
                 <input type="text" class="form-control" id="cc_name" placeholder="Full name on card">
@@ -59,4 +74,5 @@
     <div class="mt-3 d-flex gap-2">
         <button type="button" id="backToBooking" class="btn btn-outline-secondary">Back to booking selection</button>
     </div>
+    
 </div>

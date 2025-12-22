@@ -14,14 +14,53 @@ document.addEventListener('DOMContentLoaded', function () {
     let cardCvcElement = null;
 
     // --- Initial Setup ---
-    if (!repaymentForm || !window.stripePublishableKey || !window.bookingId || window.bookingTotalPrice === undefined) {
+    // Support both booking-based repayment pages and transaction-based pages
+    const hasBooking = (typeof window.bookingId !== 'undefined' && typeof window.bookingTotalPrice !== 'undefined');
+    const hasTransaction = (typeof window.transactionId !== 'undefined' && typeof window.transactionAmount !== 'undefined');
+
+    if (!repaymentForm || !window.stripePublishableKey || (!hasBooking && !hasTransaction)) {
         console.error('Repayment page is missing required data.');
         return;
     }
 
-    // Set the final price on all elements
-    const formattedPrice = '$' + Number(window.bookingTotalPrice).toFixed(2);
+    // On repayment/transaction pages we must hide the split-payment UI (split is only for booking creation)
+    const toggleSplitBtn_r_hide = document.getElementById('toggle-split-btn');
+    if (toggleSplitBtn_r_hide) toggleSplitBtn_r_hide.style.display = 'none';
+
+    // Set the final price on all elements (use transactionAmount if present)
+    const displayAmount = hasTransaction ? window.transactionAmount : window.bookingTotalPrice;
+    const formattedPrice = '$' + Number(displayAmount).toFixed(2);
     finalPriceEls.forEach(el => el.textContent = formattedPrice);
+
+    // Adjust back button: on transaction pay page go back to transactions index
+    const backBtn = document.getElementById('backToBooking');
+    if (backBtn) {
+        if (hasTransaction) {
+            backBtn.textContent = 'Back';
+            backBtn.addEventListener('click', async function(){
+                try {
+                    const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    await fetch('/repayment/record-failure', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': token,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({ transaction_id: window.transactionId }),
+                    });
+                } catch (e) {
+                    // ignore errors, still redirect
+                }
+                window.location.href = '/transactions';
+            });
+        } else {
+            // default behaviour: go back to bookings list
+            backBtn.addEventListener('click', function(){ window.location.href = '/bookings'; });
+        }
+    }
+
+    // Split payment is only available during booking creation; repayment page must not show split UI.
 
 
     // --- Functions ---
@@ -81,6 +120,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             // 1. Create a Payment Intent
+            // Determine amount to charge: transactionAmount (if paying a specific txn) or bookingTotalPrice
+            const amountToCharge = (typeof window.transactionAmount !== 'undefined') ? window.transactionAmount : window.bookingTotalPrice;
             const intentResponse = await fetch('/payments/create-intent', {
                 method: 'POST',
                 headers: {
@@ -88,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     'X-CSRF-TOKEN': token,
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({ amount: window.bookingTotalPrice }),
+                body: JSON.stringify({ amount: amountToCharge }),
             });
 
             const intentData = await intentResponse.json();
@@ -111,6 +152,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (confirmError) throw confirmError;
 
             // 3. Confirm the repayment on our backend
+            const payload = {
+                payment_intent_id: paymentIntent.id,
+                booking_id: window.bookingId,
+            };
+            if (typeof window.transactionId !== 'undefined') payload.transaction_id = window.transactionId;
+
             const confirmResponse = await fetch(`/repayment/confirm`, {
                 method: 'POST',
                 headers: {
@@ -121,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify({
                     payment_intent_id: paymentIntent.id,
                     booking_id: window.bookingId,
+                    transaction_id: window.transactionId,
                 }),
             });
 

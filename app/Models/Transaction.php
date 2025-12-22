@@ -17,6 +17,7 @@ class Transaction extends Model
         'paid_at',
         'refund_id',
         'booking_id',
+        'user_id',
     ];
 
     public $timestamps = false;

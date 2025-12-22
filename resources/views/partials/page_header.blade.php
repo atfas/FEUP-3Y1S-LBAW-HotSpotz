@@ -1,6 +1,17 @@
 <div>
     <div class="py-2">
         <!-- Breadcrumbs -->
+        @php
+            if (!isset($breadcrumbs) || !is_array($breadcrumbs)) {
+                $currentName = trim((
+                    optional(request()->route())->getName() ?: request()->path()
+                ));
+                $breadcrumbs = [
+                    ['title' => 'Home', 'url' => route('home')],
+                    ['title' => ucfirst(str_replace(['.','-','/'], ' ', $currentName)), 'url' => null]
+                ];
+            }
+        @endphp
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0 ">
                 <li class="breadcrumb-item">
