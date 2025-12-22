@@ -63,6 +63,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (arrivalBox) arrivalBox.style.display = 'none';
     if (bankBox) bankBox.style.display = 'none';
 
+    // Repurpose the Back button to go back to subscription plans/info
+    const backBtn = document.getElementById('backToBooking');
+    if (backBtn) {
+        backBtn.textContent = 'Back to subscription info';
+        backBtn.classList.remove('btn-outline-secondary');
+        backBtn.classList.add('btn-outline-primary');
+        backBtn.addEventListener('click', function () {
+            window.location.href = '{{ route('subscription.plans') }}';
+        });
+    }
+
     const stripe = Stripe(stripeKey);
     const elements = stripe.elements();
 
