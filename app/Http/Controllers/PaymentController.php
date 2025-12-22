@@ -646,7 +646,7 @@ class PaymentController extends Controller
 
         $price = $prices[$tier][$billing]; // float euros
 
-        return view('payments.card-only', [
+        return view('pages.card-only', [
             'tier' => $tier,
             'billing' => $billing,
             'price' => $price,
