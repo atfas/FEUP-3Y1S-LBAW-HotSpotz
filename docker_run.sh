@@ -12,12 +12,13 @@ cd /var/www
 # Ensure Laravel runtime directories exist
 mkdir -p storage/framework/{cache,sessions,views} bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
+chmod -R ug+rwX storage bootstrap/cache
 
 # Clear and cache Laravel configuration for faster boot
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
-php artisan cache:clear
+#php artisan cache:clear
 
 # Rebuild optimized caches
 php artisan config:cache
