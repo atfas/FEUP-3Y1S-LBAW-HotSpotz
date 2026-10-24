@@ -1,93 +1,255 @@
-# lbaw2581
+# HotSpotz
 
+HotSpotz is a web platform for short-term accommodation rentals. Guests find places to stay and book them. Hosts list and manage their properties. Administrators moderate the platform.
 
+It was built for the **LBAW** course (Laboratório de Bases de Dados e Aplicações Web) at FEUP, 3rd year, 1st semester (group lbaw2581).
 
-## Getting started
+🎬 A video demo is available at [`wikiAssets/lbaw2581.mp4`](wikiAssets/lbaw2581.mp4).
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+---
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## Features
 
-## Add your files
+**Guests**
+- Register, log in, and recover a password by email
+- Search listings by location, dates and filters
+- View listing pages with photos, availability calendar and reviews
+- Book a stay and pay online (Stripe)
+- Manage bookings: edit, cancel, repay
+- Leave reviews, then edit or report them
+- Save favourite listings
+- Real-time chat with hosts
+- Real-time notifications (Pusher)
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+**Hosts**
+- Apply to become a host (an admin reviews the application)
+- Create, edit and delete listings with photos and availability
+- Accept or reject reservations and confirm payments
+- Host dashboard with reservations and statistics
+- Reply to reviews
+- Premium subscription plans
+
+**Administrators**
+- Approve or reject host applications
+- Search users, block or unblock them, and grant or revoke admin rights
+- Handle reported reviews (dismiss or remove)
+
+## Tech stack
+
+| Layer      | Technology |
+|------------|------------|
+| Backend    | PHP 8.3, [Laravel 12](https://laravel.com/) |
+| Database   | PostgreSQL 16 (schema `lbaw2581`) |
+| Frontend   | Blade templates, Bootstrap 5, Sass, Tailwind, FullCalendar, Vite |
+| Real-time  | Pusher + Laravel Echo |
+| Payments   | Stripe |
+| Dev tools  | Docker Compose (PostgreSQL + pgAdmin) |
+
+## Project structure
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.up.pt/lbaw/lbaw2526/lbaw2581.git
-git branch -M main
-git push -uf origin main
+app/                  Models, Controllers, Policies, Events, Mail
+database/
+  database-creation.sql   Schema (tables, triggers, indexes)
+  database-populate.sql   Sample data
+  lbaw-seed.sql           Combined script used by `php artisan db:seed`
+  photos/                 Listing photos copied to storage when seeding
+resources/views/      Blade templates (pages, partials, layouts, emails)
+resources/sass, js/   Frontend sources compiled by Vite
+routes/web.php        Web routes
+a7_openapi.yaml       OpenAPI specification of the web resources
+Dockerfile            Production image (PHP-FPM + Nginx)
+docker-compose.yaml   Local PostgreSQL + pgAdmin
 ```
 
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://gitlab.up.pt/lbaw/lbaw2526/lbaw2581/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+---
 
 ## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### 1. Prerequisites
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Install the following:
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+- [PHP](https://www.php.net/downloads) **8.3+** with the `mbstring`, `xml`, `pgsql` and `curl` extensions
+- [Composer](https://getcomposer.org/) **2.2+**
+- [Node.js](https://nodejs.org/) **18+** and npm
+- [Docker Desktop](https://docs.docker.com/desktop/)
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+**macOS (Homebrew):**
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+```bash
+brew install php@8.3 composer node
+```
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+**Ubuntu 24.04+:**
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+```bash
+sudo apt update
+sudo apt install git composer php8.3 php8.3-mbstring php8.3-xml php8.3-pgsql php8.3-curl nodejs npm
+```
 
-## License
-For open source projects, say how it is licensed.
+On **Windows**, install PHP, Composer and Node natively and use Docker Desktop, or use WSL with Ubuntu 24.04 and follow the Ubuntu steps.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+### 2. Clone the repository
+
+```bash
+git clone https://github.com/Atfas/FEUP-3Y1S-LBAW.git
+cd FEUP-3Y1S-LBAW
+```
+
+### 3. Install dependencies
+
+```bash
+composer install
+npm install
+```
+
+### 4. Configure the environment
+
+The `.env` file is not in the repository, so create one in the project root. This minimal local configuration matches the Docker Compose database:
+
+```dotenv
+APP_NAME=HotSpotz
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=pgsql
+DB_HOST=localhost
+DB_PORT=5432
+DB_DATABASE=postgres
+DB_SCHEMA=lbaw2581
+DB_USERNAME=postgres
+DB_PASSWORD=password
+
+SESSION_DRIVER=file
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+FILESYSTEM_DISK=public
+
+# Email (password recovery, notifications). Use "log" to write emails to storage/logs
+MAIL_MAILER=log
+MAIL_FROM_ADDRESS=noreply@hotspotz.com
+MAIL_FROM_NAME="${APP_NAME}"
+
+# Real-time chat and notifications (optional, https://pusher.com)
+BROADCAST_CONNECTION=pusher
+PUSHER_APP_ID=
+PUSHER_APP_KEY=
+PUSHER_APP_SECRET=
+PUSHER_APP_CLUSTER=eu
+VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+
+# Payments (optional, use Stripe test keys from https://dashboard.stripe.com/test/apikeys)
+STRIPE_KEY=
+STRIPE_SECRET=
+```
+
+Then generate the application key:
+
+```bash
+php artisan key:generate
+```
+
+> Payments need the Stripe keys. Live chat and notifications need the Pusher keys. The rest of the application runs without them.
+
+---
+
+## Running the project
+
+### 1. Start the database
+
+```bash
+docker compose up -d
+```
+
+This starts:
+- **PostgreSQL** on `localhost:5432` (user `postgres`, password `password`)
+- **pgAdmin** at <http://localhost:4321>. To connect to the database, add a server with host `postgres`, user `postgres` and password `password`.
+
+### 2. Create and seed the database
+
+```bash
+php artisan db:seed
+php artisan storage:link
+```
+
+`db:seed` runs [`database/lbaw-seed.sql`](database/lbaw-seed.sql). It recreates the `lbaw2581` schema, loads the sample data and copies the listing photos into public storage. Run it again whenever you want to reset the data.
+
+### 3. Build the frontend assets
+
+For development with hot reload, in a separate terminal:
+
+```bash
+npm run dev
+```
+
+Or build once:
+
+```bash
+npm run build
+```
+
+### 4. Start the application
+
+```bash
+php artisan serve
+```
+
+Open <http://localhost:8000>.
+
+### Test accounts
+
+All seeded accounts use the password **`password123`**.
+
+| Role  | Email |
+|-------|-------|
+| Admin | `admin@stay.com` |
+| Admin | `super@stay.com` |
+| Host (approved) | `isaac@host.com` |
+| Host (pending application) | `david@host.com` |
+| Guest | `alice@guest.com` |
+| Guest | `bob@guest.com` |
+
+### Stopping
+
+Press `Ctrl+C` to stop `php artisan serve` and `npm run dev`. Then stop the containers:
+
+```bash
+docker compose down
+```
+
+---
+
+## Running with Docker (production image)
+
+The [`Dockerfile`](Dockerfile) builds a self-contained image with PHP-FPM and Nginx. It expects a `.env.production` file in the project root that points at a reachable PostgreSQL database.
+
+```bash
+npm run build
+docker build -t hotspotz .
+docker run -it -p 8000:80 --name hotspotz hotspotz
+```
+
+The application is then available at <http://localhost:8000>.
+
+## Tests
+
+```bash
+php artisan test
+```
+
+---
+
+## Documentation
+
+- [`README_lbaw.md`](README_lbaw.md): the original LBAW Laravel template guide (code structure, configuration, publishing)
+- [`a7_openapi.yaml`](a7_openapi.yaml): OpenAPI specification
+- [`sitemap.png`](sitemap.png) and [`Hotspotz.drawio.svg`](Hotspotz.drawio.svg): sitemap and diagrams
+- [`wikiAssets/`](wikiAssets): screenshots, accessibility and usability checklists, HTML/CSS validation reports
+
+## Authors
+
+Group **lbaw2581**, FEUP 2025/26.
